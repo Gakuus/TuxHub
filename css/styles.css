@@ -1,0 +1,118 @@
+/* Importar una fuente de Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
+
+/* --- Custom Properties (Requerimiento) --- */
+:root {
+    --primary-color: #2A52BE; /* Azul corporativo */
+    --dark-bg: #212529; /* Color oscuro para el sidebar */
+    --light-bg: #F4F6F8; /* Fondo principal claro */
+    --text-color-light: #f8f9fa;
+    --text-color-dark: #343a40;
+    --font-family: 'Poppins', sans-serif;
+}
+
+body {
+    font-family: var(--font-family);
+    background-color: var(--light-bg);
+    color: var(--text-color-dark);
+}
+
+/* --- Layout con Flexbox (Requerimiento) --- */
+.sidebar {
+    width: 250px;
+    height: 100vh; /* Ocupa toda la altura de la pantalla */
+    position: sticky; /* Se mantiene fijo al hacer scroll */
+    top: 0;
+    color: var(--text-color-light);
+}
+
+.sidebar .sidebar-header {
+    padding: 1.5rem;
+    text-align: center;
+    border-bottom: 1px solid #495057;
+}
+
+.sidebar .nav-link {
+    color: var(--text-color-light);
+    padding: 1rem 1.5rem;
+    display: flex;
+    align-items: center;
+}
+
+.sidebar .nav-link i {
+    margin-right: 10px; /* Espacio entre ícono y texto */
+    font-size: 1.2rem;
+}
+
+/* --- Pseudoclases para interactividad (Requerimiento) --- */
+.sidebar .nav-link:hover, .sidebar .nav-link.active {
+    background-color: var(--primary-color);
+    border-radius: 5px;
+    margin: 0 10px;
+}
+
+.main-header {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* --- Estilos para Login Minimalista y Centrado --- */
+
+.login-body-minimalist {
+    display: flex;
+    align-items: center; /* Centrado vertical */
+    justify-content: center; /* Centrado horizontal */
+    height: 100vh;
+    /* Fondo con un gradiente suave y sutil */
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+}
+
+.login-card-minimalist {
+    width: 100%;
+    max-width: 420px;
+    padding: 3rem;
+    background: #ffffff;
+    border-radius: 15px; /* Bordes más redondeados */
+    /* Sombra suave para dar el efecto "flotante" */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    border: 1px solid #e9ecef; /* Borde muy sutil */
+}
+
+.login-icon {
+    font-size: 3rem; /* Ícono grande */
+    color: var(--primary-color); /* Usamos el color primario de la marca */
+}
+
+/* Estilo para los campos del formulario */
+.login-card-minimalist .form-control {
+    border-radius: 8px;
+    padding: 1.2rem;
+}
+
+/* Estilo del botón */
+.login-card-minimalist .btn-primary {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    border-radius: 8px;
+    padding: 0.8rem;
+    font-weight: 600;
+    transition: transform 0.2s ease; /* Transición suave */
+}
+
+/* Efecto al pasar el mouse sobre el botón (Pseudoclase) */
+.login-card-minimalist .btn-primary:hover {
+    transform: translateY(-2px); /* Eleva el botón ligeramente */
+    box-shadow: 0 4px 15px rgba(42, 82, 190, 0.3);
+}
+
+
+/* --- Media Query para diseño responsivo (Requerimiento) --- */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+    }
+    .d-flex {
+        flex-direction: column;
+    }
+}
