@@ -1,58 +1,99 @@
 <?php
-// backend/handle_register.php
+// Protecciones básicas
+require_once __DIR__ . '/auth_admin.php';
+require_once __DIR__ . '/db_connection.php';
 
-// 1. ¡Protegemos también este script!
-// Así evitamos que alguien envíe datos a este archivo sin ser admin.
-require_once 'auth_admin.php';
+session_start(); 
 
-// 2. Incluir la conexión a la BD
-require_once 'db_connection.php';
-
-// 3. Verificar que la solicitud sea por método POST
+// Validamos que sea POST
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
-    header("Location: registrar_usuario.php");
+    header("Location: ../pages/registrar_usuario.php");
     exit();
 }
 
-// 4. Recoger y validar los datos del formulario
-$nombre = trim($_POST['nombre']);
-$cedula = trim($_POST['cedula']);
-$password = $_POST['password']; // No usamos trim en la contraseña
-$rol = trim($_POST['rol']);
+// Activamos excepciones para mysqli
+mysqli_report(MYSQLI_REPORT_ERROR | MYSQLI_REPORT_STRICT);
 
-if (empty($nombre) || empty($cedula) || empty($password) || empty($rol)) {
-    header("Location: registrar_usuario.php?error=campos_vacios");
+try {
+    // Sanitización de entrada
+    $nombre   = isset($_POST['nombre']) ? trim($_POST['nombre']) : '';
+    $cedula   = isset($_POST['cedula']) ? trim($_POST['cedula']) : '';
+    $email    = isset($_POST['email']) ? trim($_POST['email']) : null;
+    $password = isset($_POST['password']) ? $_POST['password'] : '';
+    $rol      = isset($_POST['rol']) ? trim($_POST['rol']) : '';
+    $grupo_id = (!empty($_POST['grupo_id'])) ? intval($_POST['grupo_id']) : null;
+
+    // Validaciones mínimas
+    if ($nombre === '' || $cedula === '' || $password === '' || $rol === '') {
+        header("Location: ../pages/registrar_usuario.php?error=campos_vacios");
+        exit();
+    }
+
+    if (!preg_match('/^\d{7,8}$/', $cedula)) {
+        header("Location: ../pages/registrar_usuario.php?error=campos_invalidos");
+        exit();
+    }
+
+    if ($email && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        header("Location: ../pages/registrar_usuario.php?error=campos_invalidos");
+        exit();
+    }
+
+    if (!in_array($rol, ["alumno", "profesor", "administrador"])) {
+        header("Location: ../pages/registrar_usuario.php?error=campos_invalidos");
+        exit();
+    }
+
+    // Generar hash seguro
+    $password_hashed = password_hash($password, PASSWORD_DEFAULT);
+
+    // Valor para columna "grupo"
+    $grupo_nombre = null;
+    if ($rol === "alumno" && $grupo_id !== null) {
+        // Traer nombre real del grupo (opcional para mantener integridad)
+        $stmt = $conn->prepare("SELECT nombre FROM grupos WHERE id = ?");
+        $stmt->bind_param("i", $grupo_id);
+        $stmt->execute();
+        $res = $stmt->get_result();
+        if ($row = $res->fetch_assoc()) {
+            $grupo_nombre = $row['nombre'];
+        }
+        $stmt->close();
+    }
+
+    // 🚀 Inserción segura
+    $sql = "INSERT INTO usuarios (cedula, nombre, email, password, rol,grupo_id) 
+            VALUES (?, ?, ?, ?, ?, ?)";
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param(
+        "ssssssi",
+        $cedula,
+        $nombre,
+        $email,
+        $password_hashed,
+        $rol,
+        $grupo_id
+    );
+    $stmt->execute();
+    $stmt->close();
+    $conn->close();
+
+    header("Location: ../pages/registrar_usuario.php?success=1");
+    exit();
+
+} catch (mysqli_sql_exception $e) {
+    // Usuario duplicado (MySQL error code 1062)
+    if ($e->getCode() === 1062) {
+        header("Location: ../pages/registrar_usuario.php?error=cedula_existe");
+        exit();
+    }
+
+    error_log("Error MySQL al insertar usuario: [{$e->getCode()}] {$e->getMessage()}");
+    header("Location: ../pages/registrar_usuario.php?error=db_error");
+    exit();
+
+} catch (Exception $e) {
+    error_log("Error inesperado en handle_register.php: " . $e->getMessage());
+    header("Location: ../pages/registrar_usuario.php?error=server_error");
     exit();
 }
-
-// 5. Hashear la contraseña (¡SEGURIDAD PRIMERO!)
-$password_hashed = password_hash($password, PASSWORD_DEFAULT);
-
-// 6. Verificar si la cédula ya existe en la BD
-$stmt = $conn->prepare("SELECT id FROM usuarios WHERE cedula = ?");
-$stmt->bind_param("s", $cedula);
-$stmt->execute();
-$result = $stmt->get_result();
-
-if ($result->num_rows > 0) {
-    // La cédula ya existe, redirigir con error
-    header("Location: registrar_usuario.php?error=cedula_existe");
-    exit();
-}
-$stmt->close();
-
-// 7. Insertar el nuevo usuario en la base de datos
-$stmt = $conn->prepare("INSERT INTO usuarios (nombre, cedula, password, rol) VALUES (?, ?, ?, ?)");
-$stmt->bind_param("ssss", $nombre, $cedula, $password_hashed, $rol);
-
-if ($stmt->execute()) {
-    // Éxito: redirigir con mensaje de éxito
-    header("Location: registrar_usuario.php?success=1");
-} else {
-    // Error: redirigir con mensaje de error
-    header("Location: registrar_usuario.php?error=db_error");
-}
-
-$stmt->close();
-$conn->close();
-?>

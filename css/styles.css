@@ -1,7 +1,7 @@
 /* Importar una fuente de Google Fonts */
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap');
 
-/* --- Custom Properties (Requerimiento) --- */
+/* --- Custom Properties --- */
 :root {
     --primary-color: #2A52BE; /* Azul corporativo */
     --dark-bg: #212529; /* Color oscuro para el sidebar */
@@ -15,104 +15,145 @@ body {
     font-family: var(--font-family);
     background-color: var(--light-bg);
     color: var(--text-color-dark);
+    overflow-x: hidden; /* Evita el scroll horizontal */
 }
 
-/* --- Layout con Flexbox (Requerimiento) --- */
+/* ============================================= */
+/* --- ESTILOS MEJORADOS PARA EL DASHBOARD --- */
+/* ============================================= */
+
+/* --- Sidebar (Menú Lateral) --- */
 .sidebar {
     width: 250px;
-    height: 100vh; /* Ocupa toda la altura de la pantalla */
-    position: sticky; /* Se mantiene fijo al hacer scroll */
+    min-width: 250px;
+    height: 100vh;
+    position: sticky;
     top: 0;
+    background-color: var(--dark-bg);
     color: var(--text-color-light);
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s;
 }
 
 .sidebar .sidebar-header {
-    padding: 1.5rem;
-    text-align: center;
+    padding: 1rem;
     border-bottom: 1px solid #495057;
+    background-color: rgba(255, 255, 255, 0.05);
+    transition: background-color 0.3s;
+}
+
+.sidebar .sidebar-header:hover {
+    background-color: rgba(255, 255, 255, 0.1);
 }
 
 .sidebar .nav-link {
-    color: var(--text-color-light);
+    color: #adb5bd;
     padding: 1rem 1.5rem;
+    font-size: 1.05rem;
     display: flex;
     align-items: center;
+    transition: all 0.2s ease-in-out;
+    border-left: 4px solid transparent; /* Borde para estado activo/hover */
 }
 
 .sidebar .nav-link i {
-    margin-right: 10px; /* Espacio entre ícono y texto */
+    margin-right: 1rem; /* Espacio entre ícono y texto */
     font-size: 1.2rem;
 }
 
-/* --- Pseudoclases para interactividad (Requerimiento) --- */
-.sidebar .nav-link:hover, .sidebar .nav-link.active {
+/* --- Pseudoclases para interactividad --- */
+.sidebar .nav-link:hover {
+    background-color: #343a40;
+    color: #fff;
+    border-left: 4px solid var(--primary-color);
+}
+
+/* Estilo para el link ACTIVO */
+.sidebar .nav-link.active {
     background-color: var(--primary-color);
-    border-radius: 5px;
-    margin: 0 10px;
+    color: #fff;
+    font-weight: bold;
+    border-left: 4px solid #fff;
+}
+
+/* --- Contenido Principal del Dashboard --- */
+.main-content {
+    width: calc(100% - 250px);
 }
 
 .main-header {
+    position: sticky; /* El header se queda fijo arriba */
+    top: 0;
+    z-index: 1000;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
-/* --- Estilos para Login Minimalista y Centrado --- */
+/* Tarjeta que envuelve el contenido de cada página */
+.card {
+    border-radius: 0.75rem;
+}
+
+
+/* ============================================== */
+/* --- ESTILOS PARA TU PÁGINA DE LOGIN (index.html) --- */
+/* ============================================== */
 
 .login-body-minimalist {
     display: flex;
-    align-items: center; /* Centrado vertical */
-    justify-content: center; /* Centrado horizontal */
+    align-items: center;
+    justify-content: center;
     height: 100vh;
-    /* Fondo con un gradiente suave y sutil */
     background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
 }
 
 .login-card-minimalist {
     width: 100%;
     max-width: 420px;
-    padding: 3rem;
+    padding: 2.5rem; /* Ajustado para mejor proporción */
     background: #ffffff;
-    border-radius: 15px; /* Bordes más redondeados */
-    /* Sombra suave para dar el efecto "flotante" */
+    border-radius: 15px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
-    border: 1px solid #e9ecef; /* Borde muy sutil */
+    border: 1px solid #e9ecef;
 }
 
 .login-icon {
-    font-size: 3rem; /* Ícono grande */
-    color: var(--primary-color); /* Usamos el color primario de la marca */
+    font-size: 3rem;
+    color: var(--primary-color);
 }
 
-/* Estilo para los campos del formulario */
 .login-card-minimalist .form-control {
     border-radius: 8px;
     padding: 1.2rem;
 }
 
-/* Estilo del botón */
 .login-card-minimalist .btn-primary {
     background-color: var(--primary-color);
     border-color: var(--primary-color);
     border-radius: 8px;
     padding: 0.8rem;
     font-weight: 600;
-    transition: transform 0.2s ease; /* Transición suave */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Efecto al pasar el mouse sobre el botón (Pseudoclase) */
 .login-card-minimalist .btn-primary:hover {
-    transform: translateY(-2px); /* Eleva el botón ligeramente */
+    transform: translateY(-2px);
     box-shadow: 0 4px 15px rgba(42, 82, 190, 0.3);
 }
 
 
-/* --- Media Query para diseño responsivo (Requerimiento) --- */
+/* ============================================== */
+/* --- Media Query para diseño responsivo --- */
+/* ============================================== */
 @media (max-width: 768px) {
+    .d-flex {
+        flex-direction: column;
+    }
     .sidebar {
         width: 100%;
         height: auto;
         position: relative;
     }
-    .d-flex {
-        flex-direction: column;
+    .main-content {
+        width: 100%;
     }
 }
