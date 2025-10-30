@@ -91,7 +91,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'], $_POST['sal
         // Validar que haya al menos un bloque seleccionado
         if (empty($bloques)) {
             $_SESSION['error'] = "Debes seleccionar al menos un bloque horario.";
-            header("Location: " . $_SERVER['PHP_SELF']);
+            echo "<script>window.location.href = '" . $_SERVER['PHP_SELF'] . "';</script>";
             exit();
         }
 
@@ -123,9 +123,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'], $_POST['sal
         }
 
         $conn->query("UPDATE salones SET estado='ocupado' WHERE id=$salon_id");
+        
+        // Recargar con JavaScript
+        echo "<script>window.location.href = '" . $_SERVER['PHP_SELF'] . "';</script>";
+        exit();
     }
 
-    // === LIBERAR ===
+    // === LIBERAR (profesor) ===
     if ($accion === 'liberar') {
         $stmt = $conn->prepare("
             UPDATE salon_usos 
@@ -137,6 +141,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'], $_POST['sal
         $stmt->close();
 
         $conn->query("UPDATE salones SET estado='disponible' WHERE id=$salon_id");
+        
+        // Recargar con JavaScript
+        echo "<script>window.location.href = '" . $_SERVER['PHP_SELF'] . "';</script>";
+        exit();
+    }
+
+    // === DESMARCAR USO (admin) ===
+    if ($accion === 'desmarcar_uso' && in_array($rol, ['admin','administrador'])) {
+        // Finalizar todos los usos activos del salón
+        $stmt = $conn->prepare("
+            UPDATE salon_usos 
+            SET estado='finalizado'
+            WHERE salon_id=? AND estado='en_uso'
+        ");
+        $stmt->bind_param("i", $salon_id);
+        $stmt->execute();
+        $stmt->close();
+
+        // Cambiar estado del salón a disponible
+        $conn->query("UPDATE salones SET estado='disponible' WHERE id=$salon_id");
+        
+        // Recargar con JavaScript
+        echo "<script>window.location.href = '" . $_SERVER['PHP_SELF'] . "';</script>";
+        exit();
     }
 
     // === EDITAR SALÓN (solo admins) ===
@@ -161,10 +189,48 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'], $_POST['sal
         $stmt->bind_param("sisssi", $nombre, $capacidad, $ubicacion, $observaciones, $recursos_json, $salon_id);
         $stmt->execute();
         $stmt->close();
+        
+        // Recargar con JavaScript
+        echo "<script>window.location.href = '" . $_SERVER['PHP_SELF'] . "';</script>";
+        exit();
     }
 
-    header("Location: " . $_SERVER['PHP_SELF']);
-    exit();
+    // === ELIMINAR SALÓN (solo admins) ===
+    if ($accion === 'eliminar' && in_array($rol, ['admin','administrador'])) {
+        // Verificar si hay usos activos antes de eliminar
+        $stmt = $conn->prepare("
+            SELECT COUNT(*) as usos_activos 
+            FROM salon_usos 
+            WHERE salon_id=? AND estado='en_uso'
+        ");
+        $stmt->bind_param("i", $salon_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $usos_activos = $result->fetch_assoc()['usos_activos'];
+        $stmt->close();
+
+        if ($usos_activos > 0) {
+            $_SESSION['error'] = "No se puede eliminar el salón porque tiene usos activos. Primero desmarca el uso.";
+            echo "<script>window.location.href = '" . $_SERVER['PHP_SELF'] . "';</script>";
+            exit();
+        } else {
+            // Eliminar registros relacionados en salon_usos
+            $stmt = $conn->prepare("DELETE FROM salon_usos WHERE salon_id=?");
+            $stmt->bind_param("i", $salon_id);
+            $stmt->execute();
+            $stmt->close();
+
+            // Eliminar el salón
+            $stmt = $conn->prepare("DELETE FROM salones WHERE id=?");
+            $stmt->bind_param("i", $salon_id);
+            $stmt->execute();
+            $stmt->close();
+            
+            // Recargar con JavaScript
+            echo "<script>window.location.href = '" . $_SERVER['PHP_SELF'] . "';</script>";
+            exit();
+        }
+    }
 }
 
 // ==============================
@@ -195,7 +261,6 @@ $sql = "
 ";
 $result = $conn->query($sql);
 ?>
-
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -207,7 +272,7 @@ h1{text-align:center;margin-bottom:18px;}
 .selector-grupo{text-align:center;margin-bottom:18px;}
 .selector-grupo select{padding:8px;border-radius:6px;border:1px solid #ccc;}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;max-width:1300px;margin:0 auto;}
-.card{background:#fff;border-radius:12px;padding:18px;box-shadow:0 4px 10px rgba(0,0,0,.08);transition:.15s;}
+.card{background:#fff;border-radius:12px;padding:18px;box-shadow:0 4px 10px rgba(0,0,0,.08);transition:.15s;position:relative;}
 .card:hover{transform:translateY(-4px);box-shadow:0 8px 18px rgba(0,0,0,.12);}
 .estado{font-weight:700;padding:6px 10px;border-radius:6px;display:inline-block;margin-bottom:10px;}
 .disponible{background:#d4edda;color:#155724;}
@@ -215,11 +280,14 @@ h1{text-align:center;margin-bottom:18px;}
 button{margin-top:8px;padding:8px 12px;border:none;border-radius:6px;cursor:pointer;font-weight:700;}
 button.marcar{background:#007bff;color:#fff;}
 button.liberar{background:#28a745;color:#fff;}
+button.desmarcar{background:#6c757d;color:#fff;}
 button.editar{background:#ffc107;color:#000;}
+button.eliminar{background:#dc3545;color:#fff;}
 form.edit-form{margin-top:12px;background:#f8f9fa;padding:10px;border-radius:8px;}
 input,textarea,select{width:100%;padding:8px;margin-bottom:8px;border:1px solid #ccc;border-radius:6px;}
 .checkbox-group{display:flex;flex-wrap:wrap;gap:8px;}
 .checkbox-group label{background:#e9ecef;padding:6px 8px;border-radius:6px;cursor:pointer;}
+.admin-actions{margin-top:12px;padding-top:12px;border-top:1px solid #dee2e6;}
 @media(max-width:600px){.cards{grid-template-columns:1fr;}}
 </style>
 </head>
@@ -228,6 +296,10 @@ input,textarea,select{width:100%;padding:8px;margin-bottom:8px;border:1px solid 
 
 <?php if (!empty($_SESSION['error'])): ?>
     <p style="color:red;text-align:center;"><?= $_SESSION['error']; unset($_SESSION['error']); ?></p>
+<?php endif; ?>
+
+<?php if (!empty($_SESSION['success'])): ?>
+    <p style="color:green;text-align:center;"><?= $_SESSION['success']; unset($_SESSION['success']); ?></p>
 <?php endif; ?>
 
 <?php if (in_array($rol, ['profesor','admin','administrador'])): ?>
@@ -265,6 +337,7 @@ input,textarea,select{width:100%;padding:8px;margin-bottom:8px;border:1px solid 
     <p><strong>Recursos:</strong> <?= htmlspecialchars($recursos_list) ?></p>
 
     <?php if (in_array($rol, ['profesor','admin','administrador'])): ?>
+        <!-- Acciones para profesores y admins -->
         <form method="POST" style="margin-top:10px;">
             <input type="hidden" name="salon_id" value="<?= $row['salon_id'] ?>">
             <input type="hidden" name="accion" value="marcar_uso">
@@ -292,20 +365,44 @@ input,textarea,select{width:100%;padding:8px;margin-bottom:8px;border:1px solid 
         </form>
 
         <?php if (in_array($rol, ['admin','administrador'])): ?>
-        <form method="POST" class="edit-form">
-            <input type="hidden" name="salon_id" value="<?= $row['salon_id'] ?>">
-            <input type="hidden" name="accion" value="editar">
-            <input type="text" name="nombre_salon" value="<?= htmlspecialchars($row['nombre_salon']) ?>" placeholder="Nombre">
-            <input type="number" name="capacidad" value="<?= $row['capacidad'] ?>" placeholder="Capacidad">
-            <input type="text" name="ubicacion" value="<?= htmlspecialchars($row['ubicacion']) ?>" placeholder="Ubicación">
-            <textarea name="observaciones"><?= htmlspecialchars($row['observaciones'] ?? '') ?></textarea>
-            <div class="checkbox-group">
-                <?php foreach ($recursos_disponibles as $r): ?>
-                    <label><input type="checkbox" name="recursos[]" value="<?= $r ?>" <?= strpos($recursos_list,$r)!==false?'checked':'' ?>> <?= ucfirst($r) ?></label>
-                <?php endforeach; ?>
-            </div>
-            <button type="submit" class="editar">Guardar cambios</button>
-        </form>
+        <!-- Acciones exclusivas para administradores -->
+        <div class="admin-actions">
+            <!-- Desmarcar uso (solo cuando está ocupado) -->
+            <?php if ($row['estado'] === 'ocupado'): ?>
+                <form method="POST" style="display:inline-block; margin-right:8px;">
+                    <input type="hidden" name="salon_id" value="<?= $row['salon_id'] ?>">
+                    <input type="hidden" name="accion" value="desmarcar_uso">
+                    <button type="submit" class="desmarcar" onclick="return confirm('¿Estás seguro de que quieres desmarcar el uso de este salón?')">
+                        Desmarcar Uso
+                    </button>
+                </form>
+            <?php endif; ?>
+
+            <!-- Eliminar salón -->
+            <form method="POST" style="display:inline-block;">
+                <input type="hidden" name="salon_id" value="<?= $row['salon_id'] ?>">
+                <input type="hidden" name="accion" value="eliminar">
+                <button type="submit" class="eliminar" onclick="return confirm('¿Estás seguro de que quieres ELIMINAR este salón? Esta acción no se puede deshacer.')">
+                    Eliminar Salón
+                </button>
+            </form>
+
+            <!-- Editar salón -->
+            <form method="POST" class="edit-form">
+                <input type="hidden" name="salon_id" value="<?= $row['salon_id'] ?>">
+                <input type="hidden" name="accion" value="editar">
+                <input type="text" name="nombre_salon" value="<?= htmlspecialchars($row['nombre_salon']) ?>" placeholder="Nombre" required>
+                <input type="number" name="capacidad" value="<?= $row['capacidad'] ?>" placeholder="Capacidad" required min="1">
+                <input type="text" name="ubicacion" value="<?= htmlspecialchars($row['ubicacion']) ?>" placeholder="Ubicación" required>
+                <textarea name="observaciones" placeholder="Observaciones"><?= htmlspecialchars($row['observaciones'] ?? '') ?></textarea>
+                <div class="checkbox-group">
+                    <?php foreach ($recursos_disponibles as $r): ?>
+                        <label><input type="checkbox" name="recursos[]" value="<?= $r ?>" <?= strpos($recursos_list,$r)!==false?'checked':'' ?>> <?= ucfirst($r) ?></label>
+                    <?php endforeach; ?>
+                </div>
+                <button type="submit" class="editar">Guardar cambios</button>
+            </form>
+        </div>
         <?php endif; ?>
     <?php endif; ?>
 </div>

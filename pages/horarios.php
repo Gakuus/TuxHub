@@ -8,6 +8,7 @@ session_start();
 $rol = strtolower($_SESSION['rol'] ?? "invitado");
 $usuario_id = $_SESSION['user_id'] ?? null;
 $grupo_id = $_GET['grupo_id'] ?? ($_SESSION['grupo_id'] ?? null);
+$turno_seleccionado = $_GET['turno'] ?? '';
 
 // ==========================
 // Días fijos y cargar días desde tabla
@@ -23,29 +24,63 @@ if($dias_result && $dias_result->num_rows){
 }
 
 // ==========================
-// Obtener grupos según rol
+// Obtener grupos según rol y turno
 // ==========================
 $grupos = [];
 if($rol === "admin"){
-    $res = $conn->query("SELECT id, nombre FROM grupos ORDER BY nombre");
+    $sql = "SELECT id, nombre FROM grupos";
+    $params = [];
+    $types = "";
+    
+    if($turno_seleccionado){
+        $sql .= " WHERE turno = ?";
+        $params[] = $turno_seleccionado;
+        $types .= "s";
+    }
+    
+    $sql .= " ORDER BY nombre";
+    
+    if($params){
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $res = $stmt->get_result();
+    } else {
+        $res = $conn->query($sql);
+    }
+    
     while($g = $res->fetch_assoc()) $grupos[] = $g;
+    if(isset($stmt)) $stmt->close();
+    
 } elseif($rol === "profesor"){
-    $stmt = $conn->prepare("
+    $sql = "
         SELECT g.id, g.nombre
         FROM grupos g
         JOIN grupos_profesores gp ON gp.grupo_id = g.id
         WHERE gp.profesor_id = ?
-        ORDER BY g.nombre
-    ");
-    $stmt->bind_param("i",$usuario_id);
+    ";
+    $params = [$usuario_id];
+    $types = "i";
+    
+    if($turno_seleccionado){
+        $sql .= " AND g.turno = ?";
+        $params[] = $turno_seleccionado;
+        $types .= "s";
+    }
+    
+    $sql .= " ORDER BY g.nombre";
+    
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param($types, ...$params);
     $stmt->execute();
     $res = $stmt->get_result();
     while($g = $res->fetch_assoc()) $grupos[] = $g;
     $stmt->close();
+    
 } elseif($rol === "alumno"){
     if($grupo_id){
         $stmt = $conn->prepare("SELECT id, nombre FROM grupos WHERE id=?");
-        $stmt->bind_param("i",$grupo_id);
+        $stmt->bind_param("i", $grupo_id);
         $stmt->execute();
         $res = $stmt->get_result();
         if($res->num_rows) $grupos[] = $res->fetch_assoc();
@@ -65,7 +100,7 @@ if($grupo_id){
         WHERE g.id=?
         ORDER BY b.hora_inicio
     ");
-    $stmt->bind_param("i",$grupo_id);
+    $stmt->bind_param("i", $grupo_id);
     $stmt->execute();
     $res = $stmt->get_result();
     while($b = $res->fetch_assoc()) $bloques[] = $b;
@@ -100,7 +135,7 @@ if($grupo_id){
         WHERE h.grupo_id = ?
         ORDER BY h.dia_id, h.bloque_id
     ");
-    $stmt->bind_param("i",$grupo_id);
+    $stmt->bind_param("i", $grupo_id);
     $stmt->execute();
     $res = $stmt->get_result();
     while($h = $res->fetch_assoc()){
@@ -127,6 +162,16 @@ function horaEnMinutos($hora){
         <form method="get" action="">
             <input type="hidden" name="page" value="horarios">
             <div class="row g-2">
+                <!-- Selector de turno -->
+                <div class="col-md-3">
+                    <select name="turno" class="form-select" onchange="this.form.submit()">
+                        <option value="">-- Todos los turnos --</option>
+                        <option value="mañana" <?= ($turno_seleccionado == 'mañana') ? "selected" : "" ?>>Mañana</option>
+                        <option value="tarde" <?= ($turno_seleccionado == 'tarde') ? "selected" : "" ?>>Tarde</option>
+                        <option value="noche" <?= ($turno_seleccionado == 'noche') ? "selected" : "" ?>>Noche</option>
+                    </select>
+                </div>
+                <!-- Selector de grupo -->
                 <div class="col-md-4">
                     <select name="grupo_id" class="form-select" required onchange="this.form.submit()">
                         <option value="">-- Seleccione un grupo --</option>

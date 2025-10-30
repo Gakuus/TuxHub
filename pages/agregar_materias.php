@@ -19,28 +19,17 @@ if (isset($_GET['eliminar'])) {
     $conn->begin_transaction();
 
     try {
-        // Intentar eliminar la materia
+        // Con ON DELETE CASCADE, solo necesitamos eliminar la materia
+        // Las dependencias se eliminarán automáticamente
         if ($conn->query("DELETE FROM materias WHERE id = $id")) {
             $conn->commit();
-            header("Location: " . $_SERVER['PHP_SELF'] . "?msg=eliminada");
-            exit;
+            $mensaje = "<div class='alert alert-success'>✅ Materia y todos sus registros relacionados eliminados correctamente.</div>";
         }
     } catch (mysqli_sql_exception $e) {
         $conn->rollback();
-        $errno = $e->getCode();
-        $error = $e->getMessage();
-
-        if ($errno === 1451) {
-            // Error de clave foránea
-            $mensaje = "<div class='alert alert-warning'>
-                ⚠️ No se pudo eliminar la materia porque está relacionada con otros registros (por ejemplo, profesores o clases).
-                <br>Si querés eliminarla, primero eliminá o desvinculá esos registros o configurá las FK con <b>ON DELETE CASCADE</b>.
-            </div>";
-        } else {
-            $mensaje = "<div class='alert alert-danger'>
-                ❌ Error al eliminar la materia (Código $errno): " . htmlspecialchars($error) . "
-            </div>";
-        }
+        $mensaje = "<div class='alert alert-danger'>
+            ❌ Error al eliminar la materia: " . htmlspecialchars($e->getMessage()) . "
+        </div>";
     }
 }
 
@@ -57,8 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $mensaje = "<div class='alert alert-warning'>⚠️ La materia ya existe.</div>";
             } else {
                 if ($conn->query("INSERT INTO materias (nombre_materia) VALUES ('$nombre_materia')")) {
-                    header("Location: " . $_SERVER['PHP_SELF'] . "?msg=agregada");
-                    exit;
+                    $mensaje = "<div class='alert alert-success'>✅ Materia agregada correctamente.</div>";
+                    $_POST['nombre_materia'] = '';
                 } else {
                     $mensaje = "<div class='alert alert-danger'>❌ Error al insertar: " . htmlspecialchars($conn->error) . "</div>";
                 }
@@ -66,15 +55,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     } else {
         $mensaje = "<div class='alert alert-danger'>⚠️ Debe ingresar el nombre de la materia.</div>";
-    }
-}
-
-// === MENSAJES GET ===
-if (isset($_GET['msg'])) {
-    if ($_GET['msg'] === "agregada") {
-        $mensaje = "<div class='alert alert-success'>✅ Materia agregada correctamente.</div>";
-    } elseif ($_GET['msg'] === "eliminada") {
-        $mensaje = "<div class='alert alert-danger'>❌ Materia eliminada correctamente.</div>";
     }
 }
 
@@ -94,7 +74,8 @@ $materias = $conn->query("SELECT id, nombre_materia FROM materias ORDER BY nombr
                 <div class="col-md-6">
                     <label class="form-label">Nombre de la Materia</label>
                     <input type="text" name="nombre_materia" class="form-control"
-                           placeholder="Ingrese el nombre" maxlength="24" required>
+                           placeholder="Ingrese el nombre" maxlength="24" 
+                           value="<?= htmlspecialchars($_POST['nombre_materia'] ?? '') ?>" required>
                     <small class="text-muted">Máximo 24 caracteres.</small>
                 </div>
                 <div class="col-12 mt-3">
@@ -126,7 +107,7 @@ $materias = $conn->query("SELECT id, nombre_materia FROM materias ORDER BY nombr
                                 <td class="text-center">
                                     <a href="?eliminar=<?= $m['id'] ?>"
                                        class="btn btn-sm btn-outline-danger"
-                                       onclick="return confirm('¿Seguro que desea eliminar esta materia?');">
+                                       onclick="return confirm('¿Seguro que desea eliminar esta materia? Se eliminarán automáticamente todos los horarios y registros relacionados.');">
                                         <i class="bi bi-trash"></i> Eliminar
                                     </a>
                                 </td>
