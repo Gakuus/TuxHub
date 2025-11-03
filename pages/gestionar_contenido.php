@@ -44,21 +44,37 @@ if ($id) {
       <form method="POST" action="../Agora/backend/save_contenido.php" enctype="multipart/form-data">
         <input type="hidden" name="tipo" value="<?= $tipo ?>">
         <input type="hidden" name="id" value="<?= $item['id'] ?? '' ?>">
+        <!-- Campo oculto para redirección -->
+        <input type="hidden" name="redirect_to" value="dashboard.php?page=gestionar_contenido&tipo=<?= $tipo ?>">
 
         <div class="mb-3">
-          <label class="form-label">Título</label>
-          <input type="text" name="titulo" class="form-control" required value="<?= htmlspecialchars($item['titulo'] ?? '') ?>">
+          <label class="form-label">Título (máximo 24 caracteres)</label>
+          <input type="text" name="titulo" class="form-control" required 
+                 maxlength="24" 
+                 value="<?= htmlspecialchars($item['titulo'] ?? '') ?>">
+          <div class="form-text text-muted">
+            <span id="titulo-counter">0</span>/24 caracteres
+          </div>
         </div>
 
         <?php if ($tipo === 'noticias'): ?>
           <div class="mb-3">
-            <label class="form-label">Contenido</label>
-            <textarea name="contenido" rows="5" class="form-control" required><?= htmlspecialchars($item['contenido'] ?? '') ?></textarea>
+            <label class="form-label">Contenido (máximo 255 caracteres)</label>
+            <textarea name="contenido" rows="5" class="form-control" required 
+                      maxlength="255"><?= htmlspecialchars($item['contenido'] ?? '') ?></textarea>
+            <div class="form-text text-muted">
+              <span id="contenido-counter">0</span>/255 caracteres
+            </div>
           </div>
 
           <div class="mb-3">
-            <label class="form-label">Imagen (subir archivo)</label>
-            <input type="file" name="imagen_file" class="form-control" accept="image/*">
+            <label class="form-label">Imagen (solo archivos de imagen)</label>
+            <input type="file" name="imagen_file" class="form-control" 
+                   accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                   onchange="validateImage(this)">
+            <div class="form-text text-muted">
+              Formatos permitidos: JPG, PNG, GIF, WebP
+            </div>
           </div>
 
           <?php if (!empty($item['imagen'])): ?>
@@ -71,8 +87,12 @@ if ($id) {
 
         <?php else: ?>
           <div class="mb-3">
-            <label class="form-label">Mensaje</label>
-            <textarea name="mensaje" rows="3" class="form-control" required><?= htmlspecialchars($item['mensaje'] ?? '') ?></textarea>
+            <label class="form-label">Mensaje (máximo 255 caracteres)</label>
+            <textarea name="mensaje" rows="3" class="form-control" required 
+                      maxlength="255"><?= htmlspecialchars($item['mensaje'] ?? '') ?></textarea>
+            <div class="form-text text-muted">
+              <span id="mensaje-counter">0</span>/255 caracteres
+            </div>
           </div>
         <?php endif; ?>
 
@@ -103,7 +123,9 @@ if ($id) {
               <a href="dashboard.php?page=gestionar_contenido&tipo=<?= $tipo ?>&id=<?= $row['id'] ?>" class="btn btn-warning btn-sm">
                 <i class="bi bi-pencil"></i> Editar
               </a>
-              <a href="../Agora/backend/delete_contenido.php?tipo=<?= $tipo ?>&id=<?= $row['id'] ?>" class="btn btn-danger btn-sm" onclick="return confirm('¿Eliminar este registro?');">
+              <a href="../Agora/backend/delete_contenido.php?tipo=<?= $tipo ?>&id=<?= $row['id'] ?>&redirect_to=<?= urlencode('dashboard.php?page=gestionar_contenido&tipo=' . $tipo) ?>" 
+                 class="btn btn-danger btn-sm" 
+                 onclick="return confirm('¿Eliminar este registro?');">
                 <i class="bi bi-trash"></i> Eliminar
               </a>
             </td>
@@ -113,3 +135,7 @@ if ($id) {
     </table>
   </div>
 </div>
+
+<!-- Incluir archivos CSS y JS externos -->
+<link rel="stylesheet" href="/Agora/Agora/css/gestionar_contenido.css">
+<script src="/Agora/Agora/assets/gestionar_contenido.js"></script>

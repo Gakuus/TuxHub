@@ -6,201 +6,174 @@ if (isset($_SESSION['user_id'])) {
     exit();
 }
 
+// Generar token CSRF si no existe
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $error_code = $_GET['error'] ?? null;
 $error_messages = [
     'requerido' => "⚠️ Debes iniciar sesión para continuar.",
     'campos' => "⚠️ Debe completar todos los campos.",
     'cedula_formato' => "⚠️ La cédula debe contener solo números.",
-    'cedula_larga' => "⚠️ La cédula no puede superar los 8 dígitos.",
+    'cedula_larga' => "⚠️ La cédula debe tener exactamente 8 dígitos.", // CORREGIDO: 8 dígitos exactos
     'credenciales' => "❌ Credenciales incorrectas.",
     'pass_invalida' => "⚠️ La contraseña debe tener entre 8 y 24 caracteres.",
     'captcha' => "⚠️ Verifica el CAPTCHA.",
-    'bloqueado' => "🚫 Demasiados intentos. Intenta de nuevo en unos minutos."
+    'bloqueado' => "🚫 Demasiados intentos. Intenta de nuevo en unos minutos.",
+    'csrf' => "⚠️ Error de seguridad. Recarga la página e intenta nuevamente.",
+    'metodo_invalido' => "⚠️ Método de acceso incorrecto."
 ];
 $error_message = $error_messages[$error_code] ?? null;
+
+// Detectar dispositivo para optimizaciones
+$is_mobile = preg_match('/(android|iphone|ipod|blackberry|windows phone)/i', $_SERVER['HTTP_USER_AGENT']);
+$is_tablet = preg_match('/(ipad|tablet|playbook|silk)|(android(?!.*mobile))/i', $_SERVER['HTTP_USER_AGENT']);
 ?>
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" class="<?= $is_mobile ? 'mobile' : ($is_tablet ? 'tablet' : 'desktop') ?>">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Iniciar Sesión - Agora</title>
+    
+    <!-- Preload crítico -->
+    <link rel="preload" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" as="style">
+    <link rel="preload" href="css/login.css" as="style">
+    
+    <!-- Hojas de estilo -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link href="css/login.css" rel="stylesheet">
+    
+    <!-- reCAPTCHA -->
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            display: flex; 
-            align-items: center; 
-            justify-content: center;
-            background: url('img/itsp.jpeg') no-repeat center center fixed;
-            background-size: cover;
-            position: relative;
-            overflow: hidden;
-        }
-        body::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(8px);
-            z-index: 0;
-        }
-        .login-card {
-            position: relative;
-            z-index: 1;
-            max-width: 400px; 
-            width: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(10px);
-            padding: 2rem; 
-            border-radius: 1rem;
-            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-            animation: fadeIn 0.6s ease-in-out;
-        }
-        @keyframes fadeIn { 
-            from { opacity:0; transform:scale(0.95);} 
-            to { opacity:1; transform:scale(1);} 
-        }
-        .text-danger { font-size: 0.875rem; }
-        .login-card h2 {
-            font-weight: bold;
-            color: #0d6efd;
-        }
-        .forgot-password {
-            display: block;
-            text-align: center;
-            margin-top: 1rem;
-            font-size: 0.9rem;
-            color: #0d6efd;
-            text-decoration: none;
-            transition: color 0.3s ease, transform 0.2s ease;
-        }
-        .forgot-password:hover {
-            color: #084298;
-            transform: scale(1.03);
-            text-decoration: underline;
-        }
-
-        /* ================================================== */
-        /* 💡 Corrección para el botón de mostrar contraseña */
-        /* ================================================== */
-        .password-wrapper {
-            /* Necesario para que el botón con position: absolute se posicione con respecto a este div */
-            position: relative;
-        }
-
-        .password-wrapper input {
-            /* Añade espacio suficiente a la derecha para que el ícono no tape el texto */
-            padding-right: 40px !important; 
-        }
-
-        .toggle-password {
-            position: absolute;
-            /* Fija la posición horizontal desde el borde derecho */
-            right: 10px; 
-            /* Centra verticalmente: 50% de arriba menos la mitad de la altura del botón */
-            top: 50%;
-            transform: translateY(-50%);
-            /* Asegura que el botón se vea por encima del input */
-            z-index: 2; 
-            
-            /* Estilos cosméticos del botón */
-            background: none;
-            border: none;
-            cursor: pointer;
-            color: #6c757d;
-            font-size: 1.25rem;
-            line-height: 1;
-            padding: 0; /* Remueve cualquier padding predeterminado */
-            display: flex; /* Asegura un mejor centrado del ícono */
-            align-items: center;
-            justify-content: center;
-            height: 100%; /* Ocupa la altura del wrapper para mejor centrado vertical */
-        }
-
-        .toggle-password:hover {
-            color: #0d6efd;
-        }
-        /* ================================================== */
-        
-    </style>
+    
+    <!-- Meta tags de seguridad y SEO -->
+    <meta http-equiv="Content-Security-Policy" content="
+        default-src 'self';
+        script-src 'self' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com 'unsafe-inline';
+        style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline';
+        font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com;
+        img-src 'self' data: https:;
+        frame-src 'self' https://www.google.com;
+        connect-src 'self' https://cdn.jsdelivr.net;
+    ">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+    <meta name="theme-color" content="#0d6efd">
+    <meta name="description" content="Sistema de gestión del Instituto - Agora">
+    
+    <?php if ($is_mobile): ?>
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <?php endif; ?>
 </head>
 <body>
 
-<div class="login-card">
-    <div class="text-center mb-4">
-        <img src="img/Logo.png" alt="Logo de Agora" style="width: 100px; height: auto;">
-        <h2 class="mt-2">Agora</h2>
-        <p class="text-muted">Gestión del Instituto</p>
-    </div>
-
-    <?php if ($error_message && in_array($error_code, ['requerido','bloqueado'])): ?>
-        <div class="alert alert-warning alert-dismissible fade show" role="alert">
-            <?= htmlspecialchars($error_message) ?>
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        </div>
-    <?php endif; ?>
-
-    <form action="backend/login_handler.php" method="POST" novalidate>
-        <div class="mb-3">
-            <label for="cedula" class="form-label">Cédula</label>
-            <input type="text" name="cedula" id="cedula" class="form-control" 
-                   maxlength="8" pattern="\d*" required placeholder="Ingrese su cédula">
-            <?php if ($error_code && in_array($error_code, ['cedula_formato', 'cedula_larga', 'credenciales'])): ?>
-                <div class="text-danger mt-1"><?= htmlspecialchars($error_message) ?></div>
-            <?php endif; ?>
+<div class="login-container">
+    <div class="login-card">
+        <div class="login-header">
+            <img src="img/Logo.png" alt="Logo de Agora" class="login-logo" 
+                 width="90" height="90" loading="eager">
+            <h1 class="login-title">Agora</h1>
+            <p class="login-subtitle">Gestión del Instituto</p>
         </div>
 
-        <div class="mb-3 password-wrapper">
-            <label for="password" class="form-label">Contraseña</label>
-            <input type="password" name="password" id="password" class="form-control" 
-                   minlength="8" maxlength="24" required placeholder="Ingrese su contraseña">
-            <button type="button" class="toggle-password" id="togglePassword" aria-label="Mostrar contraseña">
-                <i class="bi bi-eye-fill" id="eyeIcon"></i>
-            </button>
-            <?php if ($error_code && in_array($error_code, ['pass_invalida', 'credenciales'])): ?>
-                <div class="text-danger mt-1"><?= htmlspecialchars($error_message) ?></div>
-            <?php endif; ?>
-        </div>
-
-        <div class="g-recaptcha mb-3" data-sitekey="6LeskeMrAAAAACQ7-Uo7bDdkOJ5e6EyWA6zL9HEF"></div>
-        <?php if ($error_code === 'captcha'): ?>
-            <div class="text-danger mt-1"><?= htmlspecialchars($error_message) ?></div>
+        <?php if ($error_message): ?>
+            <div class="alert <?= in_array($error_code, ['bloqueado', 'csrf', 'metodo_invalido']) ? 'alert-security' : 'alert-warning' ?> alert-dismissible fade show" role="alert">
+                <i class="bi bi-shield-exclamation"></i> 
+                <?= htmlspecialchars($error_message) ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            </div>
         <?php endif; ?>
 
-        <button type="submit" class="btn btn-primary w-100 fw-bold">
-            <i class="bi bi-box-arrow-in-right"></i> Iniciar Sesión
-        </button>
+        <form action="backend/login_handler.php" method="POST" novalidate id="loginForm" class="needs-validation">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($_SESSION['csrf_token']) ?>">
+            
+            <div class="mb-3">
+                <label for="cedula" class="form-label">
+                    <i class="bi bi-person-badge" aria-hidden="true"></i> Cédula
+                </label>
+                <input type="text" 
+                       name="cedula" 
+                       id="cedula" 
+                       class="form-control" 
+                       maxlength="8" 
+                       pattern="\d{8}" 
+                       required 
+                       placeholder="Ej: 12345678"
+                       title="Ingrese su número de cédula de 8 dígitos"
+                       inputmode="numeric"
+                       autocomplete="username"
+                       <?= $is_mobile ? 'autocapitalize="none"' : '' ?>
+                       aria-describedby="cedulaHint">
+                <small id="cedulaHint" class="input-hint">
+                    Solo números, exactamente 8 dígitos
+                </small>
+                
+                <?php if ($error_code && in_array($error_code, ['cedula_formato', 'cedula_larga'])): ?>
+                    <div class="text-danger mt-1">
+                        <i class="bi bi-exclamation-triangle"></i> 
+                        <?= htmlspecialchars($error_message) ?>
+                    </div>
+                <?php endif; ?>
+            </div>
 
-        <a href="password_reset_request.php" class="forgot-password">
-            ¿Olvidaste tu contraseña?
-        </a>
-    </form>
+            <div class="mb-3">
+                <label for="password" class="form-label">
+                    <i class="bi bi-lock" aria-hidden="true"></i> Contraseña
+                </label>
+                <div class="password-wrapper">
+                    <input type="password" 
+                           name="password" 
+                           id="password" 
+                           class="form-control" 
+                           required 
+                           placeholder="Ingrese su contraseña"
+                           title="Ingrese su contraseña"
+                           autocomplete="current-password"
+                           minlength="8"
+                           maxlength="24"
+                           aria-describedby="passwordHint">
+                    <button type="button" 
+                            class="toggle-password" 
+                            id="togglePassword" 
+                            aria-label="Mostrar contraseña"
+                            tabindex="0">
+                        <i class="bi bi-eye-fill" id="eyeIcon" aria-hidden="true"></i>
+                    </button>
+                </div>
+                <small id="passwordHint" class="input-hint">
+                    La contraseña debe tener entre 8 y 24 caracteres
+                </small>
+            </div>
+
+            <div class="mb-3">
+                <div class="g-recaptcha" data-sitekey="6LeskeMrAAAAACQ7-Uo7bDdkOJ5e6EyWA6zL9HEF" data-size="normal"></div>
+                <small class="input-hint">Verificación de seguridad</small>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 fw-bold" id="submitBtn">
+                <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> 
+                <span id="submitText">Iniciar Sesión</span>
+            </button>
+
+            <div class="security-notice" role="note">
+                <i class="bi bi-shield-check" aria-hidden="true"></i> 
+                Conexión segura protegida por encriptación
+            </div>
+
+            <a href="password_reset_request.php" class="forgot-password" aria-label="Recuperar contraseña">
+                <i class="bi bi-key" aria-hidden="true"></i> 
+                ¿Olvidaste tu contraseña?
+            </a>
+        </form>
+    </div>
 </div>
 
-<script>
-    const togglePassword = document.getElementById('togglePassword');
-    const passwordInput = document.getElementById('password');
-    const eyeIcon = document.getElementById('eyeIcon');
-
-    togglePassword.addEventListener('click', () => {
-        // Toggle the input type
-        const isVisible = passwordInput.type === 'text';
-        passwordInput.type = isVisible ? 'password' : 'text';
-        
-        // Toggle the icon class (bi-eye-slash-fill is the crossed-out eye)
-        eyeIcon.classList.toggle('bi-eye-fill', isVisible);
-        eyeIcon.classList.toggle('bi-eye-slash-fill', !isVisible);
-        
-        // Update the aria-label for accessibility
-        togglePassword.setAttribute('aria-label', isVisible ? 'Mostrar contraseña' : 'Ocultar contraseña');
-    });
-</script>
-
+<!-- Scripts al final del body para mejor performance -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="assets/login.js"></script>
+
 </body>
 </html>

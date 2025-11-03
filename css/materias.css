@@ -1,0 +1,221 @@
+/* Estilos específicos para la gestión de materias */
+.gestion-materias {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Estadísticas */
+.stats-container {
+    margin-bottom: 2rem;
+}
+
+.stats-card {
+    border: none;
+    border-radius: 12px;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.stats-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0, 0, 0, 0.2);
+}
+
+.stats-card .card-title {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.stats-card .card-text {
+    font-size: 2.5rem;
+    font-weight: bold;
+    margin-bottom: 0;
+}
+
+/* Formulario */
+.form-container {
+    border: none;
+    border-radius: 12px;
+}
+
+.form-container .card-header {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    font-weight: 600;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.materia-form .materia-input {
+    border-radius: 8px;
+    border: 2px solid #e9ecef;
+    transition: all 0.3s ease;
+    padding: 12px;
+}
+
+.materia-form .materia-input:focus {
+    border-color: #007bff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+.form-help {
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+}
+
+.submit-btn {
+    border-radius: 8px;
+    padding: 10px 24px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.submit-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Tabla */
+.table-container {
+    border: none;
+    border-radius: 12px;
+}
+
+.table-header {
+    background: linear-gradient(135deg, #6c757d, #495057);
+    color: white;
+    font-weight: 600;
+    border-radius: 12px 12px 0 0 !important;
+}
+
+.toggle-view-btn {
+    border-radius: 6px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.toggle-view-btn:hover {
+    transform: translateY(-2px);
+}
+
+.materias-table {
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.materias-table thead th {
+    background-color: #f8f9fa;
+    border-bottom: 2px solid #dee2e6;
+    font-weight: 600;
+    color: #495057;
+    padding: 15px 12px;
+}
+
+.materias-table tbody tr {
+    transition: all 0.3s ease;
+}
+
+.materias-table tbody tr:hover {
+    background-color: #f8f9fa;
+    transform: translateX(5px);
+}
+
+.materia-row td {
+    padding: 12px;
+    vertical-align: middle;
+}
+
+.materia-nombre {
+    font-weight: 500;
+    color: #495057;
+}
+
+.estado-badge, .horarios-badge {
+    font-size: 0.75rem;
+    padding: 6px 12px;
+    border-radius: 20px;
+}
+
+.acciones-cell {
+    min-width: 140px;
+}
+
+.desactivar-btn, .activar-btn {
+    border-radius: 6px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    padding: 6px 12px;
+}
+
+.desactivar-btn:hover {
+    background-color: #ffc107;
+    border-color: #ffc107;
+    color: #212529;
+    transform: translateY(-2px);
+}
+
+.activar-btn:hover {
+    background-color: #28a745;
+    border-color: #28a745;
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Estado vacío */
+.empty-state {
+    padding: 3rem 1rem;
+}
+
+.empty-icon {
+    font-size: 4rem;
+    color: #6c757d;
+    opacity: 0.5;
+}
+
+.empty-message {
+    font-size: 1.1rem;
+    font-weight: 500;
+}
+
+/* Información de debug */
+.debug-info {
+    font-size: 0.875rem;
+    border-radius: 8px;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stats-card .card-text {
+        font-size: 2rem;
+    }
+    
+    .materias-table {
+        font-size: 0.875rem;
+    }
+    
+    .desactivar-btn, .activar-btn {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+    }
+    
+    .table-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+}
+
+@media (max-width: 576px) {
+    .gestion-materias h1 {
+        font-size: 1.5rem;
+    }
+    
+    .stats-container {
+        margin-bottom: 1rem;
+    }
+    
+    .form-container .card-body {
+        padding: 1rem;
+    }
+    
+    .materia-form .col-md-6 {
+        margin-bottom: 1rem;
+    }
+}

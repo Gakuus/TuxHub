@@ -1,0 +1,273 @@
+.grupos-container { 
+    max-width: 1100px; 
+    margin: 40px auto; 
+    background:#fff; 
+    padding:25px; 
+    border-radius:8px; 
+    box-shadow:0 6px 18px rgba(0,0,0,.06); 
+}
+
+.grupos-top { 
+    display:flex; 
+    justify-content:space-between; 
+    align-items:center; 
+    margin-bottom:20px; 
+}
+
+.btn { 
+    padding:8px 12px; 
+    border-radius:6px; 
+    text-decoration:none; 
+    color:#fff; 
+    display:inline-block; 
+    font-size:14px; 
+}
+
+.btn-back { 
+    background:#0d6efd; 
+}
+
+.btn-create { 
+    background:#28a745; 
+    color:#fff; 
+    padding:8px 16px; 
+    border-radius:6px; 
+    border:none; 
+    cursor:pointer; 
+}
+
+.btn-outline-warning { 
+    background:transparent; 
+    border:1px solid #ffc107; 
+    color:#856404; 
+    padding:6px 12px; 
+    border-radius:6px; 
+    text-decoration:none; 
+    display:inline-block; 
+}
+
+.btn-outline-success { 
+    background:transparent; 
+    border:1px solid #28a745; 
+    color:#155724; 
+    padding:6px 12px; 
+    border-radius:6px; 
+    text-decoration:none; 
+    display:inline-block; 
+}
+
+.btn-outline-secondary { 
+    background:transparent; 
+    border:1px solid #6c757d; 
+    color:#6c757d; 
+    padding:6px 12px; 
+    border-radius:6px; 
+    text-decoration:none; 
+    display:inline-block; 
+}
+
+.btn-outline-primary { 
+    background:transparent; 
+    border:1px solid #0d6efd; 
+    color:#0d6efd; 
+    padding:6px 12px; 
+    border-radius:6px; 
+    text-decoration:none; 
+    display:inline-block; 
+}
+
+.grupos-table { 
+    width:100%; 
+    border-collapse:collapse; 
+    margin-top:15px; 
+}
+
+.grupos-table th, 
+.grupos-table td { 
+    border:1px solid #ececec; 
+    padding:10px; 
+    text-align:center; 
+}
+
+.grupos-table th { 
+    background:#f3f4f6; 
+    font-weight:600; 
+}
+
+.alert { 
+    padding:12px; 
+    border-radius:6px; 
+    margin-bottom:15px; 
+}
+
+.alert-success { 
+    background:#e6ffed; 
+    border:1px solid #c6f0d0; 
+    color:#135c2b; 
+}
+
+.alert-danger { 
+    background:#fff1f0; 
+    border:1px solid #f5c2c7; 
+    color:#842029; 
+}
+
+.alert-warning { 
+    background:#fff3cd; 
+    border:1px solid #ffeaa7; 
+    color:#856404; 
+}
+
+.alert-info { 
+    background:#d1ecf1; 
+    border:1px solid #bee5eb; 
+    color:#0c5460; 
+}
+
+.grupos-select, 
+.grupos-input { 
+    padding:8px; 
+    border-radius:6px; 
+    border:1px solid #ccc; 
+    width:100%; 
+}
+
+.stats-container { 
+    display:flex; 
+    gap:15px; 
+    margin-bottom:20px; 
+}
+
+.stat-card { 
+    flex:1; 
+    padding:15px; 
+    border-radius:8px; 
+    color:white; 
+    text-align:center; 
+}
+
+.stat-card.success { 
+    background:#28a745; 
+}
+
+.stat-card.secondary { 
+    background:#6c757d; 
+}
+
+.stat-card.info { 
+    background:#17a2b8; 
+}
+
+.badge { 
+    padding:4px 8px; 
+    border-radius:12px; 
+    font-size:12px; 
+    font-weight:500; 
+}
+
+.badge-success { 
+    background:#28a745; 
+    color:white; 
+}
+
+.badge-secondary { 
+    background:#6c757d; 
+    color:white; 
+}
+
+.badge-warning { 
+    background:#ffc107; 
+    color:#212529; 
+}
+
+.badge-info { 
+    background:#17a2b8; 
+    color:white; 
+}
+
+.form-container { 
+    background:#f8f9fa; 
+    padding:20px; 
+    border-radius:8px; 
+    margin-bottom:20px; 
+}
+
+.form-row { 
+    display:flex; 
+    gap:12px; 
+    align-items:end; 
+}
+
+.form-group { 
+    flex:1; 
+}
+
+.form-group label { 
+    display:block; 
+    margin-bottom:5px; 
+    font-weight:500; 
+    color:#495057; 
+}
+
+.header-actions { 
+    display:flex; 
+    justify-content:space-between; 
+    align-items:center; 
+    margin-bottom:15px; 
+}
+
+.btn-sm { 
+    padding:6px 10px; 
+    font-size:12px; 
+}
+
+.filtros-container { 
+    background:#e9ecef; 
+    padding:15px; 
+    border-radius:6px; 
+    margin-bottom:15px; 
+}
+
+.filtros-row { 
+    display:flex; 
+    gap:10px; 
+    align-items:center; 
+}
+
+.filtro-group { 
+    display:flex; 
+    align-items:center; 
+    gap:8px; 
+}
+
+.filtro-group label { 
+    margin:0; 
+    font-weight:500; 
+}
+
+.turno-stats { 
+    display:flex; 
+    gap:10px; 
+    margin-top:10px; 
+    flex-wrap:wrap; 
+}
+
+.turno-stat { 
+    background:white; 
+    padding:8px 12px; 
+    border-radius:6px; 
+    font-size:12px; 
+    border:1px solid #dee2e6; 
+}
+
+.empty-state { 
+    text-align:center; 
+    padding:20px; 
+    color:#6c757d; 
+}
+
+.empty-state i { 
+    font-size:2rem; 
+    display:block; 
+    margin-bottom:10px; 
+}

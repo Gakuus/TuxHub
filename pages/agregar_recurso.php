@@ -72,7 +72,11 @@ try {
     if (!isset($res_salones)) $res_salones = null;
 }
 ?>
-<div class="d-flex justify-content-between align-items-center mb-4">
+
+<!-- Incluir CSS -->
+<link rel="stylesheet" href="/Agora/Agora/css/recursos.css">
+
+<div class="d-flex justify-content-between align-items-center mb-4 form-recurso-container">
     <h4 class="mb-0"><?= $is_editing ? '✏️ Editar Recurso' : '➕ Agregar Recurso' ?></h4>
     <a href="dashboard.php?page=recursos" class="btn btn-secondary">
         <i class="bi bi-arrow-left me-1"></i> Volver a Recursos
@@ -98,7 +102,7 @@ try {
     
     <div class="col-md-6">
         <label for="tipo" class="form-label">Tipo *</label>
-        <select class="form-select" id="tipo" name="tipo" required onchange="toggleSalonField()">
+        <select class="form-select" id="tipo" name="tipo" required>
             <option value="">Seleccionar tipo</option>
             <option value="Alargue" <?= $is_editing && $recurso_data['tipo']=='Alargue' ? 'selected' : '' ?>>Alargue</option>
             <option value="Control" <?= $is_editing && $recurso_data['tipo']=='Control' ? 'selected' : '' ?>>Control</option>
@@ -142,60 +146,5 @@ try {
     </div>
 </form>
 
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const form = document.getElementById('formRecurso');
-    const tipoSelect = document.getElementById('tipo');
-    const salonField = document.getElementById('salonField');
-    const salonSelect = document.getElementById('salon_id');
-
-    // Función para mostrar/ocultar el campo de salón
-    function toggleSalonField() {
-        const tipo = tipoSelect.value;
-        
-        if (tipo === 'Llave' || tipo === 'Control') {
-            salonField.style.display = 'block';
-            salonSelect.required = true;
-        } else {
-            salonField.style.display = 'none';
-            salonSelect.required = false;
-            salonSelect.value = '';
-        }
-    }
-
-    // Ejecutar al cargar la página para establecer el estado inicial
-    toggleSalonField();
-
-    // Validación y envío del formulario
-    form.addEventListener('submit', function(e) {
-        const nombre = document.getElementById('nombre').value.trim();
-        const tipo = document.getElementById('tipo').value;
-        const salon_id = document.getElementById('salon_id').value;
-        
-        if (!nombre) {
-            alert('Por favor ingresa un nombre para el recurso');
-            document.getElementById('nombre').focus();
-            e.preventDefault();
-            return;
-        }
-        
-        if (!tipo) {
-            alert('Por favor selecciona un tipo de recurso');
-            document.getElementById('tipo').focus();
-            e.preventDefault();
-            return;
-        }
-
-        // Validar salón para Llaves y Controles
-        if ((tipo === 'Llave' || tipo === 'Control') && !salon_id) {
-            alert('Por favor selecciona un salón para el recurso de tipo ' + tipo);
-            document.getElementById('salon_id').focus();
-            e.preventDefault();
-            return;
-        }
-    });
-
-    // También ejecutar cuando cambie el tipo (por si acaso)
-    tipoSelect.addEventListener('change', toggleSalonField);
-});
-</script>
+<!-- Incluir JavaScript -->
+<script src="/Agora/Agora/assets/recursos_form.js"></script>

@@ -264,149 +264,294 @@ $result = $conn->query($sql);
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Gestión de Salones</title>
-<style>
-body{font-family:"Segoe UI",Arial,sans-serif;background:#f0f2f5;margin:0;padding:20px;}
-h1{text-align:center;margin-bottom:18px;}
-.selector-grupo{text-align:center;margin-bottom:18px;}
-.selector-grupo select{padding:8px;border-radius:6px;border:1px solid #ccc;}
-.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;max-width:1300px;margin:0 auto;}
-.card{background:#fff;border-radius:12px;padding:18px;box-shadow:0 4px 10px rgba(0,0,0,.08);transition:.15s;position:relative;}
-.card:hover{transform:translateY(-4px);box-shadow:0 8px 18px rgba(0,0,0,.12);}
-.estado{font-weight:700;padding:6px 10px;border-radius:6px;display:inline-block;margin-bottom:10px;}
-.disponible{background:#d4edda;color:#155724;}
-.ocupado{background:#f8d7da;color:#721c24;}
-button{margin-top:8px;padding:8px 12px;border:none;border-radius:6px;cursor:pointer;font-weight:700;}
-button.marcar{background:#007bff;color:#fff;}
-button.liberar{background:#28a745;color:#fff;}
-button.desmarcar{background:#6c757d;color:#fff;}
-button.editar{background:#ffc107;color:#000;}
-button.eliminar{background:#dc3545;color:#fff;}
-form.edit-form{margin-top:12px;background:#f8f9fa;padding:10px;border-radius:8px;}
-input,textarea,select{width:100%;padding:8px;margin-bottom:8px;border:1px solid #ccc;border-radius:6px;}
-.checkbox-group{display:flex;flex-wrap:wrap;gap:8px;}
-.checkbox-group label{background:#e9ecef;padding:6px 8px;border-radius:6px;cursor:pointer;}
-.admin-actions{margin-top:12px;padding-top:12px;border-top:1px solid #dee2e6;}
-@media(max-width:600px){.cards{grid-template-columns:1fr;}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Salones - Sistema Agora</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/Agora/Agora/css/salones.css">
 </head>
 <body>
-<h1>Gestión de Salones</h1>
-
-<?php if (!empty($_SESSION['error'])): ?>
-    <p style="color:red;text-align:center;"><?= $_SESSION['error']; unset($_SESSION['error']); ?></p>
-<?php endif; ?>
-
-<?php if (!empty($_SESSION['success'])): ?>
-    <p style="color:green;text-align:center;"><?= $_SESSION['success']; unset($_SESSION['success']); ?></p>
-<?php endif; ?>
-
-<?php if (in_array($rol, ['profesor','admin','administrador'])): ?>
-<div class="selector-grupo">
-    <form method="POST" style="display:inline-block;">
-        <label><strong>Seleccionar grupo:</strong></label>
-        <select name="grupo_id" onchange="this.form.submit()">
-            <?php foreach ($grupos_profesor as $g): ?>
-                <option value="<?= $g['id'] ?>" <?= $g['id']==$grupo_seleccionado?'selected':'' ?>>
-                    <?= htmlspecialchars($g['nombre']) ?> (<?= ucfirst($g['turno']) ?>)
-                </option>
-            <?php endforeach; ?>
-        </select>
-    </form>
-</div>
-<?php endif; ?>
-
-<div class="cards">
-<?php while ($row = $result->fetch_assoc()): 
-    $recursos_json = $row['recursos'] ?? '';
-    $recursos_list = '—';
-    if ($recursos_json) {
-        $decoded = json_decode($recursos_json,true);
-        if (is_array($decoded)) $recursos_list = implode(', ', array_keys(array_filter($decoded)));
-    }
-?>
-<div class="card">
-    <h2><?= htmlspecialchars($row['nombre_salon']) ?></h2>
-    <div class="estado <?= $row['estado'] ?>"><?= ucfirst($row['estado']) ?></div>
-    <p><strong>Capacidad:</strong> <?= $row['capacidad'] ?></p>
-    <p><strong>Ubicación:</strong> <?= htmlspecialchars($row['ubicacion'] ?? '-') ?></p>
-    <p><strong>Grupo actual:</strong> <?= htmlspecialchars($row['grupo_actual'] ?? '-') ?></p>
-    <p><strong>Profesor:</strong> <?= htmlspecialchars($row['profesor_actual'] ?? '-') ?></p>
-    <p><strong>Horario:</strong> <?= htmlspecialchars($row['hora_inicio'] ?? '-') ?> <?= $row['hora_fin'] ? ' - ' . htmlspecialchars($row['hora_fin']) : '' ?></p>
-    <p><strong>Recursos:</strong> <?= htmlspecialchars($recursos_list) ?></p>
-
-    <?php if (in_array($rol, ['profesor','admin','administrador'])): ?>
-        <!-- Acciones para profesores y admins -->
-        <form method="POST" style="margin-top:10px;">
-            <input type="hidden" name="salon_id" value="<?= $row['salon_id'] ?>">
-            <input type="hidden" name="accion" value="marcar_uso">
-            <?php if ($grupo_seleccionado): ?>
-                <input type="hidden" name="grupo_id" value="<?= $grupo_seleccionado ?>">
-                <?php if (count($horarios_grupo)>0): ?>
-                    <label><strong>Seleccionar bloques horarios:</strong></label>
-                    <select name="bloques[]" multiple size="4" required>
-                        <?php foreach ($horarios_grupo as $h): ?>
-                            <option value="<?= $h['id'] ?>">
-                                <?= htmlspecialchars($h['dia']) ?> — <?= substr($h['hora_inicio'],0,5) ?> a <?= substr($h['hora_fin'],0,5) ?> — <?= htmlspecialchars($h['materia']) ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                <?php else: ?>
-                    <p style="color:#888;">No hay horarios cargados para este grupo.</p>
-                <?php endif; ?>
-            <?php endif; ?>
-
-            <?php if ($row['estado'] === 'disponible'): ?>
-                <button type="submit" class="marcar">Marcar en uso</button>
-            <?php elseif ($row['estado'] === 'ocupado' && $row['profesor_actual'] === $user_name): ?>
-                <button type="submit" name="accion" value="liberar" class="liberar">Liberar</button>
-            <?php endif; ?>
-        </form>
-
-        <?php if (in_array($rol, ['admin','administrador'])): ?>
-        <!-- Acciones exclusivas para administradores -->
-        <div class="admin-actions">
-            <!-- Desmarcar uso (solo cuando está ocupado) -->
-            <?php if ($row['estado'] === 'ocupado'): ?>
-                <form method="POST" style="display:inline-block; margin-right:8px;">
-                    <input type="hidden" name="salon_id" value="<?= $row['salon_id'] ?>">
-                    <input type="hidden" name="accion" value="desmarcar_uso">
-                    <button type="submit" class="desmarcar" onclick="return confirm('¿Estás seguro de que quieres desmarcar el uso de este salón?')">
-                        Desmarcar Uso
-                    </button>
-                </form>
-            <?php endif; ?>
-
-            <!-- Eliminar salón -->
-            <form method="POST" style="display:inline-block;">
-                <input type="hidden" name="salon_id" value="<?= $row['salon_id'] ?>">
-                <input type="hidden" name="accion" value="eliminar">
-                <button type="submit" class="eliminar" onclick="return confirm('¿Estás seguro de que quieres ELIMINAR este salón? Esta acción no se puede deshacer.')">
-                    Eliminar Salón
-                </button>
-            </form>
-
-            <!-- Editar salón -->
-            <form method="POST" class="edit-form">
-                <input type="hidden" name="salon_id" value="<?= $row['salon_id'] ?>">
-                <input type="hidden" name="accion" value="editar">
-                <input type="text" name="nombre_salon" value="<?= htmlspecialchars($row['nombre_salon']) ?>" placeholder="Nombre" required>
-                <input type="number" name="capacidad" value="<?= $row['capacidad'] ?>" placeholder="Capacidad" required min="1">
-                <input type="text" name="ubicacion" value="<?= htmlspecialchars($row['ubicacion']) ?>" placeholder="Ubicación" required>
-                <textarea name="observaciones" placeholder="Observaciones"><?= htmlspecialchars($row['observaciones'] ?? '') ?></textarea>
-                <div class="checkbox-group">
-                    <?php foreach ($recursos_disponibles as $r): ?>
-                        <label><input type="checkbox" name="recursos[]" value="<?= $r ?>" <?= strpos($recursos_list,$r)!==false?'checked':'' ?>> <?= ucfirst($r) ?></label>
-                    <?php endforeach; ?>
+    <div class="dashboard-container">
+        <!-- Header Section -->
+        <div class="header-section">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="page-title">
+                        <i class="bi bi-building me-2"></i>Gestión de Salones
+                    </h1>
+                    <p class="page-subtitle">
+                        Administra y monitorea el estado de los salones en tiempo real
+                    </p>
                 </div>
-                <button type="submit" class="editar">Guardar cambios</button>
-            </form>
+                <div class="col-md-4 text-md-end">
+                    <div class="user-badge">
+                        <i class="bi bi-person-circle me-2"></i>
+                        <?= htmlspecialchars($user_name) ?> • <?= ucfirst($rol) ?>
+                    </div>
+                </div>
+            </div>
         </div>
+
+        <!-- Mensajes de estado -->
+        <?php if (!empty($_SESSION['error'])): ?>
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                <?= $_SESSION['error']; unset($_SESSION['error']); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
         <?php endif; ?>
-    <?php endif; ?>
-</div>
-<?php endwhile; ?>
-</div>
+
+        <?php if (!empty($_SESSION['success'])): ?>
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="bi bi-check-circle-fill me-2"></i>
+                <?= $_SESSION['success']; unset($_SESSION['success']); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+
+        <!-- Selector de Grupo para Profesores -->
+        <?php if (in_array($rol, ['profesor','admin','administrador']) && !empty($grupos_profesor)): ?>
+            <div class="group-selector">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <h5 class="mb-3">
+                            <i class="bi bi-people-fill me-2 text-primary"></i>
+                            Seleccionar Grupo
+                        </h5>
+                    </div>
+                    <div class="col-md-6">
+                        <form method="POST">
+                            <select name="grupo_id" class="form-select form-control-custom" onchange="this.form.submit()">
+                                <?php foreach ($grupos_profesor as $g): ?>
+                                    <option value="<?= $g['id'] ?>" <?= $g['id']==$grupo_seleccionado?'selected':'' ?>>
+                                        <?= htmlspecialchars($g['nombre']) ?> • <?= ucfirst($g['turno']) ?>
+                                    </option>
+                                <?php endforeach; ?>
+                            </select>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+
+        <!-- Grid de Salones -->
+        <div class="cards-grid">
+            <?php if ($result->num_rows > 0): ?>
+                <?php while ($row = $result->fetch_assoc()): 
+                    $recursos_json = $row['recursos'] ?? '';
+                    $recursos_list = [];
+                    if ($recursos_json) {
+                        $decoded = json_decode($recursos_json,true);
+                        if (is_array($decoded)) {
+                            $recursos_list = array_keys(array_filter($decoded));
+                        }
+                    }
+                ?>
+                <div class="salon-card">
+                    <!-- Header del Salón -->
+                    <div class="salon-header">
+                        <div>
+                            <h3 class="salon-name"><?= htmlspecialchars($row['nombre_salon']) ?></h3>
+                            <div class="info-item">
+                                <i class="bi bi-geo-alt"></i>
+                                <span><?= htmlspecialchars($row['ubicacion'] ?? 'Sin ubicación') ?></span>
+                            </div>
+                        </div>
+                        <div class="status-badge <?= $row['estado'] === 'disponible' ? 'status-available' : 'status-occupied' ?>">
+                            <i class="bi bi-<?= $row['estado'] === 'disponible' ? 'check-circle' : 'x-circle' ?> me-1"></i>
+                            <?= ucfirst($row['estado']) ?>
+                        </div>
+                    </div>
+
+                    <!-- Información del Salón -->
+                    <div class="salon-info">
+                        <div class="info-item">
+                            <i class="bi bi-people"></i>
+                            <span>Capacidad: <strong><?= $row['capacidad'] ?></strong> personas</span>
+                        </div>
+                        
+                        <?php if ($row['estado'] === 'ocupado'): ?>
+                            <div class="info-item">
+                                <i class="bi bi-person-check"></i>
+                                <span>Profesor: <strong><?= htmlspecialchars($row['profesor_actual'] ?? 'No asignado') ?></strong></span>
+                            </div>
+                            <div class="info-item">
+                                <i class="bi bi-mortarboard"></i>
+                                <span>Grupo: <strong><?= htmlspecialchars($row['grupo_actual'] ?? 'No asignado') ?></strong></span>
+                            </div>
+                            <div class="info-item">
+                                <i class="bi bi-clock"></i>
+                                <span>Horario: <strong><?= htmlspecialchars($row['hora_inicio'] ?? '-') ?> - <?= htmlspecialchars($row['hora_fin'] ?? '-') ?></strong></span>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if (!empty($recursos_list)): ?>
+                            <div class="info-item">
+                                <i class="bi bi-tools"></i>
+                                <span>Recursos disponibles:</span>
+                            </div>
+                            <div class="resources-grid">
+                                <?php foreach ($recursos_list as $recurso): ?>
+                                    <div class="resource-tag">
+                                        <i class="bi bi-<?= 
+                                            $recurso === 'television' ? 'tv' : 
+                                            ($recurso === 'computadoras' ? 'pc-display' : 
+                                            ($recurso === 'pizarra' ? 'easel' : 
+                                            ($recurso === 'proyector' ? 'projector' : 
+                                            ($recurso === 'aire_acondicionado' ? 'snow' : 'circle')))) 
+                                        ?> me-1"></i>
+                                        <?= ucfirst(str_replace('_', ' ', $recurso)) ?>
+                                    </div>
+                                <?php endforeach; ?>
+                            </div>
+                        <?php endif; ?>
+
+                        <?php if (!empty($row['observaciones'])): ?>
+                            <div class="info-item">
+                                <i class="bi bi-chat-left-text"></i>
+                                <span><em><?= htmlspecialchars($row['observaciones']) ?></em></span>
+                            </div>
+                        <?php endif; ?>
+                    </div>
+
+                    <!-- Acciones para Profesores y Admins -->
+                    <?php if (in_array($rol, ['profesor','admin','administrador'])): ?>
+                        <div class="action-buttons">
+                            <?php if ($row['estado'] === 'disponible'): ?>
+                                <!-- Formulario para marcar en uso -->
+                                <form method="POST" class="w-100">
+                                    <input type="hidden" name="salon_id" value="<?= $row['salon_id'] ?>">
+                                    <input type="hidden" name="accion" value="marcar_uso">
+                                    <?php if ($grupo_seleccionado): ?>
+                                        <input type="hidden" name="grupo_id" value="<?= $grupo_seleccionado ?>">
+                                        <?php if (count($horarios_grupo) > 0): ?>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-semibold">
+                                                    <i class="bi bi-clock me-1"></i>Seleccionar horarios:
+                                                </label>
+                                                <div class="time-slots">
+                                                    <?php foreach ($horarios_grupo as $h): ?>
+                                                        <label class="time-slot-item d-block">
+                                                            <input type="checkbox" name="bloques[]" value="<?= $h['id'] ?>" 
+                                                                   class="me-2"> 
+                                                            <?= htmlspecialchars($h['dia']) ?> • 
+                                                            <?= substr($h['hora_inicio'],0,5) ?>-<?= substr($h['hora_fin'],0,5) ?> • 
+                                                            <?= htmlspecialchars($h['materia']) ?>
+                                                        </label>
+                                                    <?php endforeach; ?>
+                                                </div>
+                                            </div>
+                                        <?php else: ?>
+                                            <p class="text-muted small">
+                                                <i class="bi bi-info-circle me-1"></i>
+                                                No hay horarios cargados para este grupo.
+                                            </p>
+                                        <?php endif; ?>
+                                    <?php endif; ?>
+                                    <button type="submit" class="btn-custom btn-primary-custom w-100">
+                                        <i class="bi bi-play-circle me-1"></i>Marcar en Uso
+                                    </button>
+                                </form>
+                            <?php elseif ($row['estado'] === 'ocupado' && $row['profesor_actual'] === $user_name): ?>
+                                <!-- Botón para liberar salón -->
+                                <form method="POST" class="w-100">
+                                    <input type="hidden" name="salon_id" value="<?= $row['salon_id'] ?>">
+                                    <input type="hidden" name="accion" value="liberar">
+                                    <button type="submit" class="btn-custom btn-success-custom w-100">
+                                        <i class="bi bi-stop-circle me-1"></i>Liberar Salón
+                                    </button>
+                                </form>
+                            <?php endif; ?>
+                        </div>
+
+                        <!-- Panel de Administración -->
+                        <?php if (in_array($rol, ['admin','administrador'])): ?>
+                            <div class="admin-panel">
+                                <h6 class="fw-bold mb-3">
+                                    <i class="bi bi-shield-check me-2 text-warning"></i>
+                                    Panel de Administración
+                                </h6>
+                                
+                                <div class="action-buttons">
+                                    <?php if ($row['estado'] === 'ocupado'): ?>
+                                        <form method="POST" class="w-100 mb-2">
+                                            <input type="hidden" name="salon_id" value="<?= $row['salon_id'] ?>">
+                                            <input type="hidden" name="accion" value="desmarcar_uso">
+                                            <button type="submit" class="btn-custom btn-secondary-custom w-100" 
+                                                    onclick="return confirm('¿Estás seguro de desmarcar el uso de este salón?')">
+                                                <i class="bi bi-x-circle me-1"></i>Desmarcar Uso
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+
+                                    <form method="POST" class="w-100 mb-2">
+                                        <input type="hidden" name="salon_id" value="<?= $row['salon_id'] ?>">
+                                        <input type="hidden" name="accion" value="eliminar">
+                                        <button type="submit" class="btn-custom btn-danger-custom w-100"
+                                                onclick="return confirm('¿ESTÁS SEGURO? Esta acción eliminará permanentemente el salón.')">
+                                            <i class="bi bi-trash me-1"></i>Eliminar Salón
+                                        </button>
+                                    </form>
+                                </div>
+
+                                <!-- Formulario de Edición -->
+                                <form method="POST" class="mt-3">
+                                    <input type="hidden" name="salon_id" value="<?= $row['salon_id'] ?>">
+                                    <input type="hidden" name="accion" value="editar">
+                                    
+                                    <div class="row g-2">
+                                        <div class="col-md-6">
+                                            <input type="text" name="nombre_salon" value="<?= htmlspecialchars($row['nombre_salon']) ?>" 
+                                                   class="form-control-custom" placeholder="Nombre del salón" required>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <input type="number" name="capacidad" value="<?= $row['capacidad'] ?>" 
+                                                   class="form-control-custom" placeholder="Capacidad" required min="1">
+                                        </div>
+                                        <div class="col-12">
+                                            <input type="text" name="ubicacion" value="<?= htmlspecialchars($row['ubicacion']) ?>" 
+                                                   class="form-control-custom" placeholder="Ubicación" required>
+                                        </div>
+                                        <div class="col-12">
+                                            <textarea name="observaciones" class="form-control-custom" 
+                                                      placeholder="Observaciones" rows="2"><?= htmlspecialchars($row['observaciones'] ?? '') ?></textarea>
+                                        </div>
+                                    </div>
+
+                                    <label class="form-label fw-semibold mt-2">Recursos:</label>
+                                    <div class="checkbox-grid">
+                                        <?php foreach ($recursos_disponibles as $r): ?>
+                                            <label class="checkbox-item">
+                                                <input type="checkbox" name="recursos[]" value="<?= $r ?>" 
+                                                       <?= in_array($r, $recursos_list) ? 'checked' : '' ?>>
+                                                <span><?= ucfirst(str_replace('_', ' ', $r)) ?></span>
+                                            </label>
+                                        <?php endforeach; ?>
+                                    </div>
+
+                                    <button type="submit" class="btn-custom btn-warning-custom w-100 mt-2">
+                                        <i class="bi bi-pencil-square me-1"></i>Guardar Cambios
+                                    </button>
+                                </form>
+                            </div>
+                        <?php endif; ?>
+                    <?php endif; ?>
+                </div>
+                <?php endwhile; ?>
+            <?php else: ?>
+                <div class="col-12">
+                    <div class="empty-state">
+                        <i class="bi bi-building-slash"></i>
+                        <h4>No hay salones registrados</h4>
+                        <p>Actualmente no hay salones disponibles en el sistema.</p>
+                    </div>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/Agora/Agora/assets/salones.js"></script>
 </body>
 </html>

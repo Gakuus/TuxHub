@@ -51,7 +51,7 @@ try {
 // ==============================
 // Variables iniciales
 // ==============================
-$old = ['nombre'=>'','cedula'=>'','email'=>'','rol'=>'','password'=>'','grupos'=>[]];
+$old = ['nombre'=>'','cedula'=>'','email'=>'','rol'=>'','password'=>'','password_confirm'=>'','grupos'=>[]];
 $success = false;
 
 // ==============================
@@ -67,10 +67,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $cedula = trim($_POST['cedula'] ?? '');
     $email = trim($_POST['email'] ?? '');
     $password = $_POST['password'] ?? '';
+    $password_confirm = $_POST['password_confirm'] ?? '';
     $rol = strtolower(trim($_POST['rol'] ?? ''));
     $grupos = $_POST['grupos'] ?? [];
 
-    $old = compact('nombre','cedula','email','rol','password','grupos');
+    $old = compact('nombre','cedula','email','rol','password','password_confirm','grupos');
 
     // ==============================
     // Validaciones
@@ -81,6 +82,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if (!preg_match('/^\d{8}$/', $cedula)) {
         $errors[] = "La cédula debe tener exactamente 8 dígitos.";
+    }
+
+    if ($password !== $password_confirm) {
+        $errors[] = "Las contraseñas no coinciden.";
     }
 
     if (strlen($password) < 8 || strlen($password) > 24) {
@@ -204,7 +209,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $conn->commit();
                 $success = true;
-                $old = ['nombre'=>'','cedula'=>'','email'=>'','rol'=>'','password'=>'','grupos'=>[]];
+                $old = ['nombre'=>'','cedula'=>'','email'=>'','rol'=>'','password'=>'','password_confirm'=>'','grupos'=>[]];
             } else {
                 $conn->rollback();
             }
@@ -219,87 +224,145 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<title>Registrar Usuario</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Registrar Usuario - Sistema Institucional</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+<link rel="stylesheet" href="/Agora/Agora/css/register.css">
 </head>
-<body class="bg-light">
-<div class="container py-5">
-<div class="card shadow mx-auto" style="max-width:700px;">
-<div class="card-body">
-<h4 class="card-title text-center mb-4">Registrar Usuario</h4>
+<body>
+<div class="container-card">
+    <div class="card">
+        <div class="institutional-header">
+            <h4><i class="bi bi-person-plus-fill"></i>Registrar Nuevo Usuario</h4>
+        </div>
+        
+        <div class="card-body">
+            <?php if ($success): ?>
+            <div class="alert alert-success">
+                <i class="bi bi-check-circle-fill"></i> Usuario registrado correctamente.
+            </div>
+            <?php endif; ?>
 
-<?php if ($success): ?>
-<div class="alert alert-success">✅ Usuario registrado correctamente.</div>
-<?php endif; ?>
+            <?php if (!empty($errors)): ?>
+            <div class="alert alert-danger">
+                <h6><i class="bi bi-exclamation-triangle-fill"></i> Errores encontrados:</h6>
+                <ul class="mb-0 mt-2"><?php foreach ($errors as $e): ?><li><?= htmlspecialchars($e) ?></li><?php endforeach; ?></ul>
+            </div>
+            <?php endif; ?>
 
-<?php if (!empty($errors)): ?>
-<div class="alert alert-danger">
-<ul class="mb-0"><?php foreach ($errors as $e): ?><li><?= htmlspecialchars($e) ?></li><?php endforeach; ?></ul>
-</div>
-<?php endif; ?>
+            <form method="POST" novalidate id="registerForm">
+                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
 
-<form method="POST" novalidate>
-<input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
+                <div class="form-section">
+                    <h6 class="form-section-title"><i class="bi bi-person-badge"></i> Información Personal</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Nombre completo *</label>
+                            <input type="text" name="nombre" class="form-control" maxlength="50" required value="<?= htmlspecialchars($old['nombre']) ?>">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Cédula *</label>
+                            <input type="text" name="cedula" class="form-control" maxlength="8" minlength="8" pattern="\d{8}" required value="<?= htmlspecialchars($old['cedula']) ?>">
+                            <small class="text-muted">8 dígitos sin puntos ni guiones</small>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Correo electrónico</label>
+                        <input type="email" name="email" class="form-control" maxlength="50" value="<?= htmlspecialchars($old['email']) ?>">
+                        <small class="text-muted">Debe ser un correo real con dominio existente</small>
+                    </div>
+                </div>
 
-<div class="mb-3">
-<label class="form-label">Nombre completo</label>
-<input type="text" name="nombre" class="form-control" maxlength="50" required value="<?= htmlspecialchars($old['nombre']) ?>">
+                <div class="form-section">
+                    <h6 class="form-section-title"><i class="bi bi-shield-lock"></i> Seguridad</h6>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Contraseña *</label>
+                            <div class="password-input-group">
+                                <input type="password" name="password" id="password" class="form-control" minlength="8" maxlength="24" required>
+                                <button type="button" class="password-toggle">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div class="password-strength" id="passwordStrength"></div>
+                            <div class="strength-labels">
+                                <span>Débil</span>
+                                <span>Fuerte</span>
+                            </div>
+                            <div class="password-requirements mt-2">
+                                <div id="lengthReq" class="requirement-not-met">Mínimo 8 caracteres</div>
+                                <div id="lowercaseReq" class="requirement-not-met">Una minúscula</div>
+                                <div id="uppercaseReq" class="requirement-not-met">Una mayúscula</div>
+                                <div id="numberReq" class="requirement-not-met">Un número</div>
+                                <div id="specialReq" class="requirement-not-met">Un símbolo</div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Repetir Contraseña *</label>
+                            <div class="password-input-group">
+                                <input type="password" name="password_confirm" id="password_confirm" class="form-control" minlength="8" maxlength="24" required>
+                                <button type="button" class="password-toggle">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                            </div>
+                            <div id="passwordMatch" class="form-text mt-2"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h6 class="form-section-title"><i class="bi bi-people"></i> Roles y Grupos</h6>
+                    
+                    <?php if ($rol_actual === 'administrador'): ?>
+                    <div class="mb-3">
+                        <label class="form-label">Rol del usuario *</label>
+                        <select name="rol" class="form-select" required>
+                            <option value="">-- Seleccione un rol --</option>
+                            <option value="profesor" <?= $old['rol']==='profesor'?'selected':'' ?>>Profesor</option>
+                            <option value="alumno" <?= $old['rol']==='alumno'?'selected':'' ?>>Alumno</option>
+                            <option value="administrador" <?= $old['rol']==='administrador'?'selected':'' ?>>Administrador</option>
+                        </select>
+                    </div>
+                    <?php else: ?>
+                    <input type="hidden" name="rol" value="alumno">
+                    <?php endif; ?>
+
+                    <div class="mb-3">
+                        <label class="form-label">
+                            <?= $rol_actual === 'profesor' ? 'Asignar al grupo' : 'Grupos disponibles' ?>
+                        </label>
+                        <select name="grupos[]" class="form-select" <?= $rol_actual === 'profesor' ? '' : 'multiple size="4"' ?>>
+                            <?php foreach ($grupos_disponibles as $g): ?>
+                            <option value="<?= $g['id'] ?>" <?= in_array($g['id'],$old['grupos'])?'selected':'' ?>>
+                                <?= htmlspecialchars($g['nombre']) ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </select>
+                        <?php if ($rol_actual !== 'profesor'): ?>
+                        <small class="text-muted">Mantén presionada la tecla Ctrl para seleccionar múltiples grupos</small>
+                        <?php endif; ?>
+                    </div>
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button class="btn btn-primary btn-lg" id="submitBtn">
+                        <i class="bi bi-person-plus"></i> Registrar Usuario
+                    </button>
+                </div>
+            </form>
+
+            <div class="institutional-footer">
+                <a href="../dashboard.php">
+                    <i class="bi bi-arrow-left"></i> Volver al Panel de Control
+                </a>
+            </div>
+        </div>
+    </div>
 </div>
 
-<div class="mb-3">
-<label class="form-label">Cédula</label>
-<input type="text" name="cedula" class="form-control" maxlength="8" minlength="8" pattern="\d{8}" required value="<?= htmlspecialchars($old['cedula']) ?>">
-</div>
-
-<div class="mb-3">
-<label class="form-label">Correo (opcional)</label>
-<input type="email" name="email" class="form-control" maxlength="50" value="<?= htmlspecialchars($old['email']) ?>">
-<small class="text-muted">Debe ser un correo real (con dominio existente).</small>
-</div>
-
-<div class="mb-3">
-<label class="form-label">Contraseña</label>
-<input type="password" name="password" class="form-control" minlength="8" maxlength="24" required>
-</div>
-
-<?php if ($rol_actual === 'administrador'): ?>
-<div class="mb-3">
-<label class="form-label">Rol</label>
-<select name="rol" class="form-select" required>
-<option value="">-- Seleccione --</option>
-<option value="profesor" <?= $old['rol']==='profesor'?'selected':'' ?>>Profesor</option>
-<option value="alumno" <?= $old['rol']==='alumno'?'selected':'' ?>>Alumno</option>
-<option value="administrador" <?= $old['rol']==='administrador'?'selected':'' ?>>Administrador</option>
-</select>
-</div>
-<?php else: ?>
-<input type="hidden" name="rol" value="alumno">
-<?php endif; ?>
-
-<div class="mb-3">
-<label class="form-label"><?= $rol_actual === 'profesor' ? 'Asignar al grupo' : 'Grupos disponibles' ?></label>
-<select name="grupos[]" class="form-select" <?= $rol_actual === 'profesor' ? '' : 'multiple size="4"' ?>>
-<?php foreach ($grupos_disponibles as $g): ?>
-<option value="<?= $g['id'] ?>" <?= in_array($g['id'],$old['grupos'])?'selected':'' ?>>
-<?= htmlspecialchars($g['nombre']) ?>
-</option>
-<?php endforeach; ?>
-</select>
-<?php if ($rol_actual !== 'profesor'): ?>
-<small class="text-muted">Ctrl + clic para seleccionar varios.</small>
-<?php endif; ?>
-</div>
-
-<div class="d-grid">
-<button class="btn btn-primary">Registrar</button>
-</div>
-</form>
-
-<div class="text-center mt-3">
-<a href="../dashboard.php" class="text-decoration-none">← Volver al panel</a>
-</div>
-</div>
-</div>
-</div>
+<script src="/Agora/Agora/assets/register.js"></script>
 </body>
 </html>

@@ -1,0 +1,246 @@
+:root {
+    --primary-color: #1a4d8c;
+    --secondary-color: #2c6eb5;
+    --accent-color: #f8b739;
+    --light-color: #f8f9fa;
+    --dark-color: #343a40;
+    --success-color: #28a745;
+    --danger-color: #dc3545;
+    --warning-color: #ffc107;
+    --info-color: #17a2b8;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #1a4d8c 0%, #2c6eb5 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.institutional-header {
+    background: var(--primary-color);
+    color: white;
+    padding: 15px 0;
+    text-align: center;
+    border-radius: 10px 10px 0 0;
+    margin-bottom: 20px;
+}
+
+.institutional-header h4 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.institutional-header i {
+    color: var(--accent-color);
+    margin-right: 10px;
+}
+
+.container-card {
+    max-width: 800px;
+    width: 100%;
+}
+
+.card {
+    border: none;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+    overflow: hidden;
+}
+
+.card-body {
+    padding: 30px;
+    background: white;
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--dark-color);
+    margin-bottom: 8px;
+}
+
+.form-control, .form-select {
+    border: 2px solid #e9ecef;
+    border-radius: 8px;
+    padding: 10px 15px;
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--secondary-color);
+    box-shadow: 0 0 0 0.2rem rgba(44, 110, 181, 0.25);
+}
+
+.password-input-group {
+    position: relative;
+}
+
+.password-toggle {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #6c757d;
+    transition: color 0.3s ease;
+}
+
+.password-toggle:hover {
+    color: var(--primary-color);
+}
+
+.password-strength {
+    height: 6px;
+    margin-top: 8px;
+    border-radius: 3px;
+    transition: all 0.3s ease;
+    background-color: #e9ecef;
+}
+
+.password-weak { background-color: var(--danger-color); width: 25%; }
+.password-medium { background-color: var(--warning-color); width: 50%; }
+.password-strong { background-color: var(--info-color); width: 75%; }
+.password-very-strong { background-color: var(--success-color); width: 100%; }
+
+.password-requirements {
+    font-size: 0.8rem;
+    margin-top: 8px;
+}
+
+.requirement-met { 
+    color: var(--success-color);
+    font-weight: 500;
+}
+
+.requirement-not-met { 
+    color: #6c757d;
+}
+
+.requirement-met::before {
+    content: "✓ ";
+    font-weight: bold;
+}
+
+.requirement-not-met::before {
+    content: "○ ";
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    border: none;
+    border-radius: 8px;
+    padding: 12px 30px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(26, 77, 140, 0.3);
+}
+
+.btn-outline-primary {
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    border-radius: 8px;
+    padding: 10px 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    transform: translateY(-1px);
+}
+
+.alert {
+    border: none;
+    border-radius: 8px;
+    padding: 15px 20px;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+    border-left: 4px solid var(--success-color);
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+    border-left: 4px solid var(--danger-color);
+}
+
+.institutional-footer {
+    text-align: center;
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #e9ecef;
+}
+
+.institutional-footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.institutional-footer a:hover {
+    color: var(--secondary-color);
+    text-decoration: underline;
+}
+
+.form-section {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    border-left: 4px solid var(--primary-color);
+}
+
+.form-section-title {
+    color: var(--primary-color);
+    font-weight: 600;
+    margin-bottom: 15px;
+    display: flex;
+    align-items: center;
+}
+
+.form-section-title i {
+    margin-right: 10px;
+    color: var(--secondary-color);
+}
+
+.strength-labels {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 5px;
+    font-size: 0.7rem;
+    color: #6c757d;
+}
+
+@media (max-width: 768px) {
+    .card-body {
+        padding: 20px;
+    }
+    
+    body {
+        padding: 10px;
+    }
+    
+    .institutional-header {
+        padding: 12px 0;
+    }
+}

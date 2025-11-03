@@ -32,28 +32,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
     $observaciones = trim($_POST['observaciones']);
     $recursos_sel = $_POST['recursos'] ?? [];
 
-    // Crear array de recursos con valores booleanos
-    $recursos_array = array_fill_keys($recursos_disponibles, false);
-    foreach ($recursos_sel as $r) {
-        if (isset($recursos_array[$r])) {
-            $recursos_array[$r] = true;
+    // Validar longitud de campos
+    $errores = [];
+    if (strlen($nombre) > 24) {
+        $errores[] = 'El nombre no puede tener más de 24 caracteres.';
+    }
+    if ($capacidad > 50 || $capacidad < 1) {
+        $errores[] = 'La capacidad debe estar entre 1 y 50 personas.';
+    }
+    if (strlen($ubicacion) > 24) {
+        $errores[] = 'La ubicación no puede tener más de 24 caracteres.';
+    }
+    if (strlen($observaciones) > 255) {
+        $errores[] = 'Las observaciones no pueden tener más de 255 caracteres.';
+    }
+
+    if (empty($errores)) {
+        // Crear array de recursos con valores booleanos
+        $recursos_array = array_fill_keys($recursos_disponibles, false);
+        foreach ($recursos_sel as $r) {
+            if (isset($recursos_array[$r])) {
+                $recursos_array[$r] = true;
+            }
+        }
+
+        $recursos_json = json_encode($recursos_array, JSON_UNESCAPED_UNICODE);
+
+        // Insertar en la base de datos
+        $stmt = $conn->prepare("INSERT INTO salones (nombre_salon, capacidad, ubicacion, observaciones, recursos, estado) 
+                                VALUES (?, ?, ?, ?, ?, 'disponible')");
+        $stmt->bind_param("sisss", $nombre, $capacidad, $ubicacion, $observaciones, $recursos_json);
+
+        if ($stmt->execute()) {
+            echo '<div class="alert alert-success mt-3">✅ Salón agregado correctamente.</div>';
+        } else {
+            echo '<div class="alert alert-danger mt-3">❌ Error al agregar salón: ' . htmlspecialchars($stmt->error) . '</div>';
+        }
+
+        $stmt->close();
+    } else {
+        foreach ($errores as $error) {
+            echo '<div class="alert alert-danger mt-3">❌ ' . htmlspecialchars($error) . '</div>';
         }
     }
-
-    $recursos_json = json_encode($recursos_array, JSON_UNESCAPED_UNICODE);
-
-    // Insertar en la base de datos
-    $stmt = $conn->prepare("INSERT INTO salones (nombre_salon, capacidad, ubicacion, observaciones, recursos, estado) 
-                            VALUES (?, ?, ?, ?, ?, 'disponible')");
-    $stmt->bind_param("sisss", $nombre, $capacidad, $ubicacion, $observaciones, $recursos_json);
-
-    if ($stmt->execute()) {
-        echo '<div class="alert alert-success mt-3">✅ Salón agregado correctamente.</div>';
-    } else {
-        echo '<div class="alert alert-danger mt-3">❌ Error al agregar salón: ' . htmlspecialchars($stmt->error) . '</div>';
-    }
-
-    $stmt->close();
 }
 ?>
 
@@ -62,38 +83,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
 <head>
 <meta charset="UTF-8">
 <title>Agregar Salón</title>
-<style>
-body {font-family:"Segoe UI",Arial,sans-serif;background:#f5f7fa;margin:0;padding:20px;}
-h1 {text-align:center;margin-bottom:20px;color:#333;}
-form {background:#fff;padding:20px;border-radius:10px;max-width:600px;margin:0 auto;
-      box-shadow:0 4px 10px rgba(0,0,0,0.08);}
-input,textarea,select {width:100%;padding:10px;margin-bottom:10px;border:1px solid #ccc;
-      border-radius:6px;}
-.checkbox-group {display:flex;flex-wrap:wrap;gap:10px;}
-.checkbox-group label {background:#e9ecef;padding:6px 10px;border-radius:6px;cursor:pointer;}
-button {background:#007bff;color:#fff;padding:10px 15px;border:none;border-radius:6px;
-        cursor:pointer;font-weight:600;}
-button:hover {background:#0056b3;}
-</style>
+<link rel="stylesheet" href="/Agora/Agora/css/agregar_salon.css">
 </head>
 <body>
 
 <h1>Agregar Nuevo Salón</h1>
 
-<form method="POST">
+<form method="POST" onsubmit="return validarFormulario()">
     <input type="hidden" name="accion" value="agregar_salon">
 
-    <label>Nombre del salón:</label>
-    <input type="text" name="nombre_salon" required>
+    <label>Nombre del salón (máx. 24 caracteres):</label>
+    <input type="text" name="nombre_salon" maxlength="24" required>
 
-    <label>Capacidad:</label>
-    <input type="number" name="capacidad" min="1" required>
+    <label>Capacidad (máx. 50 personas):</label>
+    <input type="text" name="capacidad" 
+           oninput="validarNumero(this)" 
+           onkeypress="return (event.charCode >= 48 && event.charCode <= 57)"
+           placeholder="Solo números del 1 al 50"
+           required>
 
-    <label>Ubicación:</label>
-    <input type="text" name="ubicacion" required>
+    <label>Ubicación (máx. 24 caracteres):</label>
+    <input type="text" name="ubicacion" maxlength="24" required>
 
-    <label>Observaciones:</label>
-    <textarea name="observaciones" rows="3" placeholder="Opcional..."></textarea>
+    <label>Observaciones (máx. 255 caracteres):</label>
+    <textarea name="observaciones" rows="3" maxlength="255" placeholder="Opcional..."></textarea>
 
     <label>Recursos disponibles:</label>
     <div class="checkbox-group">
@@ -105,5 +118,6 @@ button:hover {background:#0056b3;}
     <button type="submit">Agregar salón</button>
 </form>
 
+<script src="/Agora/Agora/assets/agregar_salon.js"></script>
 </body>
 </html>

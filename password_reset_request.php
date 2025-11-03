@@ -1,6 +1,12 @@
 <?php
 require_once __DIR__ . '/backend/db_connection.php';
 session_start();
+
+// Generar CSRF token si no existe
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $error = $_GET['error'] ?? null;
 $success = $_GET['success'] ?? null;
 ?>
@@ -33,14 +39,14 @@ $success = $_GET['success'] ?? null;
             z-index: 0;
         }
     
-    
-    
     .card {
         border: none;
         border-radius: 20px;
         box-shadow: 0 10px 30px rgba(0,0,0,0.15);
         width: 100%;
         max-width: 420px;
+        position: relative;
+        z-index: 1;
     }
     .btn-primary {
         background-color: #007bff;
@@ -56,6 +62,16 @@ $success = $_GET['success'] ?? null;
     .btn-secondary:hover {
         background-color: #565e64;
     }
+    .char-count {
+        font-size: 0.875rem;
+        color: #6c757d;
+        text-align: right;
+        margin-top: 0.25rem;
+    }
+    .char-count.warning {
+        color: #dc3545;
+        font-weight: bold;
+    }
 </style>
 </head>
 <body>
@@ -69,10 +85,18 @@ $success = $_GET['success'] ?? null;
     <?php endif; ?>
 
     <form action="backend/password_reset_request.php" method="POST" id="recoveryForm" novalidate>
+        <!-- Campo CSRF Token -->
+        <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+        
         <div class="mb-3">
             <label for="email" class="form-label">Correo electrónico</label>
-            <input type="email" name="email" id="email" class="form-control" placeholder="ejemplo@correo.com" required>
-            <div class="invalid-feedback">Por favor, ingresa un correo electrónico válido.</div>
+            <input type="email" name="email" id="email" class="form-control" 
+                   placeholder="ejemplo@correo.com" 
+                   maxlength="50"
+                   required
+                   oninput="updateCharCount(this)">
+            <div class="char-count" id="charCount">0/50 caracteres</div>
+            <div class="invalid-feedback">Por favor, ingresa un correo electrónico válido (máximo 50 caracteres).</div>
         </div>
         <button type="submit" class="btn btn-primary w-100 mb-2">Enviar enlace de recuperación</button>
         <a href="index.php" class="btn btn-secondary w-100">⬅️ Volver al login</a>
@@ -80,17 +104,48 @@ $success = $_GET['success'] ?? null;
 </div>
 
 <script>
+// Función para actualizar el contador de caracteres
+function updateCharCount(input) {
+    const charCount = document.getElementById('charCount');
+    const currentLength = input.value.length;
+    charCount.textContent = `${currentLength}/50 caracteres`;
+    
+    if (currentLength > 45) {
+        charCount.className = 'char-count warning';
+    } else {
+        charCount.className = 'char-count';
+    }
+}
+
 // Validación en frontend
 const form = document.getElementById('recoveryForm');
 const emailInput = document.getElementById('email');
 
 form.addEventListener('submit', (e) => {
+    let isValid = true;
+    
+    // Validar formato de email
     if (!emailInput.value.match(/^[^@\s]+@[^@\s]+\.[^@\s]+$/)) {
         emailInput.classList.add('is-invalid');
-        e.preventDefault();
+        isValid = false;
     } else {
         emailInput.classList.remove('is-invalid');
     }
+    
+    // Validar longitud máxima
+    if (emailInput.value.length > 50) {
+        emailInput.classList.add('is-invalid');
+        isValid = false;
+    }
+    
+    if (!isValid) {
+        e.preventDefault();
+    }
+});
+
+// Inicializar contador de caracteres al cargar la página
+document.addEventListener('DOMContentLoaded', function() {
+    updateCharCount(emailInput);
 });
 </script>
 </body>

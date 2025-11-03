@@ -208,111 +208,115 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['guardar'])){
 FIN_PROCESO:
 ?>
 
-<div class="container mt-4">
-    <h2 class="mb-4"><i class="bi bi-plus-circle"></i> Cargar Horario</h2>
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cargar Horario</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="/Agora/Agora/css/cargar_horario.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h2 class="mb-4"><i class="bi bi-plus-circle"></i> Cargar Horario</h2>
 
-    <?php foreach($mensajes as $m): ?>
-        <div class="alert alert-<?= $m['tipo'] ?>"><?= htmlspecialchars($m['texto']) ?></div>
-    <?php endforeach; ?>
+        <?php foreach($mensajes as $m): ?>
+            <div class="alert alert-<?= $m['tipo'] ?>"><?= htmlspecialchars($m['texto']) ?></div>
+        <?php endforeach; ?>
 
-    <form method="post" class="row g-3">
-        <!-- Seleccionar Profesor -->
-        <div class="col-md-3">
-            <label class="form-label">Profesor</label>
-            <select name="profesor_id" class="form-select" onchange="this.form.submit()" required>
-                <option value="">-- Seleccione --</option>
-                <?php foreach($profesores as $p): ?>
-                    <option value="<?= $p['id'] ?>" <?= ($profesor_id==$p['id'])?'selected':'' ?>>
-                        <?= htmlspecialchars($p['nombre']) ?>
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
+        <form method="post" class="row g-3">
+            <!-- Seleccionar Profesor -->
+            <div class="col-md-3">
+                <label class="form-label">Profesor</label>
+                <select name="profesor_id" class="form-select" onchange="this.form.submit()" required>
+                    <option value="">-- Seleccione --</option>
+                    <?php foreach($profesores as $p): ?>
+                        <option value="<?= $p['id'] ?>" <?= ($profesor_id==$p['id'])?'selected':'' ?>>
+                            <?= htmlspecialchars($p['nombre']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
-        <!-- Seleccionar Grupo -->
-        <div class="col-md-3">
-            <label class="form-label">Grupo</label>
-            <select name="grupo_id" class="form-select" onchange="this.form.submit()" required>
-                <option value="">-- Seleccione --</option>
-                <?php foreach($grupos as $g): ?>
-                    <option value="<?= $g['id'] ?>" <?= ($grupo_id==$g['id'])?'selected':'' ?>>
-                        <?= htmlspecialchars($g['nombre']) ?> (<?= htmlspecialchars($g['turno']) ?>)
-                    </option>
-                <?php endforeach; ?>
-            </select>
-        </div>
+            <!-- Seleccionar Grupo -->
+            <div class="col-md-3">
+                <label class="form-label">Grupo</label>
+                <select name="grupo_id" class="form-select" onchange="this.form.submit()" required>
+                    <option value="">-- Seleccione --</option>
+                    <?php foreach($grupos as $g): ?>
+                        <option value="<?= $g['id'] ?>" <?= ($grupo_id==$g['id'])?'selected':'' ?>>
+                            <?= htmlspecialchars($g['nombre']) ?> (<?= htmlspecialchars($g['turno']) ?>)
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
-        <!-- Materia -->
-        <div class="col-md-3">
-            <label class="form-label">Materia</label>
-            <select name="materia_id" class="form-select" required>
-                <option value="">-- Seleccione --</option>
-                <?php foreach($materias as $m): ?>
-                    <option value="<?= $m['id'] ?>"><?= htmlspecialchars($m['nombre_materia']) ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
+            <!-- Materia -->
+            <div class="col-md-3">
+                <label class="form-label">Materia</label>
+                <select name="materia_id" class="form-select" required>
+                    <option value="">-- Seleccione --</option>
+                    <?php foreach($materias as $m): ?>
+                        <option value="<?= $m['id'] ?>"><?= htmlspecialchars($m['nombre_materia']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
-        <!-- Salón -->
-        <div class="col-md-3">
-            <label class="form-label">Salón</label>
-            <select name="salon_id" id="salon_id" class="form-select" onchange="mostrarCampoSalon(this)">
-                <option value="">-- Seleccione --</option>
-                <?php foreach($salones as $s): ?>
-                    <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['nombre_salon']) ?></option>
-                <?php endforeach; ?>
-                <option value="nuevo">➕ Agregar nuevo salón</option>
-            </select>
-        </div>
+            <!-- Salón -->
+            <div class="col-md-3">
+                <label class="form-label">Salón</label>
+                <select name="salon_id" id="salon_id" class="form-select" onchange="mostrarCampoSalon(this)">
+                    <option value="">-- Seleccione --</option>
+                    <?php foreach($salones as $s): ?>
+                        <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['nombre_salon']) ?></option>
+                    <?php endforeach; ?>
+                    <option value="nuevo">➕ Agregar nuevo salón</option>
+                </select>
+            </div>
 
-        <div class="col-md-3" id="nuevoSalonDiv" style="display:none;">
-            <label class="form-label">Nuevo Salón</label>
-            <input type="text" name="nuevo_salon" class="form-control" placeholder="Ej: Laboratorio 2">
-        </div>
+            <div class="col-md-3" id="nuevoSalonDiv" style="display:none;">
+                <label class="form-label">Nuevo Salón</label>
+                <input type="text" name="nuevo_salon" class="form-control" placeholder="Ej: Laboratorio 2">
+            </div>
 
-        <!-- Día y Bloque -->
-        <?php if($turno_grupo): ?>
-        <div class="col-md-3">
-            <label class="form-label">Día</label>
-            <select name="dia_id" class="form-select" required>
-                <option value="">-- Seleccione día --</option>
-                <?php foreach($dias as $d): ?>
-                    <option value="<?= $d['id'] ?>"><?= htmlspecialchars($d['nombre_dia']) ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
+            <!-- Día y Bloque -->
+            <?php if($turno_grupo): ?>
+            <div class="col-md-3">
+                <label class="form-label">Día</label>
+                <select name="dia_id" class="form-select" required>
+                    <option value="">-- Seleccione día --</option>
+                    <?php foreach($dias as $d): ?>
+                        <option value="<?= $d['id'] ?>"><?= htmlspecialchars($d['nombre_dia']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
-        <div class="col-md-6">
-            <label class="form-label">Bloque inicio (Turno: <?= htmlspecialchars($turno_grupo) ?>)</label>
-            <select name="bloque_id" class="form-select" required>
-                <option value="">-- Seleccione bloque --</option>
-                <?php foreach($bloques as $b): ?>
-                    <option value="<?= $b['id'] ?>"><?= $b['hora_inicio'] ?> - <?= $b['hora_fin'] ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
+            <div class="col-md-6">
+                <label class="form-label">Bloque inicio (Turno: <?= htmlspecialchars($turno_grupo) ?>)</label>
+                <select name="bloque_id" class="form-select" required>
+                    <option value="">-- Seleccione bloque --</option>
+                    <?php foreach($bloques as $b): ?>
+                        <option value="<?= $b['id'] ?>"><?= $b['hora_inicio'] ?> - <?= $b['hora_fin'] ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
 
-        <div class="col-md-3">
-            <label class="form-label">Duración (bloques consecutivos)</label>
-            <input type="number" name="duracion" class="form-control" min="1" max="<?= count($bloques) ?>" value="1" required>
-            <small class="text-muted">Máx <?= count($bloques) ?> bloques consecutivos</small>
-        </div>
+            <div class="col-md-3">
+                <label class="form-label">Duración (bloques consecutivos)</label>
+                <input type="number" name="duracion" class="form-control" min="1" max="<?= count($bloques) ?>" value="1" required>
+                <small class="text-muted">Máx <?= count($bloques) ?> bloques consecutivos</small>
+            </div>
 
-        <div class="col-12">
-            <button class="btn btn-success" type="submit" name="guardar">Guardar</button>
-        </div>
-        <?php endif; ?>
-    </form>
-</div>
+            <div class="col-12">
+                <button class="btn btn-success" type="submit" name="guardar">Guardar</button>
+            </div>
+            <?php endif; ?>
+        </form>
+    </div>
 
-<script>
-function mostrarCampoSalon(select){
-    const div = document.getElementById('nuevoSalonDiv');
-    if(select.value==='nuevo'){
-        div.style.display='block';
-    } else {
-        div.style.display='none';
-        div.querySelector('input').value='';
-    }
-}
-</script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/Agora/Agora/assets/cargar_horario.js"></script>
+</body>
+</html>
