@@ -22,6 +22,8 @@ if($rol !== "admin"){
 $mensajes = [];
 $grupo_id = $_POST['grupo_id'] ?? $_GET['grupo_id'] ?? 0;
 $profesor_id = $_POST['profesor_id'] ?? 0;
+$filtro_grupos = $_POST['filtro_grupos'] ?? 'activos';
+$filtro_materias = $_POST['filtro_materias'] ?? 'activas';
 
 // ==========================
 // Función para cargar datos
@@ -36,7 +38,11 @@ function fetchAllAssoc($conn, $sql) {
 // Cargar profesores y otras tablas
 // ==========================
 $profesores = fetchAllAssoc($conn,"SELECT id,nombre FROM usuarios WHERE rol='Profesor' ORDER BY nombre");
-$materias   = fetchAllAssoc($conn,"SELECT id,nombre_materia FROM materias ORDER BY nombre_materia");
+
+// Cargar materias según filtro
+$where_materias = $filtro_materias === 'activas' ? "WHERE activa = 1" : "";
+$materias = fetchAllAssoc($conn,"SELECT id,nombre_materia,activa FROM materias $where_materias ORDER BY nombre_materia");
+
 $salones    = fetchAllAssoc($conn,"SELECT id,nombre_salon FROM salones ORDER BY nombre_salon");
 $dias       = fetchAllAssoc($conn,"SELECT id, nombre_dia FROM dias ORDER BY id");
 
@@ -51,15 +57,17 @@ if(isset($dias['error']) || empty($dias)) {
 }
 
 // ==========================
-// Cargar grupos según profesor seleccionado
+// Cargar grupos según profesor seleccionado y filtro
 // ==========================
 $grupos = [];
 if($profesor_id){
+    $where_grupos = $filtro_grupos === 'activos' ? "AND g.activa = 1" : "";
+    
     $stmt = $conn->prepare("
-        SELECT g.id, g.nombre, g.turno
+        SELECT g.id, g.nombre, g.turno, g.activa
         FROM grupos g
         JOIN grupos_profesores gp ON gp.grupo_id = g.id
-        WHERE gp.profesor_id = ?
+        WHERE gp.profesor_id = ? $where_grupos
         ORDER BY g.nombre
     ");
     $stmt->bind_param("i",$profesor_id);
@@ -75,11 +83,15 @@ if($profesor_id){
 $turno_grupo = null;
 $bloques = [];
 if($grupo_id){
-    $stmt = $conn->prepare("SELECT turno FROM grupos WHERE id=?");
+    $stmt = $conn->prepare("SELECT turno, activa FROM grupos WHERE id=?");
     $stmt->bind_param("i",$grupo_id);
     $stmt->execute();
     $res = $stmt->get_result();
-    if($res && $res->num_rows) $turno_grupo = $res->fetch_assoc()['turno'];
+    if($res && $res->num_rows) {
+        $grupo_data = $res->fetch_assoc();
+        $turno_grupo = $grupo_data['turno'];
+        $grupo_activo = $grupo_data['activa'];
+    }
     $stmt->close();
 
     if($turno_grupo){
@@ -106,6 +118,23 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['guardar'])){
     if($dia_id <= 0){
         $mensajes[] = ['tipo'=>'danger','texto'=>"Debe seleccionar un día válido."];
         goto FIN_PROCESO;
+    }
+
+    // Verificar si el grupo está activo
+    if(isset($grupo_activo) && !$grupo_activo){
+        $mensajes[] = ['tipo'=>'warning','texto'=>"Advertencia: El grupo seleccionado está inactivo."];
+    }
+
+    // Verificar si la materia está activa
+    $materia_activa = false;
+    foreach($materias as $m){
+        if($m['id'] == $materia_id){
+            $materia_activa = $m['activa'] ?? true;
+            break;
+        }
+    }
+    if(!$materia_activa){
+        $mensajes[] = ['tipo'=>'warning','texto'=>"Advertencia: La materia seleccionada está inactiva."];
     }
 
     // Manejo de salón
@@ -227,6 +256,30 @@ FIN_PROCESO:
         <?php endforeach; ?>
 
         <form method="post" class="row g-3">
+            <!-- Filtros -->
+            <div class="filtro-section">
+                <div class="filtro-title">
+                    <i class="bi bi-funnel"></i>Filtros
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Filtrar Grupos</label>
+                        <select name="filtro_grupos" class="form-select" onchange="this.form.submit()">
+                            <option value="activos" <?= $filtro_grupos === 'activos' ? 'selected' : '' ?>>Activos</option>
+                            <option value="todos" <?= $filtro_grupos === 'todos' ? 'selected' : '' ?>>Todos</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Filtrar Materias</label>
+                        <select name="filtro_materias" class="form-select" onchange="this.form.submit()">
+                            <option value="activas" <?= $filtro_materias === 'activas' ? 'selected' : '' ?>>Activas</option>
+                            <option value="todas" <?= $filtro_materias === 'todas' ? 'selected' : '' ?>>Todas</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
             <!-- Seleccionar Profesor -->
             <div class="col-md-3">
                 <label class="form-label">Profesor</label>
@@ -248,9 +301,11 @@ FIN_PROCESO:
                     <?php foreach($grupos as $g): ?>
                         <option value="<?= $g['id'] ?>" <?= ($grupo_id==$g['id'])?'selected':'' ?>>
                             <?= htmlspecialchars($g['nombre']) ?> (<?= htmlspecialchars($g['turno']) ?>)
+                            <?= (!$g['activa']) ? ' - [INACTIVO]' : '' ?>
                         </option>
                     <?php endforeach; ?>
                 </select>
+                <div id="contador-grupos" class="contador-elementos"></div>
             </div>
 
             <!-- Materia -->
@@ -259,9 +314,13 @@ FIN_PROCESO:
                 <select name="materia_id" class="form-select" required>
                     <option value="">-- Seleccione --</option>
                     <?php foreach($materias as $m): ?>
-                        <option value="<?= $m['id'] ?>"><?= htmlspecialchars($m['nombre_materia']) ?></option>
+                        <option value="<?= $m['id'] ?>">
+                            <?= htmlspecialchars($m['nombre_materia']) ?>
+                            <?= (isset($m['activa']) && !$m['activa']) ? ' - [INACTIVA]' : '' ?>
+                        </option>
                     <?php endforeach; ?>
                 </select>
+                <div id="contador-materias" class="contador-elementos"></div>
             </div>
 
             <!-- Salón -->
@@ -310,7 +369,7 @@ FIN_PROCESO:
             </div>
 
             <div class="col-12">
-                <button class="btn btn-success" type="submit" name="guardar">Guardar</button>
+                <button class="btn btn-success" type="submit" name="guardar">Guardar Horario</button>
             </div>
             <?php endif; ?>
         </form>

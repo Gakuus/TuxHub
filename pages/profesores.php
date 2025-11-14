@@ -8,19 +8,6 @@ $fecha_hoy = date("Y-m-d");
 
 if (!$rol) die("⚠️ No hay sesión iniciada.");
 
-// Obtener el día de la semana actual (1=Lunes, 7=Domingo)
-$dia_actual_numero = date('N');
-$dia_actual_nombre = '';
-switch($dia_actual_numero) {
-    case 1: $dia_actual_nombre = 'Lunes'; break;
-    case 2: $dia_actual_nombre = 'Martes'; break;
-    case 3: $dia_actual_nombre = 'Miércoles'; break;
-    case 4: $dia_actual_nombre = 'Jueves'; break;
-    case 5: $dia_actual_nombre = 'Viernes'; break;
-    case 6: $dia_actual_nombre = 'Sábado'; break;
-    case 7: $dia_actual_nombre = 'Domingo'; break;
-}
-
 // Cargar profesores (para admin)
 $profesores = [];
 if ($rol === 'admin') {
@@ -35,6 +22,13 @@ $salones = [];
 $salones_query = $conn->query("SELECT id, nombre_salon FROM salones ORDER BY nombre_salon");
 while ($s = $salones_query->fetch_assoc()) {
     $salones[] = $s;
+}
+
+// Cargar bloques horarios (siempre disponibles, sin filtro por día)
+$bloques = [];
+$bloques_query = $conn->query("SELECT id, nombre_bloque, hora_inicio, hora_fin FROM bloques_horarios ORDER BY hora_inicio");
+while ($b = $bloques_query->fetch_assoc()) {
+    $bloques[] = $b;
 }
 ?>
 
@@ -88,6 +82,12 @@ while ($s = $salones_query->fetch_assoc()) {
                         <label>Bloque Horario</label>
                         <select name="bloque_id" id="selectBloque" class="form-select" required>
                             <option value="">Seleccionar bloque</option>
+                            <?php foreach ($bloques as $bloque): ?>
+                                <option value="<?= $bloque['id'] ?>">
+                                    <?= htmlspecialchars($bloque['nombre_bloque']) ?> 
+                                    (<?= substr($bloque['hora_inicio'], 0, 5) ?> - <?= substr($bloque['hora_fin'], 0, 5) ?>)
+                                </option>
+                            <?php endforeach; ?>
                         </select>
                     </div>
 
@@ -115,8 +115,6 @@ while ($s = $salones_query->fetch_assoc()) {
     </div>
     <?php endif; ?>
 
-
-
     <!-- HISTORIAL -->
     <div class="card shadow-sm">
         <div class="card-body">
@@ -129,6 +127,5 @@ while ($s = $salones_query->fetch_assoc()) {
 <script>
     const rolUsuario = "<?= $rol ?>";
     const userId = "<?= $user_id ?>";
-    const diaActualNumero = <?= $dia_actual_numero ?>;
 </script>
 <script src="/Agora/Agora/assets/profesores.js"></script>

@@ -1,18 +1,25 @@
-// JavaScript mejorado para gestión de horarios con efectos visuales
+// JavaScript optimizado para gestión de horarios con efectos visuales
 class HorariosManager {
     constructor() {
         this.currentGrupoId = null;
         this.currentTurno = '';
+        this.isInitialized = false;
+        this.observer = null;
         this.init();
     }
 
     init() {
+        if (this.isInitialized) return;
+        
         this.initializeEventListeners();
         this.initializeAnimations();
         this.initializeRippleEffects();
         this.initializeRealTimeUpdates();
         this.initializeAccessibility();
         this.showWelcomeNotification();
+        this.isInitialized = true;
+        
+        console.log('✅ HorariosManager inicializado correctamente');
     }
 
     // Efectos de bienvenida
@@ -25,12 +32,13 @@ class HorariosManager {
         }
     }
 
-    // Inicializar event listeners
+    // Inicializar event listeners optimizados
     initializeEventListeners() {
         this.enhanceFormSubmissions();
         this.addClassCardInteractions();
         this.addKeyboardNavigation();
         this.initializeExportFunctionality();
+        this.addPerformanceOptimizations();
     }
 
     // Mejorar envío de formularios
@@ -42,22 +50,25 @@ class HorariosManager {
             });
         });
 
-        // Efectos en selects
-        const selects = document.querySelectorAll('select');
-        selects.forEach(select => {
-            select.addEventListener('change', (e) => {
+        // Efectos en selects con delegación de eventos
+        document.addEventListener('change', (e) => {
+            if (e.target.matches('select')) {
                 this.createRippleEffect(e);
                 this.showLoadingState();
-            });
-
-            select.addEventListener('focus', () => {
-                select.parentElement.classList.add('focused');
-            });
-
-            select.addEventListener('blur', () => {
-                select.parentElement.classList.remove('focused');
-            });
+            }
         });
+
+        document.addEventListener('focus', (e) => {
+            if (e.target.matches('select')) {
+                e.target.parentElement.classList.add('focused');
+            }
+        }, true);
+
+        document.addEventListener('blur', (e) => {
+            if (e.target.matches('select')) {
+                e.target.parentElement.classList.remove('focused');
+            }
+        }, true);
     }
 
     // Manejar envío de formularios
@@ -68,96 +79,88 @@ class HorariosManager {
         }
     }
 
-    // Mostrar estado de loading
+    // Mostrar estado de loading optimizado
     showLoadingState(element = null) {
         if (element) {
-            element.classList.add('loading');
+            const originalText = element.innerHTML;
+            element.innerHTML = '<i class="bi bi-arrow-repeat spinner"></i> Procesando...';
             element.disabled = true;
             
             setTimeout(() => {
-                element.classList.remove('loading');
+                element.innerHTML = originalText;
                 element.disabled = false;
-            }, 2000);
-        } else {
-            // Loading global
-            const mainContent = document.querySelector('.container-fluid');
-            mainContent.style.opacity = '0.7';
-            mainContent.style.transition = 'opacity 0.3s ease';
-            
-            setTimeout(() => {
-                mainContent.style.opacity = '1';
-            }, 1000);
+            }, 1500);
         }
     }
 
-    // Interacciones con tarjetas de clase
+    // Interacciones con tarjetas de clase optimizadas
     addClassCardInteractions() {
-        const classCards = document.querySelectorAll('.class-card');
-        
-        classCards.forEach(card => {
-            card.addEventListener('click', (e) => {
-                this.showClassDetails(e.currentTarget);
-            });
-
-            card.addEventListener('mouseenter', (e) => {
-                this.animateCardHover(e.currentTarget, true);
-            });
-
-            card.addEventListener('mouseleave', (e) => {
-                this.animateCardHover(e.currentTarget, false);
-            });
+        // Usar delegación de eventos para mejor rendimiento
+        document.addEventListener('click', (e) => {
+            const card = e.target.closest('.class-card');
+            if (card) {
+                this.showClassDetails(card);
+            }
         });
+
+        document.addEventListener('mouseenter', (e) => {
+            const card = e.target.closest('.class-card');
+            if (card) {
+                this.animateCardHover(card, true);
+            }
+        }, true);
+
+        document.addEventListener('mouseleave', (e) => {
+            const card = e.target.closest('.class-card');
+            if (card) {
+                this.animateCardHover(card, false);
+            }
+        }, true);
     }
 
-    // Mostrar detalles de la clase
+    // Mostrar detalles de la clase mejorado
     showClassDetails(card) {
-        const materia = card.querySelector('h6').textContent;
-        const profesor = card.querySelector('.class-details small:nth-child(1)').textContent;
-        const salon = card.querySelector('.class-details small:nth-child(2)').textContent;
+        const materia = card.dataset.materia || card.querySelector('h6').textContent;
+        const profesor = card.dataset.profesor || card.querySelector('.class-details small:nth-child(1)').textContent;
+        const salon = card.dataset.salon || card.querySelector('.class-details small:nth-child(2)').textContent;
         
         const detailsHtml = `
             <div class="class-details-modal">
-                <h5>${materia}</h5>
+                <h5 class="mb-3">${this.escapeHtml(materia)}</h5>
                 <div class="details-list">
-                    <p><i class="bi bi-person"></i> <strong>Profesor:</strong> ${profesor}</p>
-                    <p><i class="bi bi-geo-alt"></i> <strong>Salón:</strong> ${salon}</p>
-                    <p><i class="bi bi-clock"></i> <strong>Horario:</strong> Completo</p>
+                    <p><i class="bi bi-person me-2"></i> <strong>Profesor:</strong> ${this.escapeHtml(profesor)}</p>
+                    <p><i class="bi bi-geo-alt me-2"></i> <strong>Salón:</strong> ${this.escapeHtml(salon)}</p>
+                    <p><i class="bi bi-clock me-2"></i> <strong>Duración:</strong> 45 minutos</p>
                 </div>
             </div>
         `;
 
-        this.showNotification(detailsHtml, 'info', 5000);
+        this.showNotification(detailsHtml, 'info', 4000);
     }
 
-    // Animación hover de tarjetas
+    // Animación hover de tarjetas optimizada
     animateCardHover(card, isHovering) {
         if (isHovering) {
-            card.style.transform = 'translateY(-5px) scale(1.02)';
-            card.style.boxShadow = '0 15px 30px rgba(0, 0, 0, 0.2)';
+            card.style.transform = 'translateY(-3px)';
+            card.style.boxShadow = '0 8px 25px rgba(0, 0, 0, 0.15)';
         } else {
-            card.style.transform = 'translateY(0) scale(1)';
-            card.style.boxShadow = '0 5px 15px rgba(0, 0, 0, 0.1)';
+            card.style.transform = 'translateY(0)';
+            card.style.boxShadow = '';
         }
     }
 
-    // Inicializar animaciones
+    // Inicializar animaciones con Intersection Observer
     initializeAnimations() {
-        // Observer para animaciones al hacer scroll
         const observerOptions = {
-            threshold: 0.1,
-            rootMargin: '0px 0px -50px 0px'
+            threshold: 0.05,
+            rootMargin: '10px'
         };
 
-        const observer = new IntersectionObserver((entries) => {
+        this.observer = new IntersectionObserver((entries) => {
             entries.forEach(entry => {
                 if (entry.isIntersecting) {
-                    entry.target.classList.add('animate-fade-in');
-                    
-                    // Efecto escalonado para filas de horario
-                    if (entry.target.classList.contains('schedule-row')) {
-                        const delay = Array.from(entry.target.parentNode.children).indexOf(entry.target) * 100;
-                        entry.target.style.animationDelay = `${delay}ms`;
-                    }
+                    entry.target.classList.add('animate-visible');
+                    this.observer.unobserve(entry.target);
                 }
             });
         }, observerOptions);
@@ -165,67 +168,66 @@ class HorariosManager {
         // Observar elementos animables
         const animatedElements = document.querySelectorAll('.schedule-row, .selection-panel, .selected-group-indicator');
         animatedElements.forEach(el => {
-            observer.observe(el);
-        });
-
-        // Efecto de aparición gradual
-        this.staggerAnimation();
-    }
-
-    // Animación escalonada
-    staggerAnimation() {
-        const elements = document.querySelectorAll('.animate-fade-in');
-        elements.forEach((el, index) => {
-            el.style.animationDelay = `${index * 0.1}s`;
+            this.observer.observe(el);
         });
     }
 
-    // Efectos ripple
+    // Efectos ripple optimizados
     initializeRippleEffects() {
-        const rippleElements = document.querySelectorAll('.btn, .class-card, .form-select');
-        
-        rippleElements.forEach(element => {
-            element.addEventListener('click', (e) => {
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('.btn, .class-card, .form-select')) {
                 this.createRippleEffect(e);
-            });
+            }
         });
     }
 
-    // Crear efecto ripple
+    // Crear efecto ripple mejorado
     createRippleEffect(event) {
-        const btn = event.currentTarget;
-        const circle = document.createElement('span');
-        const diameter = Math.max(btn.clientWidth, btn.clientHeight);
+        const element = event.currentTarget;
+        if (!element) return;
+
+        const rect = element.getBoundingClientRect();
+        const diameter = Math.max(rect.width, rect.height);
         const radius = diameter / 2;
 
-        circle.style.width = circle.style.height = `${diameter}px`;
-        circle.style.left = `${event.clientX - btn.getBoundingClientRect().left - radius}px`;
-        circle.style.top = `${event.clientY - btn.getBoundingClientRect().top - radius}px`;
-        circle.classList.add('ripple');
+        const circle = document.createElement('span');
+        circle.className = 'ripple-effect';
+        circle.style.cssText = `
+            width: ${diameter}px;
+            height: ${diameter}px;
+            left: ${event.clientX - rect.left - radius}px;
+            top: ${event.clientY - rect.top - radius}px;
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            transform: scale(0);
+            animation: ripple 0.6s linear;
+            pointer-events: none;
+        `;
 
-        const ripple = btn.getElementsByClassName('ripple')[0];
-        if (ripple) {
-            ripple.remove();
-        }
+        // Limpiar efectos anteriores
+        const existingRipples = element.querySelectorAll('.ripple-effect');
+        existingRipples.forEach(ripple => ripple.remove());
 
-        btn.appendChild(circle);
+        element.style.position = 'relative';
+        element.style.overflow = 'hidden';
+        element.appendChild(circle);
 
         // Auto-remover después de la animación
-        setTimeout(() => {
-            circle.remove();
-        }, 600);
+        setTimeout(() => circle.remove(), 600);
     }
 
-    // Navegación por teclado
+    // Navegación por teclado mejorada
     addKeyboardNavigation() {
         document.addEventListener('keydown', (e) => {
+            // Detectar navegación por teclado
             if (e.key === 'Tab') {
                 document.body.classList.add('keyboard-navigation');
             }
             
-            // Navegación rápida con teclado
-            if (e.ctrlKey) {
-                switch(e.key) {
+            // Atajos de teclado
+            if (e.ctrlKey || e.metaKey) {
+                switch(e.key.toLowerCase()) {
                     case 'e':
                         e.preventDefault();
                         this.exportHorario();
@@ -233,6 +235,10 @@ class HorariosManager {
                     case 'r':
                         e.preventDefault();
                         this.refreshHorario();
+                        break;
+                    case 'f':
+                        e.preventDefault();
+                        document.querySelector('select[name="grupo_id"]')?.focus();
                         break;
                 }
             }
@@ -243,145 +249,293 @@ class HorariosManager {
         });
     }
 
-    // Funcionalidad de exportación
-    initializeExportFunctionality() {
-        window.exportHorario = this.exportHorario.bind(this);
+    // Optimizaciones de rendimiento
+    addPerformanceOptimizations() {
+        // Debounce para eventos de resize
+        window.addEventListener('resize', this.debounce(() => {
+            this.handleResize();
+        }, 250));
+
+        // Preload de recursos críticos
+        this.preloadCriticalResources();
     }
 
-    // Exportar horario
-    exportHorario() {
-        const grupoNombre = document.querySelector('.selected-group-indicator h5')?.textContent || 'Horario';
+    handleResize() {
+        // Optimizar para diferentes tamaños de pantalla
+        if (window.innerWidth < 768) {
+            document.body.classList.add('mobile-view');
+        } else {
+            document.body.classList.remove('mobile-view');
+        }
+    }
+
+    preloadCriticalResources() {
+        // Preload de íconos y recursos importantes
+        const criticalResources = [
+            '/Agora/Agora/css/horarios.css'
+        ];
         
-        this.showNotification(`Preparando exportación de ${grupoNombre}...`, 'info');
-        
-        // Simular proceso de exportación
-        setTimeout(() => {
+        criticalResources.forEach(resource => {
+            const link = document.createElement('link');
+            link.rel = 'preload';
+            link.href = resource;
+            link.as = 'style';
+            document.head.appendChild(link);
+        });
+    }
+
+    // Funcionalidad de exportación mejorada
+    initializeExportFunctionality() {
+        window.horariosManager = this;
+    }
+
+    // Exportar horario a CSV
+    async exportHorario() {
+        try {
+            const grupoNombre = document.querySelector('.selected-group-indicator h5')?.textContent?.replace('Grupo: ', '').trim() || 'Horario';
+            
+            this.showNotification(`📊 Preparando exportación de ${grupoNombre}...`, 'info');
+            
+            // Simular proceso de exportación con feedback real
+            await this.simulateExportProcess();
+            
             this.showNotification(`✅ Horario de ${grupoNombre} exportado correctamente`, 'success');
             
-            // Efecto visual de exportación
-            const table = document.getElementById('horarioTable');
-            if (table) {
-                table.style.transform = 'scale(0.98)';
-                setTimeout(() => {
-                    table.style.transform = 'scale(1)';
-                }, 300);
+            // Efecto visual de confirmación
+            this.animateExportSuccess();
+            
+        } catch (error) {
+            this.showNotification('❌ Error al exportar el horario', 'error');
+            console.error('Error en exportación:', error);
+        }
+    }
+
+    async simulateExportProcess() {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                // En una implementación real, aquí se generaría el archivo CSV/PDF
+                const table = document.getElementById('horarioTable');
+                if (table) {
+                    this.generateCSV(table);
+                }
+                resolve();
+            }, 1500);
+        });
+    }
+
+    generateCSV(table) {
+        let csv = [];
+        const rows = table.querySelectorAll('tr');
+        
+        for (let i = 0; i < rows.length; i++) {
+            const row = [], cols = rows[i].querySelectorAll('td, th');
+            
+            for (let j = 0; j < cols.length; j++) {
+                let text = cols[j].innerText.replace(/(\r\n|\n|\r)/gm, ' ').replace(/(\s\s)/gm, ' ').trim();
+                row.push(`"${text}"`);
             }
-        }, 1500);
+            
+            csv.push(row.join(','));
+        }
+        
+        // Descargar archivo
+        this.downloadFile(csv.join('\n'), 'horario.csv', 'text/csv');
+    }
+
+    downloadFile(content, filename, mimeType) {
+        const blob = new Blob([content], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        
+        link.setAttribute('href', url);
+        link.setAttribute('download', filename);
+        link.style.visibility = 'hidden';
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }
+
+    animateExportSuccess() {
+        const table = document.getElementById('horarioTable');
+        if (table) {
+            table.style.transition = 'all 0.3s ease';
+            table.style.transform = 'scale(0.98)';
+            
+            setTimeout(() => {
+                table.style.transform = 'scale(1)';
+            }, 300);
+        }
     }
 
     // Refrescar horario
     refreshHorario() {
         this.showNotification('🔄 Actualizando horario...', 'info');
         
-        // Simular refresh
         setTimeout(() => {
-            this.showNotification('✅ Horario actualizado', 'success');
+            location.reload();
         }, 1000);
     }
 
-    // Actualizaciones en tiempo real
+    // Actualizaciones en tiempo real optimizadas
     initializeRealTimeUpdates() {
-        // Simular actualizaciones cada 30 segundos
+        // Verificar actualizaciones cada 2 minutos
         setInterval(() => {
             this.checkForUpdates();
-        }, 30000);
+        }, 120000);
     }
 
-    // Verificar actualizaciones
     checkForUpdates() {
         // En una implementación real, aquí harías una petición al servidor
-        console.log('Verificando actualizaciones de horario...');
-    }
-
-    // Accesibilidad
-    initializeAccessibility() {
-        // Agregar labels a íconos
-        const icons = document.querySelectorAll('i[class*="bi-"]');
-        icons.forEach(icon => {
-            if (!icon.getAttribute('aria-label')) {
-                const className = Array.from(icon.classList)
-                    .find(cls => cls.startsWith('bi-'))
-                    ?.replace('bi-', '')
-                    .replace(/-/g, ' ');
-                
-                if (className) {
-                    icon.setAttribute('aria-label', className);
-                }
-            }
-        });
-
-        // Mejorar contraste para modo alto contraste
-        if (window.matchMedia('(prefers-contrast: high)').matches) {
-            document.documentElement.style.setProperty('--primary-color', '#0044cc');
-            document.documentElement.style.setProperty('--secondary-color', '#002266');
+        if (Math.random() > 0.8) { // Simular actualización ocasional
+            this.showNotification('🔄 Hay actualizaciones disponibles en el horario', 'info', 3000);
         }
     }
 
-    // Notificaciones mejoradas
+    // Accesibilidad mejorada
+    initializeAccessibility() {
+        // Mejorar semántica de íconos
+        this.enhanceIconsAccessibility();
+        
+        // Soporte para alto contraste
+        this.enhanceContrastSupport();
+        
+        // Navegación por teclado mejorada
+        this.enhanceKeyboardNavigation();
+    }
+
+    enhanceIconsAccessibility() {
+        const icons = document.querySelectorAll('i[class*="bi-"]:not([aria-label])');
+        icons.forEach(icon => {
+            const iconName = Array.from(icon.classList)
+                .find(cls => cls.startsWith('bi-'))
+                ?.replace('bi-', '')
+                .replace(/-/g, ' ');
+            
+            if (iconName) {
+                icon.setAttribute('aria-label', iconName);
+                icon.setAttribute('role', 'img');
+            }
+        });
+    }
+
+    enhanceContrastSupport() {
+        // Detectar preferencia de alto contraste
+        if (window.matchMedia('(prefers-contrast: high)').matches) {
+            document.documentElement.classList.add('high-contrast');
+        }
+
+        // Escuchar cambios en la preferencia
+        window.matchMedia('(prefers-contrast: high)').addEventListener('change', (e) => {
+            if (e.matches) {
+                document.documentElement.classList.add('high-contrast');
+            } else {
+                document.documentElement.classList.remove('high-contrast');
+            }
+        });
+    }
+
+    enhanceKeyboardNavigation() {
+        // Mejorar focus indicators
+        document.addEventListener('focusin', (e) => {
+            if (e.target.matches('button, select, .class-card')) {
+                e.target.classList.add('keyboard-focus');
+            }
+        });
+
+        document.addEventListener('focusout', (e) => {
+            e.target.classList.remove('keyboard-focus');
+        });
+    }
+
+    // Sistema de notificaciones mejorado
     showNotification(message, type = 'info', duration = 5000) {
+        const container = this.getNotificationsContainer();
+        const notification = this.createNotificationElement(message, type);
+        
+        container.appendChild(notification);
+        
+        // Animación de entrada
+        requestAnimationFrame(() => {
+            notification.classList.add('notification-show');
+        });
+
+        // Auto-eliminar
+        const removeNotification = () => {
+            notification.classList.remove('notification-show');
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.remove();
+                }
+            }, 300);
+        };
+
+        if (duration > 0) {
+            setTimeout(removeNotification, duration);
+        }
+
+        return { element: notification, remove: removeNotification };
+    }
+
+    getNotificationsContainer() {
         let container = document.getElementById('notifications-container');
         if (!container) {
             container = document.createElement('div');
             container.id = 'notifications-container';
-            container.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                z-index: 9999;
-                max-width: 400px;
-            `;
+            container.className = 'notifications-container';
             document.body.appendChild(container);
         }
+        return container;
+    }
 
+    createNotificationElement(message, type) {
         const notification = document.createElement('div');
-        notification.className = `alert alert-${type} alert-dismissible fade show slide-up`;
-        notification.style.cssText = `
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
-            border: none;
-            border-radius: 16px;
-            backdrop-filter: blur(10px);
-            margin-bottom: 10px;
-        `;
+        notification.className = `notification notification-${type}`;
+        notification.setAttribute('role', 'alert');
+        notification.setAttribute('aria-live', 'polite');
         
         const icon = this.getNotificationIcon(type);
         notification.innerHTML = `
-            <div class="d-flex align-items-center">
-                <i class="bi ${icon} me-3" style="font-size: 1.5rem;"></i>
-                <div class="flex-grow-1">
-                    ${message}
-                </div>
-                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+            <div class="notification-content">
+                <i class="bi ${icon} notification-icon"></i>
+                <div class="notification-message">${message}</div>
+                <button class="notification-close" aria-label="Cerrar notificación">
+                    <i class="bi bi-x"></i>
+                </button>
             </div>
         `;
 
-        container.appendChild(notification);
+        // Cerrar al hacer click
+        notification.querySelector('.notification-close').addEventListener('click', () => {
+            notification.classList.remove('notification-show');
+            setTimeout(() => notification.remove(), 300);
+        });
 
-        // Efecto de entrada
-        setTimeout(() => {
-            notification.classList.add('show');
-        }, 100);
-
-        // Auto-eliminar después del tiempo especificado
-        setTimeout(() => {
-            if (notification.parentNode) {
-                notification.classList.remove('show');
-                setTimeout(() => notification.remove(), 300);
-            }
-        }, duration);
+        return notification;
     }
 
     getNotificationIcon(type) {
         const icons = {
-            'success': 'bi-check-circle-fill text-success',
-            'error': 'bi-exclamation-triangle-fill text-danger',
-            'warning': 'bi-exclamation-triangle-fill text-warning',
-            'info': 'bi-info-circle-fill text-primary'
+            'success': 'bi-check-circle-fill',
+            'error': 'bi-exclamation-triangle-fill',
+            'warning': 'bi-exclamation-triangle-fill',
+            'info': 'bi-info-circle-fill'
         };
-        return icons[type] || 'bi-info-circle-fill text-primary';
+        return icons[type] || 'bi-info-circle-fill';
     }
 
     // Utilidades
-    static debounce(func, wait) {
+    escapeHtml(unsafe) {
+        return unsafe
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    debounce(func, wait) {
         let timeout;
         return function executedFunction(...args) {
             const later = () => {
@@ -392,27 +546,52 @@ class HorariosManager {
             timeout = setTimeout(later, wait);
         };
     }
+
+    // Cleanup para evitar memory leaks
+    destroy() {
+        if (this.observer) {
+            this.observer.disconnect();
+        }
+        
+        // Limpiar event listeners
+        document.body.classList.remove('keyboard-navigation', 'mobile-view');
+        this.isInitialized = false;
+        
+        console.log('🧹 HorariosManager limpiado correctamente');
+    }
 }
 
-// Inicialización cuando el DOM esté listo
+// Inicialización optimizada
 document.addEventListener('DOMContentLoaded', () => {
-    const horariosManager = new HorariosManager();
-    
-    // Efecto de carga inicial suave
-    document.body.style.opacity = '0';
-    document.body.style.transition = 'opacity 0.5s ease';
-    
+    // Cargar progresivamente
     setTimeout(() => {
-        document.body.style.opacity = '1';
-    }, 100);
+        const horariosManager = new HorariosManager();
+        
+        // Transición suave de carga
+        document.body.style.opacity = '0';
+        document.body.style.transition = 'opacity 0.4s ease';
+        
+        requestAnimationFrame(() => {
+            document.body.style.opacity = '1';
+        });
 
-    // Hacer disponible globalmente
-    window.horariosManager = horariosManager;
+        // Hacer disponible globalmente
+        window.horariosManager = horariosManager;
+    }, 100);
 });
 
-// Manejo de errores globales
+// Manejo de errores global mejorado
 window.addEventListener('error', (e) => {
     console.error('Error en el módulo de horarios:', e.error);
+    
+    // Mostrar error amigable al usuario
+    if (window.horariosManager) {
+        window.horariosManager.showNotification(
+            '⚠️ Ocurrió un error inesperado. Por favor, recarga la página.',
+            'error',
+            8000
+        );
+    }
 });
 
 // Optimización para dispositivos táctiles
@@ -422,9 +601,211 @@ if ('ontouchstart' in window) {
     document.documentElement.classList.add('no-touch-device');
 }
 
-// Soporte para PWA (Progressive Web App)
+// Soporte para PWA
 if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-        // Registrar service worker para caché
+        // Aquí podrías registrar un service worker
+        console.log('🚀 PWA ready for service worker registration');
     });
+}
+
+// Prevención de recarga accidental
+window.addEventListener('beforeunload', (e) => {
+    if (document.querySelector('form').classList.contains('dirty')) {
+        e.preventDefault();
+        e.returnValue = '';
+    }
+});
+
+console.log('📚 Módulo de horarios cargado correctamente');
+
+// Agregar estas funciones a la clase HorariosManager
+
+// Filtrar materias por estado (nueva funcionalidad)
+filtrarMateriasPorEstado(estado) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('estado', estado);
+    window.location.href = url.toString();
+}
+
+// Mostrar información del filtro actual
+mostrarInfoFiltro() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const filtroEstado = urlParams.get('estado') || 'activas';
+    
+    let mensaje = '';
+    switch(filtroEstado) {
+        case 'activas':
+            mensaje = 'Mostrando solo materias activas';
+            break;
+        case 'inactivas':
+            mensaje = 'Mostrando solo materias inactivas';
+            break;
+        case 'todas':
+            mensaje = 'Mostrando todas las materias (activas e inactivas)';
+            break;
+    }
+    
+    return mensaje;
+}
+
+// Resaltar materias inactivas
+resaltarMateriasInactivas() {
+    const materiasInactivas = document.querySelectorAll('.class-card[data-activa="false"]');
+    materiasInactivas.forEach(card => {
+        card.style.border = '2px dashed #ffc107';
+    });
+}
+
+// En el método initializeEventListeners, agregar:
+initializeEventListeners() {
+    this.enhanceFormSubmissions();
+    this.addClassCardInteractions();
+    this.addKeyboardNavigation();
+    this.initializeExportFunctionality();
+    this.addPerformanceOptimizations();
+    this.initializeFilterFunctionality(); // Nueva línea
+}
+
+// Nuevo método para inicializar funcionalidad de filtros
+initializeFilterFunctionality() {
+    // Mostrar información del filtro actual al cargar
+    setTimeout(() => {
+        const infoFiltro = this.mostrarInfoFiltro();
+        if (infoFiltro) {
+            this.showNotification(infoFiltro, 'info', 3000);
+        }
+    }, 1500);
+
+    // Resaltar materias inactivas si el filtro es "todas"
+    const urlParams = new URLSearchParams(window.location.search);
+    const filtroEstado = urlParams.get('estado') || 'activas';
+    
+    if (filtroEstado === 'todas') {
+        this.resaltarMateriasInactivas();
+    }
+
+    // Agregar tooltips a las materias inactivas
+    this.initializeInactiveMateriasTooltips();
+}
+
+// Inicializar tooltips para materias inactivas
+initializeInactiveMateriasTooltips() {
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    const tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+}
+
+// En el método showClassDetails, agregar información de estado
+showClassDetails(card) {
+    const materia = card.dataset.materia || card.querySelector('h6').textContent;
+    const profesor = card.dataset.profesor || card.querySelector('.class-details small:nth-child(1)').textContent;
+    const salon = card.dataset.salon || card.querySelector('.class-details small:nth-child(2)').textContent;
+    const esActiva = card.dataset.activa === 'true';
+    
+    const estadoTexto = esActiva ? 
+        '<span class="text-success"><i class="bi bi-check-circle me-1"></i>Materia Activa</span>' :
+        '<span class="text-warning"><i class="bi bi-exclamation-triangle me-1"></i>Materia Inactiva</span>';
+    
+    const detailsHtml = `
+        <div class="class-details-modal">
+            <h5 class="mb-3">${this.escapeHtml(materia)}</h5>
+            <div class="details-list">
+                <p><i class="bi bi-person me-2"></i> <strong>Profesor:</strong> ${this.escapeHtml(profesor)}</p>
+                <p><i class="bi bi-geo-alt me-2"></i> <strong>Salón:</strong> ${this.escapeHtml(salon)}</p>
+                <p><i class="bi bi-clock me-2"></i> <strong>Duración:</strong> 45 minutos</p>
+                <p><i class="bi bi-info-circle me-2"></i> <strong>Estado:</strong> ${estadoTexto}</p>
+            </div>
+        </div>
+    `;
+
+    this.showNotification(detailsHtml, esActiva ? 'info' : 'warning', 5000);
+}
+
+
+// Agregar estas funciones a la clase HorariosManager
+
+// Mostrar información de los filtros actuales
+mostrarInfoFiltros() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const filtroGrupos = urlParams.get('estado_grupos') || 'activos';
+    const filtroMaterias = urlParams.get('estado_materias') || 'activas';
+    
+    let mensaje = '';
+    
+    switch(filtroGrupos) {
+        case 'activos':
+            mensaje += 'Mostrando grupos activos';
+            break;
+        case 'inactivos':
+            mensaje += 'Mostrando grupos inactivos';
+            break;
+        case 'todos':
+            mensaje += 'Mostrando todos los grupos';
+            break;
+    }
+    
+    switch(filtroMaterias) {
+        case 'activas':
+            mensaje += ' y materias activas';
+            break;
+        case 'inactivas':
+            mensaje += ' y materias inactivas';
+            break;
+        case 'todas':
+            mensaje += ' y todas las materias';
+            break;
+    }
+    
+    return mensaje;
+}
+
+// En el método initializeFilterFunctionality, actualizar:
+initializeFilterFunctionality() {
+    // Mostrar información de los filtros actuales al cargar
+    setTimeout(() => {
+        const infoFiltros = this.mostrarInfoFiltros();
+        if (infoFiltros) {
+            this.showNotification(infoFiltros, 'info', 3000);
+        }
+    }, 1500);
+
+    // Resaltar elementos inactivos según los filtros
+    this.resaltarElementosInactivos();
+}
+
+// Resaltar elementos inactivos
+resaltarElementosInactivos() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const filtroGrupos = urlParams.get('estado_grupos') || 'activos';
+    const filtroMaterias = urlParams.get('estado_materias') || 'activas';
+    
+    // Resaltar grupo inactivo si está seleccionado
+    const grupoIndicator = document.querySelector('.selected-group-indicator');
+    if (grupoIndicator && grupoIndicator.classList.contains('grupo-inactivo')) {
+        this.mostrarAdvertenciaGrupoInactivo();
+    }
+    
+    // Resaltar materias inactivas si el filtro es "todas"
+    if (filtroMaterias === 'todas') {
+        this.resaltarMateriasInactivas();
+    }
+}
+
+// Mostrar advertencia para grupo inactivo
+mostrarAdvertenciaGrupoInactivo() {
+    const warningHtml = `
+        <div class="alert alert-warning alert-dismissible fade show mt-3">
+            <i class="bi bi-exclamation-triangle me-2"></i>
+            <strong>Grupo Inactivo:</strong> Este grupo está marcado como inactivo. 
+            Es posible que algunas funcionalidades estén limitadas.
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    `;
+    
+    const grupoIndicator = document.querySelector('.selected-group-indicator');
+    if (grupoIndicator) {
+        grupoIndicator.insertAdjacentHTML('afterend', warningHtml);
+    }
 }

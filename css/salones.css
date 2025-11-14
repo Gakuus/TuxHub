@@ -1,166 +1,223 @@
+/* ==========================
+   Variables y Configuración
+   ========================== */
 :root {
-    --primary: #0d6efd;
-    --success: #198754;
-    --danger: #dc3545;
-    --warning: #ffc107;
-    --info: #0dcaf0;
-    --light: #f8f9fa;
-    --dark: #212529;
+    --primary-color: #1a4b8c;
+    --secondary-color: #0d2b56;
+    --accent-color: #d4af37;
+    --success-color: #28a745;
+    --warning-color: #dc3545;
+    --info-color: #17a2b8;
+    --light-color: #f8f9fa;
+    --dark-color: #212529;
+    --border-radius: 8px;
+    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    --transition: all 0.3s ease;
 }
 
-body {
-    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    min-height: 100vh;
-    padding: 20px;
-}
-
-.dashboard-container {
-    max-width: 1400px;
-    margin: 0 auto;
-}
-
-.header-section {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
-    border-radius: 20px;
+/* ==========================
+   CONTENEDOR - SIN AFECTAR BODY NI DASHBOARD
+   ========================== */
+.salones-section {
+    background: #f8f9fa;
     padding: 2rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    min-height: 100vh;
 }
 
-.page-title {
-    color: var(--dark);
-    font-weight: 700;
-    margin-bottom: 0.5rem;
-}
-
-.page-subtitle {
-    color: #6c757d;
-    font-size: 1.1rem;
-}
-
-.user-badge {
-    background: linear-gradient(135deg, var(--primary), var(--info));
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 50px;
-    font-weight: 600;
-}
-
-.cards-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.salon-card {
-    background: rgba(255, 255, 255, 0.95);
-    backdrop-filter: blur(10px);
+/* ==========================
+   Header Section
+   ========================== */
+.salones-section .header-section {
+    background: linear-gradient(135deg, #ffffff 0%, #f7fafc 100%);
     border-radius: 16px;
-    padding: 1.5rem;
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    transition: all 0.3s ease;
+    padding: 1.5rem 2rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
     position: relative;
     overflow: hidden;
 }
 
-.salon-card::before {
+.salones-section .header-section::before {
     content: '';
     position: absolute;
     top: 0;
     left: 0;
     right: 0;
     height: 4px;
-    background: linear-gradient(90deg, var(--primary), var(--info));
+    background: linear-gradient(90deg, var(--accent-color) 0%, var(--primary-color) 100%);
 }
 
-.salon-card:hover {
+.salones-section .page-title {
+    color: var(--primary-color);
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    font-size: 1.8rem;
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--accent-color) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    line-height: 1.2;
+}
+
+.salones-section .page-subtitle {
+    color: var(--secondary-color);
+    font-size: 1rem;
+    font-weight: 500;
+    margin-bottom: 0;
+}
+
+.salones-section .user-badge {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 10px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    box-shadow: 0 4px 15px rgba(26, 54, 93, 0.3);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    font-size: 0.9rem;
+    white-space: nowrap;
+}
+
+/* ==========================
+   Grid de Tarjetas
+   ========================== */
+.salones-section .cards-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.salones-section .salon-card {
+    background: #ffffff;
+    border: 1px solid #e0e0e0;
+    border-radius: var(--border-radius);
+    padding: 1.5rem;
+    transition: var(--transition);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    animation: fadeIn 0.5s ease-out;
+    position: relative;
+    overflow: hidden;
+}
+
+.salones-section .salon-card:hover {
+    box-shadow: var(--box-shadow);
     transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
 }
 
-.salon-header {
+.salones-section .salon-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 5px;
+    background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+}
+
+.salones-section .salon-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    margin-bottom: 1rem;
+    margin-bottom: 1.25rem;
+    padding-bottom: 1.25rem;
+    border-bottom: 2px solid #eaeaea;
+    gap: 1rem;
 }
 
-.salon-name {
+.salones-section .salon-name {
     font-size: 1.4rem;
     font-weight: 700;
-    color: var(--dark);
-    margin-bottom: 0.25rem;
+    color: var(--primary-color);
+    margin-bottom: 0.5rem;
+    word-break: break-word;
 }
 
-.status-badge {
-    padding: 0.5rem 1rem;
-    border-radius: 50px;
-    font-weight: 600;
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.status-available {
-    background: linear-gradient(135deg, var(--success), #20c997);
-    color: white;
-}
-
-.status-occupied {
-    background: linear-gradient(135deg, var(--danger), #e83e8c);
-    color: white;
-}
-
-.salon-info {
-    margin-bottom: 1.5rem;
-}
-
-.info-item {
+.salones-section .info-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     margin-bottom: 0.75rem;
-    color: #555;
+    color: #6c757d;
+    font-size: 0.95rem;
+    line-height: 1.4;
 }
 
-.info-item i {
+.salones-section .info-item i {
     width: 20px;
     margin-right: 0.75rem;
-    color: var(--primary);
+    color: var(--primary-color);
+    font-size: 1rem;
+    flex-shrink: 0;
+    margin-top: 0.1rem;
 }
 
-.resources-grid {
+/* ==========================
+   Status Badges
+   ========================== */
+.salones-section .status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.salones-section .status-available {
+    background: linear-gradient(135deg, var(--success-color) 0%, #48bb78 100%);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.salones-section .status-occupied {
+    background: linear-gradient(135deg, var(--warning-color) 0%, #fc8181 100%);
+    color: white;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ==========================
+   Recursos
+   ========================== */
+.salones-section .resources-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     gap: 0.5rem;
     margin: 1rem 0;
 }
 
-.resource-tag {
-    background: rgba(13, 110, 253, 0.1);
-    color: var(--primary);
-    padding: 0.4rem 0.8rem;
-    border-radius: 20px;
+.salones-section .resource-tag {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+    color: white;
+    padding: 0.5rem 0.75rem;
+    border-radius: 8px;
     font-size: 0.8rem;
-    font-weight: 500;
+    font-weight: 600;
     text-align: center;
-    border: 1px solid rgba(13, 110, 253, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 2px 8px rgba(49, 130, 206, 0.3);
 }
 
-.action-buttons {
+/* ==========================
+   Botones
+   ========================== */
+.salones-section .action-buttons {
     display: flex;
     gap: 0.75rem;
     flex-wrap: wrap;
     margin-top: 1.5rem;
 }
 
-.btn-custom {
-    padding: 0.75rem 1.25rem;
-    border-radius: 12px;
+.salones-section .btn-custom {
+    padding: 0.875rem 1.25rem;
+    border-radius: 10px;
     font-weight: 600;
     border: none;
     transition: all 0.3s ease;
@@ -172,145 +229,396 @@ body {
     align-items: center;
     justify-content: center;
     gap: 0.5rem;
+    font-size: 0.9rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    cursor: pointer;
 }
 
-.btn-custom:hover {
+.salones-section .btn-custom:hover {
     transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
-.btn-primary-custom {
-    background: linear-gradient(135deg, var(--primary), #0b5ed7);
+.salones-section .btn-primary-custom {
+    background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
     color: white;
 }
 
-.btn-success-custom {
-    background: linear-gradient(135deg, var(--success), #157347);
+.salones-section .btn-success-custom {
+    background: linear-gradient(135deg, var(--success-color) 0%, #48bb78 100%);
     color: white;
 }
 
-.btn-warning-custom {
-    background: linear-gradient(135deg, var(--warning), #ffca2c);
-    color: var(--dark);
-}
-
-.btn-danger-custom {
-    background: linear-gradient(135deg, var(--danger), #bb2d3b);
+.salones-section .btn-warning-custom {
+    background: linear-gradient(135deg, var(--warning-color) 0%, #ed8936 100%);
     color: white;
 }
 
-.btn-secondary-custom {
-    background: linear-gradient(135deg, #6c757d, #5c636a);
+.salones-section .btn-danger-custom {
+    background: linear-gradient(135deg, var(--warning-color) 0%, #fc8181 100%);
     color: white;
 }
 
-.admin-panel {
-    background: rgba(248, 249, 250, 0.8);
-    border-radius: 12px;
+.salones-section .btn-secondary-custom {
+    background: linear-gradient(135deg, #6c757d 0%, #495057 100%);
+    color: white;
+}
+
+/* ==========================
+   Panel de Administración
+   ========================== */
+.salones-section .admin-panel {
+    background: #ffffff;
+    border-radius: var(--border-radius);
     padding: 1.5rem;
-    margin-top: 1.5rem;
-    border-left: 4px solid var(--warning);
+    margin-top: 2rem;
+    box-shadow: var(--box-shadow);
+    border: 1px solid #e0e0e0;
+    border-left: 5px solid var(--warning-color);
 }
 
-.form-group {
-    margin-bottom: 1rem;
-}
-
-.form-control-custom {
-    border-radius: 10px;
-    border: 1px solid #dee2e6;
-    padding: 0.75rem;
-    transition: all 0.3s ease;
-}
-
-.form-control-custom:focus {
-    border-color: var(--primary);
-    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
-}
-
-.checkbox-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-    gap: 0.5rem;
-    margin: 1rem 0;
-}
-
-.checkbox-item {
+.salones-section .admin-panel h6 {
+    color: var(--primary-color);
+    font-size: 1.1rem;
+    margin-bottom: 1.25rem;
     display: flex;
     align-items: center;
     gap: 0.5rem;
-    padding: 0.5rem;
+}
+
+/* ==========================
+   Formularios
+   ========================== */
+.salones-section .form-control-custom,
+.salones-section .form-select {
+    border-radius: 10px;
+    border: 2px solid #e0e0e0;
+    padding: 0.875rem;
+    transition: all 0.3s ease;
+    font-size: 0.95rem;
+    background: white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+    width: 100%;
+    color: #333;
+}
+
+.salones-section .form-control-custom:focus,
+.salones-section .form-select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(26, 75, 140, 0.1);
+    outline: none;
+}
+
+.salones-section .checkbox-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+    margin: 1.25rem 0;
+}
+
+.salones-section .checkbox-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
     background: white;
     border-radius: 8px;
-    border: 1px solid #dee2e6;
+    border: 2px solid #e0e0e0;
     cursor: pointer;
     transition: all 0.3s ease;
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: #333;
 }
 
-.checkbox-item:hover {
-    border-color: var(--primary);
-    background: rgba(13, 110, 253, 0.05);
+.salones-section .checkbox-item:hover {
+    border-color: var(--primary-color);
+    background: rgba(26, 75, 140, 0.05);
 }
 
-.checkbox-item input[type="checkbox"] {
+.salones-section .checkbox-item input[type="checkbox"] {
     margin: 0;
+    transform: scale(1.1);
 }
 
-.group-selector {
-    background: rgba(255, 255, 255, 0.9);
-    border-radius: 12px;
-    padding: 1rem;
+/* ==========================
+   Selector de Grupo
+   ========================== */
+.salones-section .group-selector {
+    background: #ffffff;
+    border-radius: var(--border-radius);
+    padding: 1.25rem 1.5rem;
     margin-bottom: 1.5rem;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--box-shadow);
+    border: 1px solid #e0e0e0;
 }
 
-.time-slots {
+.salones-section .group-selector h5 {
+    color: var(--primary-color);
+    font-weight: 700;
+    font-size: 1.1rem;
+    margin-bottom: 0.75rem;
+}
+
+/* ==========================
+   Horarios
+   ========================== */
+.salones-section .time-slots {
     max-height: 200px;
     overflow-y: auto;
-    border: 1px solid #dee2e6;
-    border-radius: 8px;
-    padding: 0.5rem;
+    border: 2px solid #e0e0e0;
+    border-radius: 10px;
+    padding: 1rem;
+    background: white;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    margin-bottom: 1rem;
 }
 
-.time-slot-item {
-    padding: 0.5rem;
-    border-radius: 6px;
-    margin-bottom: 0.25rem;
+.salones-section .time-slot-item {
+    padding: 0.875rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
     cursor: pointer;
     transition: all 0.3s ease;
+    border: 2px solid transparent;
+    background: white;
+    font-weight: 500;
+    font-size: 0.9rem;
+    color: #333;
 }
 
-.time-slot-item:hover {
-    background: rgba(13, 110, 253, 0.1);
+.salones-section .time-slot-item:hover {
+    background: rgba(26, 75, 140, 0.1);
+    border-color: rgba(26, 75, 140, 0.2);
 }
 
-.time-slot-item.selected {
-    background: var(--primary);
-    color: white;
+/* ==========================
+   Estado Vacío
+   ========================== */
+.salones-section .empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    color: #6c757d;
+    background: #ffffff;
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
+    border: 1px solid #e0e0e0;
+}
+
+.salones-section .empty-state i {
+    font-size: 4rem;
+    margin-bottom: 1.25rem;
+    opacity: 0.7;
+    color: var(--primary-color);
+}
+
+.salones-section .empty-state h4 {
+    color: var(--primary-color);
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    font-size: 1.4rem;
+}
+
+/* ==========================
+   Animaciones
+   ========================== */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ==========================
+   Responsive Design
+   ========================== */
+@media (max-width: 1024px) {
+    .salones-section {
+        padding: 1.5rem;
+    }
+    
+    .salones-section .cards-grid {
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 1.25rem;
+    }
+    
+    .salones-section .header-section {
+        padding: 1.25rem 1.5rem;
+    }
+    
+    .salones-section .page-title {
+        font-size: 1.6rem;
+    }
 }
 
 @media (max-width: 768px) {
-    .cards-grid {
+    .salones-section {
+        padding: 1rem;
+    }
+    
+    .salones-section .cards-grid {
         grid-template-columns: 1fr;
+        gap: 1rem;
     }
     
-    .action-buttons {
+    .salones-section .salon-card {
+        padding: 1.25rem;
+    }
+    
+    .salones-section .header-section {
+        padding: 1.25rem;
+        margin-bottom: 1.25rem;
+        border-radius: 12px;
+    }
+    
+    .salones-section .page-title {
+        font-size: 1.4rem;
+        text-align: center;
+    }
+    
+    .salones-section .page-subtitle {
+        text-align: center;
+        font-size: 0.95rem;
+    }
+    
+    .salones-section .user-badge {
+        margin-top: 0.75rem;
+        justify-content: center;
+        width: 100%;
+        font-size: 0.85rem;
+        padding: 0.5rem 1rem;
+    }
+    
+    .salones-section .admin-panel {
+        padding: 1.25rem;
+        margin-top: 1.5rem;
+    }
+    
+    .salones-section .form-control-custom,
+    .salones-section .form-select {
+        padding: 0.75rem;
+        font-size: 16px;
+    }
+    
+    .salones-section .checkbox-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .salones-section .checkbox-item {
+        padding: 0.625rem;
+        font-size: 0.85rem;
+    }
+    
+    .salones-section .action-buttons {
         flex-direction: column;
+        gap: 0.5rem;
     }
     
-    .btn-custom {
+    .salones-section .btn-custom {
         flex: none;
+        width: 100%;
+        min-width: auto;
+        padding: 0.75rem 1rem;
+        font-size: 0.85rem;
+    }
+    
+    .salones-section .resources-grid {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.4rem;
+    }
+    
+    .salones-section .resource-tag {
+        padding: 0.4rem 0.6rem;
+        font-size: 0.75rem;
+    }
+    
+    .salones-section .salon-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .salones-section .status-badge {
+        align-self: flex-start;
     }
 }
 
-.empty-state {
-    text-align: center;
-    padding: 3rem;
-    color: #6c757d;
+@media (max-width: 480px) {
+    .salones-section {
+        padding: 0.75rem;
+    }
+    
+    .salones-section .salon-card {
+        padding: 1rem;
+    }
+    
+    .salones-section .header-section {
+        padding: 1rem;
+    }
+    
+    .salones-section .page-title {
+        font-size: 1.3rem;
+    }
+    
+    .salones-section .admin-panel {
+        padding: 1rem;
+    }
+    
+    .salones-section .admin-panel h6 {
+        font-size: 1rem;
+    }
 }
 
-.empty-state i {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-    opacity: 0.5;
+/* ==========================
+   Utilidades
+   ========================== */
+.salones-section .text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Prevenir zoom en iOS */
+@media (max-width: 768px) {
+    .salones-section input, 
+    .salones-section select, 
+    .salones-section textarea {
+        font-size: 16px !important;
+    }
+}
+
+/* Accesibilidad */
+@media (prefers-reduced-motion: reduce) {
+    .salones-section * {
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
+.salones-section .btn-custom:focus,
+.salones-section .form-control-custom:focus,
+.salones-section .form-select:focus {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+/* Scrollbar */
+.salones-section .time-slots::-webkit-scrollbar {
+    width: 8px;
+}
+
+.salones-section .time-slots::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.salones-section .time-slots::-webkit-scrollbar-thumb {
+    background: var(--primary-color);
+    border-radius: 10px;
 }

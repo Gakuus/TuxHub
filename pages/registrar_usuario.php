@@ -26,26 +26,40 @@ $csrf_token = $_SESSION['csrf_token'];
 // Cargar grupos según rol
 // ==============================
 $grupos_disponibles = [];
+$grupos_activos = [];
+$grupos_inactivos = [];
 $errors = [];
 
 try {
     if ($rol_actual === 'profesor') {
         $stmt = $conn->prepare("
-            SELECT g.id, g.nombre
+            SELECT g.id, g.nombre, g.activa
             FROM grupos g
             INNER JOIN grupos_profesores gp ON gp.grupo_id = g.id
             WHERE gp.profesor_id = ?
-            ORDER BY g.nombre
+            ORDER BY g.activa DESC, g.nombre
         ");
         $stmt->bind_param("i", $user_id);
     } else {
-        $stmt = $conn->prepare("SELECT id, nombre FROM grupos ORDER BY nombre");
+        $stmt = $conn->prepare("SELECT id, nombre, activa FROM grupos ORDER BY activa DESC, nombre");
     }
     $stmt->execute();
-    $grupos_disponibles = $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    $result = $stmt->get_result();
+    $grupos_disponibles = $result->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
+    
+    // Separar grupos activos e inactivos
+    foreach ($grupos_disponibles as $grupo) {
+        // Asumimos que 'activa' es 1 para activo, 0 para inactivo
+        if ($grupo['activa'] == 1) {
+            $grupos_activos[] = $grupo;
+        } else {
+            $grupos_inactivos[] = $grupo;
+        }
+    }
+    
 } catch (Exception $e) {
-    $errors[] = "Error al cargar los grupos.";
+    $errors[] = "Error al cargar los grupos: " . $e->getMessage();
 }
 
 // ==============================
@@ -118,19 +132,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // ✅ Solo puede crear alumnos
         $rol = 'alumno';
 
-        // Verifica que los grupos elegidos pertenezcan al profesor
+        // Verifica que los grupos elegidos pertenezcan al profesor y estén activos
         if (!empty($grupos)) {
             $stmt = $conn->prepare("
-                SELECT grupo_id FROM grupos_profesores WHERE profesor_id = ?
+                SELECT gp.grupo_id, g.activa 
+                FROM grupos_profesores gp 
+                INNER JOIN grupos g ON g.id = gp.grupo_id 
+                WHERE gp.profesor_id = ?
             ");
             $stmt->bind_param("i", $user_id);
             $stmt->execute();
-            $permitidos = array_column($stmt->get_result()->fetch_all(MYSQLI_ASSOC), 'grupo_id');
+            $result = $stmt->get_result();
+            $grupos_permitidos = [];
+            while ($row = $result->fetch_assoc()) {
+                $grupos_permitidos[$row['grupo_id']] = $row['activa'];
+            }
             $stmt->close();
 
             foreach ($grupos as $gid) {
-                if (!in_array($gid, $permitidos)) {
+                if (!array_key_exists($gid, $grupos_permitidos)) {
                     $errors[] = "No puede asignar alumnos a un grupo que no le pertenece.";
+                } elseif ($grupos_permitidos[$gid] != 1) {
+                    $errors[] = "No puede asignar alumnos a un grupo inactivo.";
                 }
             }
         }
@@ -138,6 +161,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $roles_validos = ['alumno','profesor','administrador'];
         if (!in_array($rol, $roles_validos, true)) {
             $errors[] = "Rol inválido.";
+        }
+        
+        // Verificar que los grupos seleccionados estén activos (para admin)
+        if (!empty($grupos)) {
+            $stmt = $conn->prepare("SELECT id, activa FROM grupos WHERE id IN (" . implode(',', array_fill(0, count($grupos), '?')) . ")");
+            $types = str_repeat('i', count($grupos));
+            $stmt->bind_param($types, ...$grupos);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            $estados_grupos = [];
+            while ($row = $result->fetch_assoc()) {
+                $estados_grupos[$row['id']] = $row['activa'];
+            }
+            $stmt->close();
+
+            foreach ($grupos as $gid) {
+                if (isset($estados_grupos[$gid]) && $estados_grupos[$gid] != 1) {
+                    $errors[] = "No puede asignar usuarios a grupos inactivos.";
+                    break;
+                }
+            }
         }
     } else {
         $errors[] = "No tiene permisos para registrar usuarios.";
@@ -334,12 +378,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <label class="form-label">
                             <?= $rol_actual === 'profesor' ? 'Asignar al grupo' : 'Grupos disponibles' ?>
                         </label>
-                        <select name="grupos[]" class="form-select" <?= $rol_actual === 'profesor' ? '' : 'multiple size="4"' ?>>
-                            <?php foreach ($grupos_disponibles as $g): ?>
-                            <option value="<?= $g['id'] ?>" <?= in_array($g['id'],$old['grupos'])?'selected':'' ?>>
-                                <?= htmlspecialchars($g['nombre']) ?>
-                            </option>
-                            <?php endforeach; ?>
+                        
+                        <!-- Filtros para grupos -->
+                        <div class="filter-buttons">
+                            <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-filter active" data-filter="all">
+                                    <i class="bi bi-collection"></i> Todos
+                                </button>
+                                <button type="button" class="btn btn-filter" data-filter="active">
+                                    <i class="bi bi-check-circle"></i> Activos
+                                </button>
+                                <button type="button" class="btn btn-filter" data-filter="inactive">
+                                    <i class="bi bi-pause-circle"></i> Inactivos
+                                </button>
+                            </div>
+                        </div>
+
+                        <select name="grupos[]" class="form-select" id="gruposSelect" <?= $rol_actual === 'profesor' ? '' : 'multiple size="4"' ?>>
+                            <?php if (!empty($grupos_activos)): ?>
+                                <optgroup label="Grupos Activos" data-estado="activo">
+                                <?php foreach ($grupos_activos as $g): ?>
+                                <option value="<?= $g['id'] ?>" class="grupo-activo" <?= in_array($g['id'],$old['grupos'])?'selected':'' ?>>
+                                    <?= htmlspecialchars($g['nombre']) ?>
+                                </option>
+                                <?php endforeach; ?>
+                                </optgroup>
+                            <?php endif; ?>
+                            
+                            <?php if (!empty($grupos_inactivos)): ?>
+                                <optgroup label="Grupos Inactivos" data-estado="inactivo">
+                                <?php foreach ($grupos_inactivos as $g): ?>
+                                <option value="<?= $g['id'] ?>" class="grupo-inactivo" <?= in_array($g['id'],$old['grupos'])?'selected':'' ?>>
+                                    <?= htmlspecialchars($g['nombre']) ?>
+                                </option>
+                                <?php endforeach; ?>
+                                </optgroup>
+                            <?php endif; ?>
                         </select>
                         <?php if ($rol_actual !== 'profesor'): ?>
                         <small class="text-muted">Mantén presionada la tecla Ctrl para seleccionar múltiples grupos</small>
@@ -354,11 +428,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </form>
 
-            <div class="institutional-footer">
-                <a href="../dashboard.php">
-                    <i class="bi bi-arrow-left"></i> Volver al Panel de Control
-                </a>
-            </div>
         </div>
     </div>
 </div>

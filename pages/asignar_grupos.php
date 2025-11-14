@@ -43,13 +43,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['profesor_id'], $_POST
 }
 
 // ==============================
-// 3. Obtener grupos y filtrar por turno si se seleccionó
+// 3. Obtener grupos y filtrar por turno y estado si se seleccionó
 // ==============================
 $selected_turno = $_POST['turno'] ?? '';
-$grupos_query = "SELECT id, nombre, turno FROM grupos";
+$selected_estado = $_POST['estado'] ?? '';
+
+$grupos_query = "SELECT id, nombre, turno, activa FROM grupos WHERE 1=1";
+
 if ($selected_turno !== '') {
-    $grupos_query .= " WHERE turno = '" . $conn->real_escape_string($selected_turno) . "'";
+    $grupos_query .= " AND turno = '" . $conn->real_escape_string($selected_turno) . "'";
 }
+
+if ($selected_estado !== '') {
+    $grupos_query .= " AND activa = " . intval($selected_estado);
+}
+
 $grupos_query .= " ORDER BY nombre";
 $grupos = $conn->query($grupos_query);
 
@@ -98,18 +106,31 @@ if (isset($_POST['profesor_id']) && $_POST['profesor_id'] !== '') {
                 </select>
             </div>
 
-            <!-- Turno -->
+            <!-- Filtros -->
             <?php if (isset($_POST['profesor_id']) && $_POST['profesor_id'] !== ''): ?>
-            <div class="mb-3">
-                <label class="form-label fw-bold">Turno:</label>
-                <select name="turno" class="form-select" onchange="this.form.submit()">
-                    <option value="">-- Todos los turnos --</option>
-                    <?php foreach($turnos as $t): ?>
-                        <option value="<?= htmlspecialchars($t) ?>" <?= ($selected_turno == $t) ? 'selected' : '' ?>>
-                            <?= ucfirst(htmlspecialchars($t)) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+            <div class="row mb-3">
+                <!-- Turno -->
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Turno:</label>
+                    <select name="turno" class="form-select" onchange="this.form.submit()">
+                        <option value="">-- Todos los turnos --</option>
+                        <?php foreach($turnos as $t): ?>
+                            <option value="<?= htmlspecialchars($t) ?>" <?= ($selected_turno == $t) ? 'selected' : '' ?>>
+                                <?= ucfirst(htmlspecialchars($t)) ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                
+                <!-- Estado -->
+                <div class="col-md-6">
+                    <label class="form-label fw-bold">Estado:</label>
+                    <select name="estado" class="form-select" onchange="this.form.submit()">
+                        <option value="">-- Todos los estados --</option>
+                        <option value="1" <?= ($selected_estado === '1') ? 'selected' : '' ?>>Activos</option>
+                        <option value="0" <?= ($selected_estado === '0') ? 'selected' : '' ?>>Inactivos</option>
+                    </select>
+                </div>
             </div>
             <?php endif; ?>
 
@@ -117,16 +138,34 @@ if (isset($_POST['profesor_id']) && $_POST['profesor_id'] !== '') {
             <?php if (isset($_POST['profesor_id']) && $_POST['profesor_id'] !== ''): ?>
                 <div class="mb-3">
                     <label class="form-label fw-bold">Grupos:</label>
+                    
+                    <!-- Contadores -->
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <span class="badge bg-success" id="contador-activos">0 activos</span>
+                            <span class="badge bg-secondary" id="contador-inactivos">0 inactivos</span>
+                        </div>
+                        <div class="col-md-6 text-end">
+                            <span class="badge bg-primary" id="contador-total">0 seleccionados</span>
+                        </div>
+                    </div>
+                    
                     <div class="row" id="grupos-container">
                         <?php while ($g = $grupos->fetch_assoc()): ?>
-                            <div class="col-md-4 mb-2">
+                            <div class="col-md-4 mb-2 grupo-item" data-estado="<?= $g['activa'] ? 'activo' : 'inactivo' ?>">
                                 <div class="form-check">
-                                    <input class="form-check-input" type="checkbox"
-                                           name="grupos[]" value="<?= $g['id'] ?>"
+                                    <input class="form-check-input grupo-checkbox" 
+                                           type="checkbox"
+                                           name="grupos[]" 
+                                           value="<?= $g['id'] ?>"
                                            id="grupo_<?= $g['id'] ?>"
-                                           <?= in_array($g['id'], $grupos_profesor) ? 'checked' : '' ?>>
-                                    <label class="form-check-label" for="grupo_<?= $g['id'] ?>">
+                                           <?= in_array($g['id'], $grupos_profesor) ? 'checked' : '' ?>
+                                           data-estado="<?= $g['activa'] ? 'activo' : 'inactivo' ?>">
+                                    <label class="form-check-label <?= $g['activa'] ? '' : 'text-muted' ?>" for="grupo_<?= $g['id'] ?>">
                                         <?= htmlspecialchars($g['nombre']) ?> (<?= htmlspecialchars($g['turno']) ?>)
+                                        <?php if (!$g['activa']): ?>
+                                            <span class="badge bg-secondary ms-1">Inactivo</span>
+                                        <?php endif; ?>
                                     </label>
                                 </div>
                             </div>

@@ -35,6 +35,8 @@ $is_tablet = preg_match('/(ipad|tablet|playbook|silk)|(android(?!.*mobile))/i', 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+     <link rel="icon" href="img/Logo.png" type="image/x-icon">
+
     <title>Iniciar Sesión - Agora</title>
     
     <!-- Preload crítico -->
@@ -172,7 +174,7 @@ $is_tablet = preg_match('/(ipad|tablet|playbook|silk)|(android(?!.*mobile))/i', 
 </div>
 
 <!-- Scripts al final del body para mejor performance -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>\
 <script src="assets/login.js"></script>
 
 </body>

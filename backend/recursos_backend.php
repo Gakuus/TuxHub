@@ -203,10 +203,16 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'marcar_uso') {
     $salon_id = !empty($_POST['salon_id']) ? (int)$_POST['salon_id'] : NULL;
     $grupo_id = !empty($_POST['grupo_id']) ? (int)$_POST['grupo_id'] : NULL;
     $tipo_uso = $_POST['tipo_uso']; // 'ocupar' o 'liberar'
+    $mantener_salon = isset($_POST['mantener_salon']) ? (int)$_POST['mantener_salon'] : 0;
     
-    // Verificar que el salón sea obligatorio para ocupar
-    if ($tipo_uso === 'ocupar' && empty($salon_id)) {
-        mostrarConfirmacion('Debes seleccionar un salón para usar el recurso', 'danger');
+    // Verificar que el grupo sea obligatorio para ocupar
+    if ($tipo_uso === 'ocupar' && empty($grupo_id)) {
+        mostrarConfirmacion('❌ Debes seleccionar un grupo para usar el recurso', 'danger');
+    }
+    
+    // Verificar que el salón sea obligatorio para ocupar (excepto para alargues)
+    if ($tipo_uso === 'ocupar' && empty($salon_id) && $mantener_salon === 0) {
+        mostrarConfirmacion('❌ Debes seleccionar un salón para usar el recurso', 'danger');
     }
     
     if ($tipo_uso === 'ocupar') {
@@ -215,15 +221,27 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'marcar_uso') {
         $stmt = $conn->prepare($sql);
         $stmt->bind_param('iiii', $user_id, $salon_id, $grupo_id, $id);
     } else {
-        // Liberar el recurso
+        // Liberar el recurso - manejo diferente según el tipo de recurso
         if ($rol === 'admin') {
             // Admin puede liberar cualquier recurso
-            $sql = "UPDATE recursos SET estado = 'Disponible', usuario_id = NULL, salon_id = NULL, grupo_id = NULL WHERE id = ? AND estado = 'Ocupado'";
+            if ($mantener_salon === 1) {
+                // Para controles y llaves: mantener el salón
+                $sql = "UPDATE recursos SET estado = 'Disponible', usuario_id = NULL, grupo_id = NULL WHERE id = ? AND estado = 'Ocupado'";
+            } else {
+                // Para alargues: limpiar el salón
+                $sql = "UPDATE recursos SET estado = 'Disponible', usuario_id = NULL, salon_id = NULL, grupo_id = NULL WHERE id = ? AND estado = 'Ocupado'";
+            }
             $stmt = $conn->prepare($sql);
             $stmt->bind_param('i', $id);
         } else {
             // Otros usuarios solo pueden liberar los que ellos ocuparon
-            $sql = "UPDATE recursos SET estado = 'Disponible', usuario_id = NULL, salon_id = NULL, grupo_id = NULL WHERE id = ? AND usuario_id = ? AND estado = 'Ocupado'";
+            if ($mantener_salon === 1) {
+                // Para controles y llaves: mantener el salón
+                $sql = "UPDATE recursos SET estado = 'Disponible', usuario_id = NULL, grupo_id = NULL WHERE id = ? AND usuario_id = ? AND estado = 'Ocupado'";
+            } else {
+                // Para alargues: limpiar el salón
+                $sql = "UPDATE recursos SET estado = 'Disponible', usuario_id = NULL, salon_id = NULL, grupo_id = NULL WHERE id = ? AND usuario_id = ? AND estado = 'Ocupado'";
+            }
             $stmt = $conn->prepare($sql);
             $stmt->bind_param('ii', $id, $user_id);
         }

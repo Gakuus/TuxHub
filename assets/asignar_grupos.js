@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
     initGroupSelectionCounter();
     initSelectAllToggle();
     initFilterGroups();
+    initEstadoCounters();
 });
 
 /**
@@ -34,6 +35,9 @@ function initGroupSelectionCounter() {
         } else {
             countSpan.style.backgroundColor = 'var(--success-color)';
         }
+        
+        // Actualizar contadores de estado
+        updateEstadoCounters();
     }
     
     // Event listeners para checkboxes
@@ -44,6 +48,59 @@ function initGroupSelectionCounter() {
     
     // Contador inicial
     updateCounter();
+}
+
+/**
+ * Inicializa los contadores de estado (activos/inactivos)
+ */
+function initEstadoCounters() {
+    updateEstadoCounters();
+}
+
+/**
+ * Actualiza los contadores de grupos por estado
+ */
+function updateEstadoCounters() {
+    const grupos = document.querySelectorAll('.grupo-item');
+    let activosCount = 0;
+    let inactivosCount = 0;
+    let activosSeleccionados = 0;
+    let inactivosSeleccionados = 0;
+    
+    grupos.forEach(grupo => {
+        const estado = grupo.getAttribute('data-estado');
+        const checkbox = grupo.querySelector('input[type="checkbox"]');
+        const estaSeleccionado = checkbox.checked;
+        
+        if (estado === 'activo') {
+            activosCount++;
+            if (estaSeleccionado) activosSeleccionados++;
+        } else {
+            inactivosCount++;
+            if (estaSeleccionado) inactivosSeleccionados++;
+        }
+    });
+    
+    // Actualizar contadores en la UI
+    const contadorActivos = document.getElementById('contador-activos');
+    const contadorInactivos = document.getElementById('contador-inactivos');
+    const contadorTotal = document.getElementById('contador-total');
+    
+    if (contadorActivos) {
+        contadorActivos.textContent = `${activosSeleccionados}/${activosCount} activos`;
+        contadorActivos.className = `badge ${activosSeleccionados > 0 ? 'bg-success' : 'bg-secondary'}`;
+    }
+    
+    if (contadorInactivos) {
+        contadorInactivos.textContent = `${inactivosSeleccionados}/${inactivosCount} inactivos`;
+        contadorInactivos.className = `badge ${inactivosSeleccionados > 0 ? 'bg-warning' : 'bg-secondary'}`;
+    }
+    
+    if (contadorTotal) {
+        const totalSeleccionados = activosSeleccionados + inactivosSeleccionados;
+        contadorTotal.textContent = `${totalSeleccionados} seleccionados`;
+        contadorTotal.className = `badge ${totalSeleccionados > 0 ? 'bg-primary' : 'bg-secondary'}`;
+    }
 }
 
 /**
@@ -102,7 +159,7 @@ function initFilterGroups() {
     const searchInput = document.getElementById('group-search');
     searchInput.addEventListener('input', function() {
         const searchTerm = this.value.toLowerCase();
-        const groupItems = gruposContainer.querySelectorAll('.col-md-4');
+        const groupItems = gruposContainer.querySelectorAll('.grupo-item');
         
         groupItems.forEach(item => {
             const label = item.querySelector('.form-check-label');
@@ -114,6 +171,9 @@ function initFilterGroups() {
                 item.style.display = 'none';
             }
         });
+        
+        // Actualizar contadores después de filtrar
+        updateEstadoCounters();
     });
 }
 
@@ -179,3 +239,19 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 });
+
+/**
+ * Filtra grupos por estado (para uso futuro si se implementa filtrado en el cliente)
+ */
+function filterByEstado(estado) {
+    const grupos = document.querySelectorAll('.grupo-item');
+    
+    grupos.forEach(grupo => {
+        const grupoEstado = grupo.getAttribute('data-estado');
+        const mostrar = estado === 'todos' || grupoEstado === estado;
+        
+        grupo.style.display = mostrar ? 'block' : 'none';
+    });
+    
+    updateEstadoCounters();
+}

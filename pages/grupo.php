@@ -163,7 +163,7 @@ ORDER BY turno");
 <head>
     <meta charset="UTF-8">
     <title>Gestión de Grupos</title>
-    <link rel="stylesheet" href="/Agora/Agora/css/grupos.css">
+    <link rel="stylesheet" href="/Agora/Agora/css/grupo.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
 </head>
 <body>

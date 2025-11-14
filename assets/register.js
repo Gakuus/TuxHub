@@ -192,20 +192,155 @@ class PasswordValidator {
     }
 }
 
-// Inicializar cuando el DOM esté listo
+// ==============================
+// Clase para el Filtro de Grupos Activos/Inactivos
+// ==============================
+class GroupFilter {
+    constructor() {
+        this.filterButtons = document.querySelectorAll('.filter-buttons .btn');
+        this.gruposSelect = document.getElementById('gruposSelect');
+        this.init();
+    }
+    
+    init() {
+        if (!this.gruposSelect || this.filterButtons.length === 0) return;
+        
+        this.filterButtons.forEach(button => {
+            button.addEventListener('click', (e) => this.handleFilterClick(e));
+        });
+        
+        // Inicializar mostrando todos los grupos
+        this.filterGroups('all');
+    }
+    
+    handleFilterClick(event) {
+        const button = event.currentTarget;
+        
+        // Remover clase active de todos los botones
+        this.filterButtons.forEach(btn => btn.classList.remove('active'));
+        // Agregar clase active al botón clickeado
+        button.classList.add('active');
+        
+        const filter = button.getAttribute('data-filter');
+        this.filterGroups(filter);
+    }
+    
+    filterGroups(filter) {
+        const optgroups = this.gruposSelect.querySelectorAll('optgroup');
+        
+        switch(filter) {
+            case 'all':
+                this.showAllGroups(optgroups);
+                break;
+            case 'active':
+                this.showActiveGroups(optgroups);
+                break;
+            case 'inactive':
+                this.showInactiveGroups(optgroups);
+                break;
+        }
+    }
+    
+    showAllGroups(optgroups) {
+        optgroups.forEach(optgroup => {
+            optgroup.style.display = '';
+            optgroup.querySelectorAll('option').forEach(option => {
+                option.style.display = '';
+            });
+        });
+    }
+    
+    showActiveGroups(optgroups) {
+        optgroups.forEach(optgroup => {
+            if (optgroup.getAttribute('data-estado') === 'activo') {
+                optgroup.style.display = '';
+                optgroup.querySelectorAll('option').forEach(option => {
+                    option.style.display = '';
+                });
+            } else {
+                optgroup.style.display = 'none';
+                optgroup.querySelectorAll('option').forEach(option => {
+                    option.style.display = 'none';
+                });
+            }
+        });
+    }
+    
+    showInactiveGroups(optgroups) {
+        optgroups.forEach(optgroup => {
+            if (optgroup.getAttribute('data-estado') === 'inactivo') {
+                optgroup.style.display = '';
+                optgroup.querySelectorAll('option').forEach(option => {
+                    option.style.display = '';
+                });
+            } else {
+                optgroup.style.display = 'none';
+                optgroup.querySelectorAll('option').forEach(option => {
+                    option.style.display = 'none';
+                });
+            }
+        });
+    }
+}
+
+// ==============================
+// Clase para Animaciones del Formulario
+// ==============================
+class FormAnimations {
+    constructor() {
+        this.init();
+    }
+    
+    init() {
+        this.animateFormElements();
+    }
+    
+    animateFormElements() {
+        const formElements = document.querySelectorAll('.form-control, .form-select, .btn');
+        formElements.forEach((element, index) => {
+            element.style.opacity = '0';
+            element.style.transform = 'translateY(20px)';
+            element.style.transition = `all 0.5s ease ${index * 0.1}s`;
+            
+            setTimeout(() => {
+                element.style.opacity = '1';
+                element.style.transform = 'translateY(0)';
+            }, 100);
+        });
+    }
+}
+
+// ==============================
+// Inicialización cuando el DOM esté listo
+// ==============================
 document.addEventListener('DOMContentLoaded', function() {
+    // Inicializar validación de contraseñas
     new PasswordValidator();
     
-    // Agregar animación de entrada a los elementos del formulario
-    const formElements = document.querySelectorAll('.form-control, .form-select, .btn');
-    formElements.forEach((element, index) => {
-        element.style.opacity = '0';
-        element.style.transform = 'translateY(20px)';
-        element.style.transition = `all 0.5s ease ${index * 0.1}s`;
-        
-        setTimeout(() => {
-            element.style.opacity = '1';
-            element.style.transform = 'translateY(0)';
-        }, 100);
-    });
+    // Inicializar filtro de grupos
+    new GroupFilter();
+    
+    // Inicializar animaciones del formulario
+    new FormAnimations();
+    
+    // Agregar validación adicional para grupos inactivos
+    const registerForm = document.getElementById('registerForm');
+    if (registerForm) {
+        registerForm.addEventListener('submit', function(e) {
+            const gruposSelect = document.getElementById('gruposSelect');
+            const selectedOptions = Array.from(gruposSelect.selectedOptions);
+            
+            // Verificar si se seleccionó algún grupo inactivo
+            const hasInactiveGroup = selectedOptions.some(option => {
+                const optgroup = option.closest('optgroup');
+                return optgroup && optgroup.getAttribute('data-estado') === 'inactivo';
+            });
+            
+            if (hasInactiveGroup) {
+                e.preventDefault();
+                alert('No puede asignar usuarios a grupos inactivos. Por favor, seleccione solo grupos activos.');
+                return false;
+            }
+        });
+    }
 });

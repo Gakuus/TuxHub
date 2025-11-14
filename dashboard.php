@@ -64,7 +64,9 @@ if (!$conn || !$conn->ping()) {
     <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/dashboard_mejoras.css"> 
     <link rel="stylesheet" href="css/dashboard.css">
+      <link rel="icon" href="img/Logo.png" type="image/x-icon">
 </head>
 <body>
 
@@ -79,12 +81,6 @@ if (!$conn || !$conn->ping()) {
             <li class="nav-item">
                 <a class="nav-link <?= $page == 'home' ? 'active' : ''; ?>" href="dashboard.php?page=home">
                     <i class="bi bi-grid-fill me-2"></i> <span class="nav-text">Dashboard</span>
-                </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link <?= $page == 'profesores' ? 'active' : ''; ?>" href="dashboard.php?page=profesores">
-                    <i class="bi bi-people-fill me-2"></i> <span class="nav-text">Profesores</span>
                 </a>
             </li>
 
@@ -164,9 +160,9 @@ if (!$conn || !$conn->ping()) {
                         <i class="bi bi-collection-fill me-2"></i> <span class="nav-text">Grupos</span>
                     </a>
                 </li>
-
-            <?php elseif ($rol_lower === "profesor"): ?>
-                <li class="nav-item mt-3 pt-3 border-top border-secondary"></li>
+                
+       <?php elseif ($rol_lower === "profesor"): ?>
+               <li class="nav-item mt-3 pt-3 border-top border-secondary"></li> 
 
                 <li class="nav-item">
                     <a class="nav-link <?= $page == 'registrar' ? 'active' : ''; ?>" href="dashboard.php?page=registrar">

@@ -214,16 +214,9 @@ if ($res_recursos && $res_recursos->num_rows > 0) {
     </div>
   </div>
 
-  <!-- View Toggle and Search -->
+  <!-- Search and Export -->
   <div class="d-flex justify-content-between align-items-center mb-4">
-    <div class="view-toggle" id="viewToggle">
-      <button class="view-btn active" data-view="table">
-        <i class="bi bi-table"></i> Vista Tabla
-      </button>
-      <button class="view-btn" data-view="grid">
-        <i class="bi bi-grid-3x3-gap"></i> Vista Grid
-      </button>
-    </div>
+    <div></div> <!-- Espacio vacío para mantener el layout -->
     
     <div class="d-flex gap-2">
       <div class="input-group" style="max-width: 300px;">
@@ -338,9 +331,8 @@ if ($res_recursos && $res_recursos->num_rows > 0) {
   <!-- Results Counter -->
   <div id="results-counter"></div>
 
-  <!-- Main Content -->
+  <!-- Main Content - Solo Vista Tabla -->
   <div class="recursos-main">
-    <!-- Table View -->
     <div class="table-container">
       <div class="table-responsive">
         <table class="table table-hover align-middle">
@@ -433,6 +425,7 @@ if ($res_recursos && $res_recursos->num_rows > 0) {
                             <input type="hidden" name="accion" value="marcar_uso">
                             <input type="hidden" name="id" value="<?= $r['id'] ?>">
                             <input type="hidden" name="tipo_uso" value="liberar">
+                            <input type="hidden" name="mantener_salon" value="<?= $r['tipo'] !== 'Alargue' ? '1' : '0' ?>">
                             <button type="submit" class="btn btn-success-custom w-100" title="Desmarcar recurso">
                               <i class="bi bi-check-circle me-1"></i> Desmarcar
                             </button>
@@ -444,25 +437,42 @@ if ($res_recursos && $res_recursos->num_rows > 0) {
                     <?php elseif ($rol === 'profesor'): ?>
                       <div class="d-flex flex-column gap-2">
                         <!-- Formulario para Marcar Uso -->
-                        <form method="POST" action="/Agora/Agora/backend/recursos_backend.php" class="usage-form">
+                        <form method="POST" action="/Agora/Agora/backend/recursos_backend.php" class="usage-form" data-tipo="<?= htmlspecialchars($r['tipo']) ?>">
                           <input type="hidden" name="accion" value="marcar_uso">
                           <input type="hidden" name="id" value="<?= $r['id'] ?>">
+                          <input type="hidden" name="mantener_salon" value="<?= $r['tipo'] !== 'Alargue' ? '1' : '0' ?>">
                           
                           <div class="form-grid">
+                            <?php if ($r['tipo'] === 'Alargue' || empty($r['salon_id'])): ?>
+                              <!-- Mostrar select de salón solo para alargues o recursos sin salón asignado -->
+                              <div>
+                                <select name="salon_id" class="form-select-custom salon-select" <?= $r['tipo'] === 'Alargue' ? '' : 'required' ?>>
+                                  <option value="">Salón</option>
+                                  <?php if ($salones && $salones->num_rows > 0): 
+                                    $salones->data_seek(0);
+                                    while($s = $salones->fetch_assoc()): ?>
+                                      <option value="<?= $s['id'] ?>" <?= $r['salon_id']==$s['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($s['nombre_salon']) ?>
+                                      </option>
+                                  <?php endwhile; endif; ?>
+                                </select>
+                                <?php if ($r['tipo'] === 'Alargue'): ?>
+                                  <small class="text-muted">Opcional para alargues</small>
+                                <?php endif; ?>
+                              </div>
+                            <?php else: ?>
+                              <!-- Para llaves y controles con salón asignado, mostrar salón fijo -->
+                              <div>
+                                <input type="hidden" name="salon_id" value="<?= $r['salon_id'] ?>">
+                                <div class="salon-fixed">
+                                  <i class="bi bi-building text-primary"></i>
+                                  <span class="fw-semibold"><?= htmlspecialchars($r['nombre_salon']) ?></span>
+                                  <small class="text-muted d-block">Salón asignado</small>
+                                </div>
+                              </div>
+                            <?php endif; ?>
                             <div>
-                              <select name="salon_id" class="form-select-custom" required>
-                                <option value="">Salón</option>
-                                <?php if ($salones && $salones->num_rows > 0): 
-                                  $salones->data_seek(0);
-                                  while($s = $salones->fetch_assoc()): ?>
-                                    <option value="<?= $s['id'] ?>" <?= $r['salon_id']==$s['id'] ? 'selected' : '' ?>>
-                                      <?= htmlspecialchars($s['nombre_salon']) ?>
-                                    </option>
-                                <?php endwhile; endif; ?>
-                              </select>
-                            </div>
-                            <div>
-                              <select name="grupo_id" class="form-select-custom">
+                              <select name="grupo_id" class="form-select-custom" required>
                                 <option value="">Grupo</option>
                                 <?php if ($grupos && $grupos->num_rows > 0): 
                                   $grupos->data_seek(0);
@@ -472,19 +482,24 @@ if ($res_recursos && $res_recursos->num_rows > 0) {
                                     </option>
                                 <?php endwhile; endif; ?>
                               </select>
+                              <small class="text-muted">Seleccione su grupo</small>
                             </div>
                             <div>
-                              <?php if ($r['estado'] === 'Disponible' || $r['estado'] === 'Reservado'): ?>
-                                <button type="submit" name="tipo_uso" value="ocupar" class="btn btn-warning-custom w-100" title="Marcar como Ocupado">
-                                  <i class="bi bi-play-circle"></i>
+                              <?php if ($r['estado'] === 'Disponible'): ?>
+                                <button type="submit" name="tipo_uso" value="ocupar" class="btn btn-warning-custom w-100 use-btn" title="Marcar como Ocupado">
+                                  <i class="bi bi-play-circle me-1"></i> Usar
                                 </button>
                               <?php elseif ($r['estado'] === 'Ocupado' && (int)($r['usuario_id'] ?? 0) === $user_id): ?>
                                 <button type="submit" name="tipo_uso" value="liberar" class="btn btn-success-custom w-100" title="Marcar como Disponible">
-                                  <i class="bi bi-check-circle"></i>
+                                  <i class="bi bi-check-circle me-1"></i> Liberar
+                                </button>
+                              <?php elseif ($r['estado'] === 'Reservado' && (int)($r['usuario_id'] ?? 0) === $user_id): ?>
+                                <button type="submit" name="tipo_uso" value="ocupar" class="btn btn-warning-custom w-100 use-btn" title="Usar recurso reservado">
+                                  <i class="bi bi-play-circle me-1"></i> Usar
                                 </button>
                               <?php else: ?>
-                                <button type="button" class="btn btn-outline-custom w-100" disabled>
-                                  <i class="bi bi-lock"></i>
+                                <button type="button" class="btn btn-outline-secondary w-100" disabled>
+                                  <i class="bi bi-lock me-1"></i> No disponible
                                 </button>
                               <?php endif; ?>
                             </div>
@@ -513,29 +528,52 @@ if ($res_recursos && $res_recursos->num_rows > 0) {
                         </div>
                       </div>
 
-                    <!-- ALUMNO: Marcar uso/reserva -->
+                    <!-- ALUMNO: Solo Marcar uso/desmarcar (SIN RESERVAS) -->
                     <?php elseif ($rol === 'alumno'): ?>
                       <div class="d-flex flex-column gap-2">
-                        <!-- Formulario para Marcar Uso -->
-                        <form method="POST" action="/Agora/Agora/backend/recursos_backend.php" class="usage-form">
+                        <!-- Formulario para Marcar Uso/Desmarcar -->
+                        <form method="POST" action="/Agora/Agora/backend/recursos_backend.php" class="usage-form" data-tipo="<?= htmlspecialchars($r['tipo']) ?>">
                           <input type="hidden" name="accion" value="marcar_uso">
                           <input type="hidden" name="id" value="<?= $r['id'] ?>">
+                          <input type="hidden" name="mantener_salon" value="<?= $r['tipo'] !== 'Alargue' ? '1' : '0' ?>">
                           
                           <div class="form-grid">
+                            <?php if (($r['tipo'] === 'Alargue' && empty($r['salon_id'])) || ($r['tipo'] !== 'Alargue' && empty($r['salon_id']))): ?>
+                              <!-- Mostrar select de salón solo para:
+                                   - Alargues sin salón asignado 
+                                   - Llaves/Controles sin salón asignado -->
+                              <div>
+                                <select name="salon_id" class="form-select-custom salon-select" <?= $r['tipo'] === 'Alargue' ? '' : 'required' ?>>
+                                  <option value="">Salón actual</option>
+                                  <?php if ($salones && $salones->num_rows > 0): 
+                                    $salones->data_seek(0);
+                                    while($s = $salones->fetch_assoc()): ?>
+                                      <option value="<?= $s['id'] ?>" <?= $r['salon_id']==$s['id'] ? 'selected' : '' ?>>
+                                        <?= htmlspecialchars($s['nombre_salon']) ?>
+                                      </option>
+                                  <?php endwhile; endif; ?>
+                                </select>
+                                <?php if ($r['tipo'] === 'Alargue'): ?>
+                                  <small class="text-muted">Opcional para alargues</small>
+                                <?php else: ?>
+                                  <small class="text-muted">Seleccione un salón</small>
+                                <?php endif; ?>
+                              </div>
+                            <?php else: ?>
+                              <!-- Para:
+                                   - Alargues con salón asignado (aunque sea opcional, si ya tiene uno asignado se muestra fijo)
+                                   - Llaves y controles con salón asignado -->
+                              <div>
+                                <input type="hidden" name="salon_id" value="<?= $r['salon_id'] ?>">
+                                <div class="salon-fixed">
+                                  <i class="bi bi-building text-primary"></i>
+                                  <span class="fw-semibold"><?= htmlspecialchars($r['nombre_salon']) ?></span>
+                                  <small class="text-muted d-block">Salón asignado</small>
+                                </div>
+                              </div>
+                            <?php endif; ?>
                             <div>
-                              <select name="salon_id" class="form-select-custom" required>
-                                <option value="">Salón</option>
-                                <?php if ($salones && $salones->num_rows > 0): 
-                                  $salones->data_seek(0);
-                                  while($s = $salones->fetch_assoc()): ?>
-                                    <option value="<?= $s['id'] ?>" <?= $r['salon_id']==$s['id'] ? 'selected' : '' ?>>
-                                      <?= htmlspecialchars($s['nombre_salon']) ?>
-                                    </option>
-                                <?php endwhile; endif; ?>
-                              </select>
-                            </div>
-                            <div>
-                              <select name="grupo_id" class="form-select-custom">
+                              <select name="grupo_id" class="form-select-custom" required>
                                 <option value="">Grupo</option>
                                 <?php if ($grupos && $grupos->num_rows > 0): 
                                   $grupos->data_seek(0);
@@ -545,45 +583,37 @@ if ($res_recursos && $res_recursos->num_rows > 0) {
                                     </option>
                                 <?php endwhile; endif; ?>
                               </select>
+                              <small class="text-muted">Seleccione su grupo</small>
                             </div>
                             <div>
-                              <?php if ($r['estado'] === 'Disponible' || $r['estado'] === 'Reservado'): ?>
-                                <button type="submit" name="tipo_uso" value="ocupar" class="btn btn-warning-custom w-100" title="Marcar como Ocupado">
-                                  <i class="bi bi-play-circle"></i>
+                              <?php if ($r['estado'] === 'Disponible'): ?>
+                                <!-- Botón para ocupar recurso disponible -->
+                                <button type="submit" name="tipo_uso" value="ocupar" class="btn btn-warning-custom w-100 use-btn" 
+                                        title="Marcar recurso como Ocupado">
+                                  <i class="bi bi-play-circle me-1"></i> Usar
                                 </button>
                               <?php elseif ($r['estado'] === 'Ocupado' && (int)($r['usuario_id'] ?? 0) === $user_id): ?>
-                                <button type="submit" name="tipo_uso" value="liberar" class="btn btn-success-custom w-100" title="Marcar como Disponible">
-                                  <i class="bi bi-check-circle"></i>
+                                <!-- Botón para liberar recurso que el alumno está usando -->
+                                <button type="submit" name="tipo_uso" value="liberar" class="btn btn-success-custom w-100" 
+                                        title="Liberar recurso">
+                                  <i class="bi bi-check-circle me-1"></i> Liberar
                                 </button>
-                              <?php else: ?>
-                                <button type="button" class="btn btn-outline-custom w-100" disabled>
-                                  <i class="bi bi-lock"></i>
+                              <?php elseif ($r['estado'] === 'Ocupado'): ?>
+                                <!-- Recurso ocupado por otro usuario -->
+                                <button type="button" class="btn btn-outline-secondary w-100" disabled
+                                        title="Recurso en uso por otro usuario">
+                                  <i class="bi bi-lock me-1"></i> Ocupado
+                                </button>
+                              <?php elseif ($r['estado'] === 'Reservado'): ?>
+                                <!-- Recurso reservado (alumno no puede usar reservas) -->
+                                <button type="button" class="btn btn-outline-info w-100" disabled
+                                        title="Recurso reservado">
+                                  <i class="bi bi-bookmark me-1"></i> Reservado
                                 </button>
                               <?php endif; ?>
                             </div>
                           </div>
                         </form>
-
-                        <!-- Botón Reservar/Cancelar Reserva -->
-                        <div class="text-center">
-                          <?php if ($r['estado'] === 'Disponible'): ?>
-                            <form method="POST" action="/Agora/Agora/backend/recursos_backend.php" class="d-inline">
-                              <input type="hidden" name="accion" value="reservar">
-                              <input type="hidden" name="id" value="<?= $r['id'] ?>">
-                              <button type="submit" class="btn btn-outline-custom" title="Reservar recurso">
-                                <i class="bi bi-bookmark-check me-1"></i> Reservar
-                              </button>
-                            </form>
-                          <?php elseif ($r['estado'] === 'Reservado' && (int)($r['usuario_id'] ?? 0) === $user_id): ?>
-                            <form method="POST" action="/Agora/Agora/backend/recursos_backend.php" class="d-inline">
-                              <input type="hidden" name="accion" value="cancelar_reserva">
-                              <input type="hidden" name="id" value="<?= $r['id'] ?>">
-                              <button type="submit" class="btn btn-outline-custom" title="Cancelar Reserva">
-                                <i class="bi bi-bookmark-x me-1"></i> Cancelar
-                              </button>
-                            </form>
-                          <?php endif; ?>
-                        </div>
                       </div>
                     <?php endif; ?>
                   </td>
@@ -609,62 +639,6 @@ if ($res_recursos && $res_recursos->num_rows > 0) {
           </tbody>
         </table>
       </div>
-    </div>
-
-    <!-- Grid View (Hidden by default) -->
-    <div class="resource-grid d-none">
-      <?php if ($res_recursos && $res_recursos->num_rows > 0): 
-        $res_recursos->data_seek(0);
-        while ($r = $res_recursos->fetch_assoc()): ?>
-          <div class="resource-card fade-in">
-            <div class="resource-header">
-              <h3 class="resource-name"><?= htmlspecialchars($r['nombre']) ?></h3>
-              <span class="resource-type"><?= htmlspecialchars($r['tipo']) ?></span>
-            </div>
-            
-            <div class="resource-info">
-              <div class="info-item">
-                <i class="bi bi-building"></i>
-                <span><?= htmlspecialchars($r['nombre_salon'] ?? 'Sin salón asignado') ?></span>
-              </div>
-              
-              <div class="info-item">
-                <i class="bi bi-person"></i>
-                <span><?= htmlspecialchars($r['usuario_nombre'] ?? 'No asignado') ?></span>
-              </div>
-              
-              <div class="info-item">
-                <i class="bi bi-people"></i>
-                <span><?= htmlspecialchars($r['grupo_nombre'] ?? 'Sin grupo') ?></span>
-              </div>
-              
-              <?php if (!empty($r['descripcion'])): ?>
-                <div class="info-item">
-                  <i class="bi bi-chat-left-text"></i>
-                  <span><?= htmlspecialchars($r['descripcion']) ?></span>
-                </div>
-              <?php endif; ?>
-            </div>
-
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <span class="status-badge status-<?= strtolower($r['estado']) ?>">
-                <i class="bi bi-<?= 
-                  $r['estado'] === 'Disponible' ? 'check-circle' : 
-                  ($r['estado'] === 'Ocupado' ? 'play-circle' : 'bookmark')
-                ?> me-1"></i>
-                <?= htmlspecialchars($r['estado']) ?>
-              </span>
-              <small class="text-muted">ID: #<?= $r['id'] ?></small>
-            </div>
-
-            <!-- Actions for Grid View -->
-            <div class="action-buttons">
-              <!-- Las acciones serían similares a la vista tabla -->
-              <!-- Se implementarían de manera similar -->
-            </div>
-          </div>
-        <?php endwhile; ?>
-      <?php endif; ?>
     </div>
   </div>
 
