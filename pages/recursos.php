@@ -288,7 +288,7 @@ if ($res_recursos && $res_recursos->num_rows > 0) {
       <div class="col-md-4 text-end">
         <!-- Botón Nuevo (solo admin) -->
         <?php if ($rol === 'admin'): ?>
-          <a href="dashboard.php?page=agregar_recurso" class="btn btn-primary-custom">
+          <a href="dashboard.php?page=agregar_recursos" class="btn btn-primary-custom">
             <i class="bi bi-plus-circle me-2"></i> Nuevo Recurso
           </a>
         <?php endif; ?>
