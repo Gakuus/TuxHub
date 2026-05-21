@@ -4,9 +4,11 @@ session_start();
 require_once __DIR__ . '/../backend/db_connection.php';
 $conn->set_charset('utf8mb4');
 
-// Mostrar errores de PHP (durante desarrollo) — opcional
-ini_set('display_errors', 1);
-error_reporting(E_ALL);
+// Mostrar errores solo si APP_ENV=development
+if (env('APP_ENV', 'production') === 'development') {
+    ini_set('display_errors', 1);
+    error_reporting(E_ALL);
+}
 
 // ---------- validar sesión ----------
 if (!isset($_SESSION['user_id'])) {

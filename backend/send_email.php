@@ -2,26 +2,32 @@
 use PHPMailer\PHPMailer\PHPMailer;
 use PHPMailer\PHPMailer\Exception;
 
+if (session_status() === PHP_SESSION_NONE) session_start();
+require __DIR__ . '/config.php';
 require __DIR__ . '/../vendor/autoload.php';
 
 function enviarCorreo($destinatario, $asunto, $contenidoHTML) {
     $mail = new PHPMailer(true);
 
     try {
-        // Config Gmail SMTP
         $mail->isSMTP();
-        $mail->Host = 'smtp.gmail.com';
+        $mail->Host = env('SMTP_HOST', 'smtp.gmail.com');
         $mail->SMTPAuth = true;
-        $mail->Username = 'correo_revocado@example.com';
-        $mail->Password = 'CREDENCIALES_REVOCADAS';
-        $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
-        $mail->Port = 587;
+        $mail->Username = env('SMTP_USER');
+        $mail->Password = env('SMTP_PASS');
+        $mail->SMTPSecure = env('SMTP_SECURE', 'tls');
+        $mail->Port = (int)env('SMTP_PORT', 587);
 
-        // Remitente y destinatario
-        $mail->setFrom('correo_revocado@example.com', 'Agora - Recuperación de contraseña');
+        if (empty($mail->Username) || empty($mail->Password)) {
+            error_log("send_email: SMTP_USER o SMTP_PASS no configurados en .env");
+            return false;
+        }
+
+        $from_email = env('SMTP_FROM_EMAIL', $mail->Username);
+        $from_name = env('SMTP_FROM_NAME', 'Agora');
+        $mail->setFrom($from_email, $from_name);
         $mail->addAddress($destinatario);
 
-        // Contenido
         $mail->isHTML(true);
         $mail->Subject = $asunto;
         $mail->Body    = $contenidoHTML;
@@ -29,6 +35,7 @@ function enviarCorreo($destinatario, $asunto, $contenidoHTML) {
         $mail->send();
         return true;
     } catch (Exception $e) {
+        error_log("send_email: " . $e->getMessage());
         return false;
     }
 }
