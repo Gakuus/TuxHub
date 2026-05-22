@@ -15,17 +15,11 @@ $user_id = (int)$_SESSION['user_id'];
 $rol_actual = strtolower(trim($_SESSION['rol'] ?? ''));
 if ($rol_actual === 'admin') $rol_actual = 'administrador';
 
-// ==============================
-// CSRF Token
-// ==============================
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 $csrf_token = $_SESSION['csrf_token'];
 
-// ==============================
-// Cargar grupos según rol
-// ==============================
 $grupos_disponibles = [];
 $grupos_activos = [];
 $grupos_inactivos = [];
@@ -48,30 +42,21 @@ try {
     $result = $stmt->get_result();
     $grupos_disponibles = $result->fetch_all(MYSQLI_ASSOC);
     $stmt->close();
-    
-    // Separar grupos activos e inactivos
+
     foreach ($grupos_disponibles as $grupo) {
-        // Asumimos que 'activo' es 1 para activo, 0 para inactivo
         if ($grupo['activo'] == 1) {
             $grupos_activos[] = $grupo;
         } else {
             $grupos_inactivos[] = $grupo;
         }
     }
-    
 } catch (Exception $e) {
     $errors[] = "Error al cargar los grupos: " . $e->getMessage();
 }
 
-// ==============================
-// Variables iniciales
-// ==============================
-$old = ['nombre'=>'','cedula'=>'','email'=>'','rol'=>'','password'=>'','password_confirm'=>'','grupos'=>[]];
+$old = ['nombre' => '', 'cedula' => '', 'email' => '', 'rol' => '', 'password' => '', 'password_confirm' => '', 'grupos' => []];
 $success = false;
 
-// ==============================
-// Procesar formulario
-// ==============================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $posted_csrf = $_POST['csrf_token'] ?? '';
     if (!hash_equals($csrf_token, $posted_csrf)) {
@@ -86,11 +71,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $rol = strtolower(trim($_POST['rol'] ?? ''));
     $grupos = $_POST['grupos'] ?? [];
 
-    $old = compact('nombre','cedula','email','rol','password','password_confirm','grupos');
+    $old = compact('nombre', 'cedula', 'email', 'rol', 'password', 'password_confirm', 'grupos');
 
-    // ==============================
-    // Validaciones
-    // ==============================
     if ($nombre === '' || $cedula === '' || $password === '') {
         $errors[] = "Complete todos los campos obligatorios.";
     }
@@ -118,7 +100,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
             $errors[] = "El correo electrónico no es válido.";
         } else {
-            // Verificar si el dominio del email existe (tiene registros MX)
             $dominio = substr(strrchr($email, "@"), 1);
             if ($dominio === false || !checkdnsrr($dominio, "MX")) {
                 $errors[] = "El dominio del correo electrónico no existe o no puede recibir correos.";
@@ -126,19 +107,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-    // ==============================
-    // Reglas según rol actual
-    // ==============================
     if ($rol_actual === 'profesor') {
-        // Solo puede crear alumnos
         $rol = 'alumno';
-
-        // Verifica que los grupos elegidos pertenezcan al profesor y estén activos
         if (!empty($grupos)) {
             $stmt = $conn->prepare("
-                SELECT gp.grupo_id, g.activo 
-                FROM grupos_profesores gp 
-                INNER JOIN grupos g ON g.id = gp.grupo_id 
+                SELECT gp.grupo_id, g.activo
+                FROM grupos_profesores gp
+                INNER JOIN grupos g ON g.id = gp.grupo_id
                 WHERE gp.profesor_id = ?
             ");
             $stmt->bind_param("i", $user_id);
@@ -159,12 +134,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
     } elseif ($rol_actual === 'administrador') {
-        $roles_validos = ['alumno','profesor','administrador'];
+        $roles_validos = ['alumno', 'profesor', 'administrador'];
         if (!in_array($rol, $roles_validos, true)) {
             $errors[] = "Rol inválido.";
         }
-        
-        // Verificar que los grupos seleccionados estén activos (para admin)
+
         if (!empty($grupos)) {
             $stmt = $conn->prepare("SELECT id, activo FROM grupos WHERE id IN (" . implode(',', array_fill(0, count($grupos), '?')) . ")");
             $types = str_repeat('i', count($grupos));
@@ -188,14 +162,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $errors[] = "No tiene permisos para registrar usuarios.";
     }
 
-    // ==============================
-    // Inserción si todo OK
-    // ==============================
     if (empty($errors)) {
         try {
             $conn->begin_transaction();
 
-            // Evitar duplicados (cédula y correo)
             $stmt = $conn->prepare("
                 SELECT id, cedula, email
                 FROM usuarios
@@ -220,7 +190,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (empty($errors)) {
                 $password_hash = password_hash($password, PASSWORD_DEFAULT);
 
-                // Insertar usuario base
                 $stmt = $conn->prepare("
                     INSERT INTO usuarios (cedula, nombre, email, password, rol)
                     VALUES (?, ?, ?, ?, ?)
@@ -230,7 +199,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $nuevo_id = $stmt->insert_id;
                 $stmt->close();
 
-                // Si es alumno -> asignar primer grupo
                 if ($rol === 'alumno' && !empty($grupos)) {
                     $grupo_id = (int)$grupos[0];
                     $stmt = $conn->prepare("UPDATE usuarios SET grupo_id = ? WHERE id = ?");
@@ -239,7 +207,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt->close();
                 }
 
-                // Si es profesor -> vincular grupos (sin borrar existentes)
                 if ($rol === 'profesor' && !empty($grupos)) {
                     $stmt = $conn->prepare("
                         INSERT IGNORE INTO grupos_profesores (grupo_id, profesor_id)
@@ -254,7 +221,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
                 $conn->commit();
                 $success = true;
-                $old = ['nombre'=>'','cedula'=>'','email'=>'','rol'=>'','password'=>'','password_confirm'=>'','grupos'=>[]];
+                $old = ['nombre' => '', 'cedula' => '', 'email' => '', 'rol' => '', 'password' => '', 'password_confirm' => '', 'grupos' => []];
             } else {
                 $conn->rollback();
             }
@@ -270,7 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <h2><i class="bi bi-person-plus-fill"></i> Registrar Nuevo Usuario</h2>
     </div>
 
-    <div class="stats-grid">
+    <div class="stats-grid mb-4">
         <div class="stat-card">
             <div class="stat-value blue"><?= htmlspecialchars(count($grupos_activos) + count($grupos_inactivos)) ?></div>
             <div class="stat-label"><i class="bi bi-people"></i> Grupos Disponibles</div>
@@ -286,193 +253,262 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
     <?php if ($success): ?>
-    <div class="alert alert-success">
-        <i class="bi bi-check-circle-fill"></i> Usuario registrado correctamente.
+    <div class="alert-glass alert-success">
+        <i class="bi bi-check-circle-fill"></i>
+        <div>
+            <strong>Usuario registrado correctamente.</strong>
+        </div>
     </div>
     <?php endif; ?>
 
     <?php if (!empty($errors)): ?>
-    <div class="alert alert-danger">
-        <h6><i class="bi bi-exclamation-triangle-fill"></i> Errores encontrados:</h6>
-        <ul class="mb-0 mt-2"><?php foreach ($errors as $e): ?><li><?= htmlspecialchars($e) ?></li><?php endforeach; ?></ul>
+    <div class="alert-glass alert-danger">
+        <i class="bi bi-exclamation-triangle-fill"></i>
+        <div>
+            <strong>Errores encontrados:</strong>
+            <ul>
+                <?php foreach ($errors as $e): ?>
+                <li><?= htmlspecialchars($e) ?></li>
+                <?php endforeach; ?>
+            </ul>
+        </div>
     </div>
     <?php endif; ?>
 
-    <div class="card">
-        <div class="card-body">
-            <!-- Step Indicators -->
-            <div class="steps-bar d-flex justify-content-center align-items-center mb-4">
-                <div class="step-item text-center active" data-step="1">
-                    <div class="step-circle rounded-circle d-inline-flex align-items-center justify-content-center bg-primary text-white" style="width:36px;height:36px;">1</div>
-                    <div class="step-label small mt-1 fw-medium">Datos Personales</div>
+    <div class="register-card">
+        <!-- Step Indicators -->
+        <div class="steps-bar">
+            <div class="step-item" data-step="1">
+                <div class="step-circle active" id="circle1">
+                    <span class="step-num">1</span>
+                    <span class="step-check"><i class="bi bi-check-lg"></i></span>
                 </div>
-                <div class="step-line flex-grow-1 mx-2" style="height:2px;background:var(--border-color);max-width:80px;"></div>
-                <div class="step-item text-center" data-step="2">
-                    <div class="step-circle rounded-circle d-inline-flex align-items-center justify-content-center bg-light text-muted" style="width:36px;height:36px;border:2px solid var(--border-color);">2</div>
-                    <div class="step-label small mt-1 fw-medium">Contraseña</div>
+                <div class="step-label active" id="label1">Datos Personales</div>
+            </div>
+            <div class="step-line" id="line1"></div>
+            <div class="step-item" data-step="2">
+                <div class="step-circle" id="circle2">
+                    <span class="step-num">2</span>
+                    <span class="step-check"><i class="bi bi-check-lg"></i></span>
                 </div>
-                <div class="step-line flex-grow-1 mx-2" style="height:2px;background:var(--border-color);max-width:80px;"></div>
-                <div class="step-item text-center" data-step="3">
-                    <div class="step-circle rounded-circle d-inline-flex align-items-center justify-content-center bg-light text-muted" style="width:36px;height:36px;border:2px solid var(--border-color);">3</div>
-                    <div class="step-label small mt-1 fw-medium">Rol y Confirmación</div>
+                <div class="step-label" id="label2">Contraseña</div>
+            </div>
+            <div class="step-line" id="line2"></div>
+            <div class="step-item" data-step="3">
+                <div class="step-circle" id="circle3">
+                    <span class="step-num">3</span>
+                    <span class="step-check"><i class="bi bi-check-lg"></i></span>
+                </div>
+                <div class="step-label" id="label3">Rol y Confirmación</div>
+            </div>
+        </div>
+
+        <form method="POST" novalidate id="registerForm">
+            <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
+
+            <!-- ===== STEP 1: Datos Personales ===== -->
+            <div class="step-content active" data-step="1">
+                <div class="row-custom">
+                    <div class="input-group">
+                        <div class="input-wrapper">
+                            <input type="text" name="cedula" id="cedula"
+                                class="form-input" maxlength="8" minlength="8" pattern="\d{8}" required
+                                placeholder=" " inputmode="numeric"
+                                value="<?= htmlspecialchars($old['cedula']) ?>">
+                            <label for="cedula" class="float-label">
+                                <i class="bi bi-person-badge"></i> Cédula
+                            </label>
+                            <span class="input-icon"><i class="bi bi-person-badge"></i></span>
+                        </div>
+                        <small class="form-hint">8 dígitos, solo números *</small>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-wrapper">
+                            <input type="text" name="nombre" id="nombre"
+                                class="form-input" maxlength="50" required
+                                placeholder=" "
+                                value="<?= htmlspecialchars($old['nombre']) ?>">
+                            <label for="nombre" class="float-label">
+                                <i class="bi bi-person"></i> Nombre completo
+                            </label>
+                            <span class="input-icon"><i class="bi bi-person"></i></span>
+                        </div>
+                        <small class="form-hint">Nombre y apellido *</small>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-wrapper">
+                            <input type="email" name="email" id="email"
+                                class="form-input" maxlength="50"
+                                placeholder=" "
+                                value="<?= htmlspecialchars($old['email']) ?>">
+                            <label for="email" class="float-label">
+                                <i class="bi bi-envelope"></i> Correo electrónico
+                            </label>
+                            <span class="input-icon"><i class="bi bi-envelope"></i></span>
+                        </div>
+                        <small class="form-hint">Debe ser un correo con dominio existente</small>
+                    </div>
+
+                    <div class="input-group">
+                        <div class="input-wrapper">
+                            <input type="tel" name="telefono" id="telefono"
+                                class="form-input" maxlength="15"
+                                placeholder=" ">
+                            <label for="telefono" class="float-label">
+                                <i class="bi bi-telephone"></i> Teléfono
+                            </label>
+                            <span class="input-icon"><i class="bi bi-telephone"></i></span>
+                        </div>
+                        <small class="form-hint">Ej: 0412-1234567</small>
+                    </div>
                 </div>
             </div>
 
-            <form method="POST" novalidate id="registerForm">
-                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>">
-
-                <!-- Step 1: Datos Personales -->
-                <div class="step-content" data-step="1">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Cédula *</label>
-                            <input type="text" name="cedula" class="form-control" maxlength="8" minlength="8" pattern="\d{8}" required value="<?= htmlspecialchars($old['cedula']) ?>" placeholder="12345678">
-                            <small class="text-muted">8 dígitos sin puntos ni guiones</small>
+            <!-- ===== STEP 2: Contraseña ===== -->
+            <div class="step-content" data-step="2">
+                <div class="row-custom">
+                    <div class="input-group">
+                        <div class="input-wrapper">
+                            <input type="password" name="password" id="password"
+                                class="form-input" minlength="8" maxlength="24" required
+                                placeholder=" ">
+                            <label for="password" class="float-label">
+                                <i class="bi bi-lock"></i> Contraseña
+                            </label>
+                            <span class="input-icon"><i class="bi bi-lock"></i></span>
+                            <button type="button" class="password-toggle" data-for="password" tabindex="-1" aria-label="Mostrar contraseña">
+                                <i class="bi bi-eye"></i>
+                            </button>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Nombre completo *</label>
-                            <input type="text" name="nombre" class="form-control" maxlength="50" required value="<?= htmlspecialchars($old['nombre']) ?>" placeholder="Nombre y apellido">
+                        <div class="password-strength-bar">
+                            <div class="strength-fill" id="strengthFill"></div>
+                        </div>
+                        <div class="password-strength-labels">
+                            <span>Débil</span>
+                            <span>Fuerte</span>
+                        </div>
+                        <div class="password-requirements" id="requirements">
+                            <div class="requirement-item" data-req="length">
+                                <i class="bi bi-x-circle"></i> Mínimo 8 caracteres
+                            </div>
+                            <div class="requirement-item" data-req="lowercase">
+                                <i class="bi bi-x-circle"></i> Una minúscula
+                            </div>
+                            <div class="requirement-item" data-req="uppercase">
+                                <i class="bi bi-x-circle"></i> Una mayúscula
+                            </div>
+                            <div class="requirement-item" data-req="number">
+                                <i class="bi bi-x-circle"></i> Un número
+                            </div>
+                            <div class="requirement-item" data-req="special">
+                                <i class="bi bi-x-circle"></i> Un símbolo
+                            </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Correo electrónico</label>
-                            <input type="email" name="email" class="form-control" maxlength="50" value="<?= htmlspecialchars($old['email']) ?>" placeholder="correo@ejemplo.com">
-                            <small class="text-muted">Debe ser un correo real con dominio existente</small>
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Teléfono</label>
-                            <input type="tel" name="telefono" class="form-control" maxlength="15" placeholder="0412-1234567">
-                        </div>
-                    </div>
-                </div>
 
-                <!-- Step 2: Contraseña -->
-                <div class="step-content d-none" data-step="2">
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Contraseña *</label>
-                            <div class="password-input-group position-relative">
-                                <input type="password" name="password" id="password" class="form-control" minlength="8" maxlength="24" required>
-                                <button type="button" class="password-toggle position-absolute top-50 end-0 translate-middle-y btn btn-link text-muted" style="z-index:5;">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                            </div>
-                            <div class="password-strength mt-2" id="passwordStrength" style="height:4px;background:#e9ecef;border-radius:2px;overflow:hidden;">
-                                <div class="strength-bar" style="height:100%;width:0%;background:var(--danger);transition:width 0.3s ease;"></div>
-                            </div>
-                            <div class="d-flex justify-content-between small text-muted mt-1">
-                                <span>Débil</span>
-                                <span>Fuerte</span>
-                            </div>
-                            <div class="password-requirements mt-2">
-                                <div id="lengthReq" class="requirement-not-met small"><i class="bi bi-x-circle me-1"></i> Mínimo 8 caracteres</div>
-                                <div id="lowercaseReq" class="requirement-not-met small"><i class="bi bi-x-circle me-1"></i> Una minúscula</div>
-                                <div id="uppercaseReq" class="requirement-not-met small"><i class="bi bi-x-circle me-1"></i> Una mayúscula</div>
-                                <div id="numberReq" class="requirement-not-met small"><i class="bi bi-x-circle me-1"></i> Un número</div>
-                                <div id="specialReq" class="requirement-not-met small"><i class="bi bi-x-circle me-1"></i> Un símbolo</div>
-                            </div>
+                    <div class="input-group">
+                        <div class="input-wrapper">
+                            <input type="password" name="password_confirm" id="password_confirm"
+                                class="form-input" minlength="8" maxlength="24" required
+                                placeholder=" ">
+                            <label for="password_confirm" class="float-label">
+                                <i class="bi bi-lock-fill"></i> Repetir contraseña
+                            </label>
+                            <span class="input-icon"><i class="bi bi-lock-fill"></i></span>
+                            <button type="button" class="password-toggle" data-for="password_confirm" tabindex="-1" aria-label="Mostrar contraseña">
+                                <i class="bi bi-eye"></i>
+                            </button>
                         </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Repetir Contraseña *</label>
-                            <div class="password-input-group position-relative">
-                                <input type="password" name="password_confirm" id="password_confirm" class="form-control" minlength="8" maxlength="24" required>
-                                <button type="button" class="password-toggle position-absolute top-50 end-0 translate-middle-y btn btn-link text-muted" style="z-index:5;">
-                                    <i class="bi bi-eye"></i>
-                                </button>
-                            </div>
-                            <div id="passwordMatch" class="form-text mt-2"></div>
-                        </div>
+                        <div class="password-match" id="passwordMatch"></div>
                     </div>
                 </div>
+            </div>
 
-                <!-- Step 3: Rol y Confirmación -->
-                <div class="step-content d-none" data-step="3">
-                    <div class="row">
-                        <?php if ($rol_actual === 'administrador'): ?>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Rol del usuario *</label>
-                            <select name="rol" class="form-select" required>
+            <!-- ===== STEP 3: Rol y Confirmación ===== -->
+            <div class="step-content" data-step="3">
+                <div class="row-custom">
+                    <?php if ($rol_actual === 'administrador'): ?>
+                    <div class="input-group">
+                        <div class="input-wrapper">
+                            <select name="rol" id="rol" class="form-select" required>
                                 <option value="">-- Seleccione un rol --</option>
-                                <option value="profesor" <?= $old['rol']==='profesor'?'selected':'' ?>>Profesor</option>
-                                <option value="alumno" <?= $old['rol']==='alumno'?'selected':'' ?>>Alumno</option>
-                                <option value="administrador" <?= $old['rol']==='administrador'?'selected':'' ?>>Administrador</option>
+                                <option value="profesor" <?= $old['rol'] === 'profesor' ? 'selected' : '' ?>>Profesor</option>
+                                <option value="alumno" <?= $old['rol'] === 'alumno' ? 'selected' : '' ?>>Alumno</option>
+                                <option value="administrador" <?= $old['rol'] === 'administrador' ? 'selected' : '' ?>>Administrador</option>
                             </select>
+                            <span class="input-icon"><i class="bi bi-person-badge"></i></span>
                         </div>
-                        <?php else: ?>
-                        <input type="hidden" name="rol" value="alumno">
-                        <?php endif; ?>
-
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label">Repetir Contraseña *</label>
-                            <input type="password" name="password_confirm" class="form-control" minlength="8" maxlength="24" required>
-                        </div>
+                        <small class="form-hint">Rol del usuario *</small>
                     </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">
-                            <?= $rol_actual === 'profesor' ? 'Asignar al grupo' : 'Grupos disponibles' ?>
-                        </label>
-                        <div class="filter-group mb-2" role="group">
-                            <button type="button" class="btn-filter active" data-filter="all">
-                                <i class="bi bi-collection"></i> Todos
-                            </button>
-                            <button type="button" class="btn-filter" data-filter="active">
-                                <i class="bi bi-check-circle"></i> Activos
-                            </button>
-                            <button type="button" class="btn-filter" data-filter="inactive">
-                                <i class="bi bi-pause-circle"></i> Inactivos
-                            </button>
-                        </div>
-
-                        <select name="grupos[]" class="form-select" id="gruposSelect" <?= $rol_actual === 'profesor' ? '' : 'multiple size="4"' ?>>
-                            <?php if (!empty($grupos_activos)): ?>
-                                <optgroup label="Grupos Activos" data-estado="activo">
-                                <?php foreach ($grupos_activos as $g): ?>
-                                <option value="<?= $g['id'] ?>" class="grupo-activo" <?= in_array($g['id'],$old['grupos'])?'selected':'' ?>>
-                                    <?= htmlspecialchars($g['nombre']) ?>
-                                </option>
-                                <?php endforeach; ?>
-                                </optgroup>
-                            <?php endif; ?>
-                            
-                            <?php if (!empty($grupos_inactivos)): ?>
-                                <optgroup label="Grupos Inactivos" data-estado="inactivo">
-                                <?php foreach ($grupos_inactivos as $g): ?>
-                                <option value="<?= $g['id'] ?>" class="grupo-inactivo" <?= in_array($g['id'],$old['grupos'])?'selected':'' ?>>
-                                    <?= htmlspecialchars($g['nombre']) ?>
-                                </option>
-                                <?php endforeach; ?>
-                                </optgroup>
-                            <?php endif; ?>
-                        </select>
-                        <?php if ($rol_actual !== 'profesor'): ?>
-                        <small class="text-muted">Mantén presionada la tecla Ctrl para seleccionar múltiples grupos</small>
-                        <?php endif; ?>
-                    </div>
-
-                    <div class="mb-3">
-                        <div class="checkbox-item">
-                            <input type="checkbox" id="terminos" required>
-                            <label for="terminos">Acepto los términos y condiciones del registro</label>
-                        </div>
-                    </div>
+                    <?php else: ?>
+                    <input type="hidden" name="rol" value="alumno">
+                    <?php endif; ?>
                 </div>
 
-                <!-- Navigation Buttons -->
-                <div class="action-row d-flex justify-content-between">
-                    <button type="button" class="btn btn-outline-secondary" id="prevBtn" disabled>
-                        <i class="bi bi-arrow-left"></i> Anterior
-                    </button>
-                    <button type="button" class="btn btn-primary" id="nextBtn">
-                        Siguiente <i class="bi bi-arrow-right"></i>
-                    </button>
-                    <button type="submit" class="btn btn-success d-none" id="submitBtn">
-                        <i class="bi bi-person-plus"></i> Registrar Usuario
-                    </button>
+                <div class="input-group mt-3">
+                    <label class="form-label fw-semibold small">
+                        <?= $rol_actual === 'profesor' ? 'Asignar al grupo' : 'Grupos disponibles' ?>
+                    </label>
+                    <div class="filter-group mb-2">
+                        <button type="button" class="btn-filter active" data-filter="all">
+                            <i class="bi bi-collection"></i> Todos
+                        </button>
+                        <button type="button" class="btn-filter" data-filter="active">
+                            <i class="bi bi-check-circle"></i> Activos
+                        </button>
+                        <button type="button" class="btn-filter" data-filter="inactive">
+                            <i class="bi bi-pause-circle"></i> Inactivos
+                        </button>
+                    </div>
+
+                    <select name="grupos[]" class="form-select" id="gruposSelect" <?= $rol_actual === 'profesor' ? '' : 'multiple size="4"' ?>>
+                        <?php if (!empty($grupos_activos)): ?>
+                        <optgroup label="Grupos Activos" data-estado="activo">
+                            <?php foreach ($grupos_activos as $g): ?>
+                            <option value="<?= $g['id'] ?>" data-estado="activo" <?= in_array($g['id'], $old['grupos']) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($g['nombre']) ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </optgroup>
+                        <?php endif; ?>
+                        <?php if (!empty($grupos_inactivos)): ?>
+                        <optgroup label="Grupos Inactivos" data-estado="inactivo">
+                            <?php foreach ($grupos_inactivos as $g): ?>
+                            <option value="<?= $g['id'] ?>" data-estado="inactivo" <?= in_array($g['id'], $old['grupos']) ? 'selected' : '' ?>>
+                                <?= htmlspecialchars($g['nombre']) ?>
+                            </option>
+                            <?php endforeach; ?>
+                        </optgroup>
+                        <?php endif; ?>
+                    </select>
+                    <?php if ($rol_actual !== 'profesor'): ?>
+                    <small class="form-hint">Mantén Ctrl para seleccionar múltiples</small>
+                    <?php endif; ?>
                 </div>
-            </form>
-        </div>
+
+                <div class="input-group mt-3">
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="terminos" required>
+                        <label for="terminos">Acepto los términos y condiciones del registro</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="action-row">
+                <button type="button" class="btn-nav btn-nav-prev" id="prevBtn" disabled>
+                    <i class="bi bi-arrow-left"></i> Anterior
+                </button>
+                <button type="button" class="btn-nav btn-nav-next" id="nextBtn">
+                    Siguiente <i class="bi bi-arrow-right"></i>
+                </button>
+                <button type="submit" class="btn-nav btn-nav-submit d-none" id="submitBtn">
+                    <i class="bi bi-person-plus"></i> Registrar Usuario
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
