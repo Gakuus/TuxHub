@@ -1,8 +1,18 @@
 <?php
+session_start();
 require_once __DIR__ . '/db_connection.php';
+require_once __DIR__ . '/helpers.php';
 
 $tipo = $_GET['tipo'] ?? 'noticias';
 $id = $_GET['id'] ?? null;
+
+// CSRF check for GET requests
+$token = $_GET['csrf_token'] ?? '';
+$stored = $_SESSION['csrf_token'] ?? '';
+if (empty($token) || empty($stored) || !hash_equals($stored, $token)) {
+    header('Location: dashboard.php?page=gestionar_contenido&tipo=' . urlencode($tipo) . '&error=csrf');
+    exit;
+}
 
 try {
     if ($id) {
@@ -13,9 +23,7 @@ try {
         $stmt->close();
     }
 
-    // Redirección exitosa
-    $baseURL = "https://" . $_SERVER['HTTP_HOST'] . "/Agora/Agora/dashboard.php";
-    $url = $baseURL . "?page=gestionar_contenido&tipo=" . urlencode($tipo) . "&deleted=1";
+    $url = base_url() . "/dashboard.php?page=gestionar_contenido&tipo=" . urlencode($tipo) . "&deleted=1";
     
     echo "
     <script>
@@ -27,9 +35,7 @@ try {
     exit();
 
 } catch (Exception $e) {
-    // Redirección con error
-    $baseURL = "https://" . $_SERVER['HTTP_HOST'] . "/Agora/Agora/dashboard.php";
-    $url = $baseURL . "?page=gestionar_contenido&tipo=" . urlencode($tipo) . "&error=" . urlencode($e->getMessage());
+    $url = base_url() . "/dashboard.php?page=gestionar_contenido&tipo=" . urlencode($tipo) . "&error=" . urlencode($e->getMessage());
     
     echo "
     <script>

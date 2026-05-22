@@ -316,6 +316,11 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'cancelar_reserva') {
 
 // Eliminar recurso (solo admin)
 if (isset($_GET['delete'])) {
+    $token = $_GET['csrf_token'] ?? '';
+    $stored = $_SESSION['csrf_token'] ?? '';
+    if (empty($token) || empty($stored) || !hash_equals($stored, $token)) {
+        mostrarConfirmacion('❌ CSRF inválido', 'danger');
+    }
     if ($rol === 'admin') {
         $id = (int)$_GET['delete'];
         $sql = "DELETE FROM recursos WHERE id = ?";

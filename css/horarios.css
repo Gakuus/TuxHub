@@ -1,673 +1,200 @@
-/* ==========================
-   Variables y Configuración
-   ========================== */
-:root {
-    --primary-color: #1a4b8c;
-    --secondary-color: #0d2b56;
-    --accent-color: #d4af37;
-    --success-color: #28a745;
-    --warning-color: #dc3545;
-    --info-color: #17a2b8;
-    --light-color: #f8f9fa;
-    --dark-color: #212529;
-    --border-radius: 8px;
-    --box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    --transition: all 0.3s ease;
+.schedule-section {
+    padding: 2rem 0;
 }
 
-/* ==========================
-   Animaciones Globales
-   ========================== */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+.schedule-container {
+    background: rgba(255,255,255,0.7);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.08);
+    overflow: hidden;
 }
 
-@keyframes slideIn {
-    from {
-        opacity: 0;
-        transform: translateX(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateX(0);
-    }
-}
-
-/* ==========================
-   Clases de Animación
-   ========================== */
-.animate-fade-in {
-    animation: fadeIn 0.5s ease-out;
-}
-
-.animate-slide-in {
-    animation: slideIn 0.4s ease-out;
-}
-
-/* ==========================
-   Estilos Generales
-   ========================== */
-body {
-    background-color: #f5f7fa;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #333;
-    line-height: 1.6;
-    min-height: 100vh;
-}
-
-.container-fluid {
-    background: #ffffff;
-    border-radius: 12px;
-    margin: 20px auto;
-    box-shadow: var(--box-shadow);
-    max-width: 98%;
-}
-
-/* ==========================
-   Header y Navegación
-   ========================== */
-.page-header {
-    border-bottom: 1px solid #eaeaea;
+.schedule-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 1rem;
     padding-bottom: 1rem;
     margin-bottom: 1.5rem;
+    border-bottom: 1px solid rgba(0,0,0,0.06);
 }
 
-.page-header h1 {
-    color: var(--primary-color);
+.schedule-header h3 {
+    font-size: 1.15rem;
     font-weight: 700;
-    font-size: 1.8rem;
-    margin-bottom: 0.5rem;
+    color: var(--text-color, #1e293b);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
 }
 
-.page-header p {
-    color: #6c757d;
-    font-size: 1rem;
+.schedule-header h3 i {
+    color: var(--primary-color, #6366f1);
 }
 
-/* ==========================
-   Paneles y Tarjetas
-   ========================== */
-.selection-panel {
-    background: #ffffff;
-    border: 1px solid #e0e0e0;
-    border-radius: var(--border-radius);
-    transition: var(--transition);
-}
-
-.selection-panel:hover {
-    box-shadow: var(--box-shadow);
-}
-
-.card-header {
-    background-color: var(--primary-color);
-    color: white;
-    font-weight: 600;
-    border-radius: var(--border-radius) var(--border-radius) 0 0 !important;
-    padding: 1rem 1.5rem;
-}
-
-/* ==========================
-   Tabla de Horarios
-   ========================== */
-.schedule-container {
-    border-radius: var(--border-radius);
-    overflow: hidden;
-    border: 1px solid #e0e0e0;
-    background: white;
-}
-
-.table {
-    margin-bottom: 0;
-    font-size: 0.9rem;
-    border-collapse: separate;
-    border-spacing: 0;
-}
-
-.table thead th {
-    background-color: var(--primary-color);
-    color: white;
-    font-weight: 600;
-    text-align: center;
-    vertical-align: middle;
-    padding: 12px 8px;
-    border: none;
-    border-right: 1px solid rgba(255,255,255,0.1);
-}
-
-.table thead th:last-child {
-    border-right: none;
-}
-
-.table tbody tr:nth-child(even) {
-    background-color: #f8f9fa;
-}
-
-.table tbody tr:hover {
-    background-color: #e9f0ff;
-}
-
-.time-cell {
-    background-color: #f0f4ff !important;
-    font-weight: 600;
-    color: var(--primary-color);
-    text-align: center;
-    vertical-align: middle;
-    border-right: 2px solid #e0e0e0;
-    width: 120px;
-    padding: 12px 8px;
-}
-
-.class-cell {
-    text-align: center;
-    vertical-align: middle;
-    padding: 8px;
-    border-right: 1px solid #e0e0e0;
+.schedule-grid {
+    width: 100%;
+    overflow-x: auto;
 }
 
 .class-card {
-    border-radius: 6px;
-    padding: 12px 8px;
-    margin: 0;
-    transition: var(--transition);
-    border-left: 4px solid var(--primary-color);
-    background-color: #f0f7ff;
+    background: rgba(255,255,255,0.8);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    padding: 1rem;
+    border-left: 4px solid var(--primary-color, #6366f1);
+    transition: all 0.3s ease;
     height: 100%;
     min-height: 80px;
     display: flex;
     flex-direction: column;
     justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
 }
 
 .class-card:hover {
-    background-color: #e1eeff;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
     transform: translateY(-2px);
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.class-card h6 {
-    font-weight: 600;
-    margin-bottom: 8px;
-    color: var(--primary-color);
-    font-size: 0.85rem;
-    line-height: 1.2;
-}
-
-.class-details small {
-    display: block;
-    color: #6c757d;
-    font-size: 0.75rem;
-    margin-bottom: 2px;
+.class-card .materia-name {
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--text-color, #1e293b);
+    margin-bottom: 0.25rem;
     line-height: 1.3;
 }
 
-.empty-cell {
-    background-color: #f9f9f9;
-    color: #adb5bd;
-    font-style: italic;
-    padding: 20px 8px;
+.class-card .profesor-name {
+    font-size: 0.75rem;
+    color: var(--text-muted, #64748b);
+    margin-bottom: 0.125rem;
 }
 
-/* ==========================
-   Formularios y Controles
-   ========================== */
-.form-select {
-    border: 1px solid #ced4da;
-    border-radius: 6px;
-    transition: var(--transition);
-    font-weight: 500;
+.class-card .aula-name {
+    font-size: 0.7rem;
+    color: var(--text-muted, #64748b);
 }
 
-.form-select:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(26, 75, 140, 0.25);
-}
-
-.form-label {
-    color: #495057;
+.selected-group-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: rgba(99,102,241,0.12);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: 20px;
+    font-size: 0.85rem;
     font-weight: 600;
+    color: var(--primary-color, #6366f1);
+}
+
+.materia-1 { border-left-color: #6366f1; }
+.materia-2 { border-left-color: #ec4899; }
+.materia-3 { border-left-color: #f59e0b; }
+.materia-4 { border-left-color: #10b981; }
+.materia-5 { border-left-color: #3b82f6; }
+.materia-6 { border-left-color: #8b5cf6; }
+.materia-7 { border-left-color: #ef4444; }
+.materia-8 { border-left-color: #14b8a6; }
+.materia-9 { border-left-color: #f97316; }
+.materia-10 { border-left-color: #06b6d4; }
+
+.empty-state {
+    text-align: center;
+    padding: 3rem 2rem;
+    background: rgba(255,255,255,0.4);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    border: 1px dashed rgba(0,0,0,0.1);
+}
+
+.empty-state i {
+    font-size: 3rem;
+    color: var(--text-muted, #64748b);
+    opacity: 0.3;
+    margin-bottom: 1rem;
+    display: block;
+}
+
+.empty-state h4 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-muted, #64748b);
     margin-bottom: 0.5rem;
 }
 
-.btn {
-    border-radius: 6px;
-    font-weight: 600;
-    transition: var(--transition);
-    border: none;
+.empty-state p {
+    font-size: 0.875rem;
+    color: var(--text-muted, #64748b);
+    opacity: 0.7;
 }
 
-.btn-primary {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
+body.dark-mode .schedule-container {
+    background: rgba(15,23,42,0.85);
+    border-color: rgba(255,255,255,0.08);
 }
 
-.btn-primary:hover {
-    background-color: var(--secondary-color);
-    border-color: var(--secondary-color);
-    transform: translateY(-1px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+body.dark-mode .schedule-header {
+    border-bottom-color: rgba(255,255,255,0.06);
 }
 
-/* ==========================
-   Indicador de Grupo
-   ========================== */
-.selected-group-indicator {
-    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
-    color: white;
-    border-radius: var(--border-radius);
-    padding: 15px 20px;
-    margin-bottom: 20px;
-    box-shadow: var(--box-shadow);
+body.dark-mode .class-card {
+    background: rgba(255,255,255,0.06);
 }
 
-.selected-group-indicator h5 {
-    margin-bottom: 5px;
-    font-weight: 600;
+body.dark-mode .class-card .materia-name {
+    color: var(--text-color, #e2e8f0);
 }
 
-.selected-group-indicator small {
-    opacity: 0.9;
+body.dark-mode .selected-group-indicator {
+    background: rgba(99,102,241,0.2);
+    border-color: rgba(99,102,241,0.3);
 }
 
-/* ==========================
-   Estados Vacíos
-   ========================== */
-.empty-state {
-    padding: 3rem 2rem;
-    text-align: center;
-    color: #6c757d;
+body.dark-mode .empty-state {
+    background: rgba(255,255,255,0.03);
+    border-color: rgba(255,255,255,0.08);
 }
 
-.empty-icon {
-    font-size: 4rem;
-    margin-bottom: 1rem;
-    opacity: 0.5;
-}
-
-/* ==========================
-   Colores para Materias
-   ========================== */
-.matematica { 
-    border-left-color: #e74c3c; 
-    background-color: #fdedec; 
-}
-
-.matematica h6 {
-    color: #c0392b;
-}
-
-.lengua { 
-    border-left-color: #3498db; 
-    background-color: #ebf5fb; 
-}
-
-.lengua h6 {
-    color: #2980b9;
-}
-
-.ciencias { 
-    border-left-color: #2ecc71; 
-    background-color: #eafaf1; 
-}
-
-.ciencias h6 {
-    color: #27ae60;
-}
-
-.historia { 
-    border-left-color: #f39c12; 
-    background-color: #fef9e7; 
-}
-
-.historia h6 {
-    color: #d35400;
-}
-
-.ingles { 
-    border-left-color: #9b59b6; 
-    background-color: #f4ecf7; 
-}
-
-.ingles h6 {
-    color: #8e44ad;
-}
-
-.educacion-fisica { 
-    border-left-color: #1abc9c; 
-    background-color: #e8f8f5; 
-}
-
-.educacion-fisica h6 {
-    color: #16a085;
-}
-
-.arte { 
-    border-left-color: #d35400; 
-    background-color: #fbeee6; 
-}
-
-.arte h6 {
-    color: #a04000;
-}
-
-.tecnologia { 
-    border-left-color: #7f8c8d; 
-    background-color: #f4f6f6; 
-}
-
-.tecnologia h6 {
-    color: #616a6b;
-}
-
-/* ==========================
-   Badges e Indicadores
-   ========================== */
-.badge {
-    font-weight: 500;
-    padding: 0.5rem 0.75rem;
-}
-
-/* ==========================
-   Responsive Design
-   ========================== */
 @media (max-width: 768px) {
-    .container-fluid {
-        margin: 10px;
-        border-radius: 8px;
-        padding: 1rem !important;
+    .schedule-container {
+        padding: 1rem;
+        border-radius: 12px;
     }
-    
-    .table-responsive {
-        font-size: 0.8rem;
-        border: 1px solid #dee2e6;
-        border-radius: var(--border-radius);
-    }
-    
+
     .class-card {
-        padding: 8px 5px !important;
+        padding: 0.75rem;
         min-height: 70px;
     }
-    
-    .class-card h6 {
-        font-size: 0.75rem;
-        margin-bottom: 5px;
+
+    .class-card .materia-name {
+        font-size: 0.8rem;
     }
-    
-    .class-details small {
+
+    .class-card .profesor-name {
         font-size: 0.7rem;
     }
-    
-    .time-cell {
-        font-size: 0.8rem;
-        width: 100px;
-        padding: 10px 5px;
-    }
-    
-    .card-header {
-        padding: 0.75rem 1rem;
-    }
-    
-    .selected-group-indicator {
-        padding: 12px 15px;
-    }
-    
-    .selected-group-indicator h5 {
-        font-size: 1rem;
-    }
-}
 
-@media (max-width: 576px) {
-    .selection-panel .card-body {
-        padding: 1rem !important;
-    }
-    
-    .btn-lg {
-        padding: 0.5rem 0.75rem;
-        font-size: 0.85rem;
-    }
-    
-    .page-header h1 {
-        font-size: 1.5rem;
-    }
-    
     .empty-state {
         padding: 2rem 1rem;
     }
-    
-    .empty-icon {
-        font-size: 3rem;
-    }
-    
-    .form-select-lg {
-        font-size: 0.9rem;
-        padding: 0.5rem 0.75rem;
-    }
 }
 
-/* ==========================
-   Mejoras de Accesibilidad
-   ========================== */
 @media (prefers-reduced-motion: reduce) {
-    * {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-    }
-}
-
-/* Focus visible para navegación por teclado */
-.btn:focus,
-.form-select:focus {
-    outline: 2px solid var(--primary-color);
-    outline-offset: 2px;
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
     .class-card {
-        border-width: 2px;
+        transition-duration: 0.01ms;
     }
-    
-    .table tbody tr:nth-child(even) {
-        background-color: #e9ecef;
+
+    .class-card:hover {
+        transform: none;
     }
-}
-
-/* ==========================
-   Estados de Loading
-   ========================== */
-.loading {
-    position: relative;
-    color: transparent !important;
-    overflow: hidden;
-}
-
-.loading::after {
-    content: '';
-    position: absolute;
-    width: 20px;
-    height: 20px;
-    top: 50%;
-    left: 50%;
-    margin-left: -10px;
-    margin-top: -10px;
-    border: 2px solid #f3f3f3;
-    border-top: 2px solid var(--primary-color);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-    0% { transform: rotate(0deg); }
-    100% { transform: rotate(360deg); }
-}
-
-/* ==========================
-   Utilidades
-   ========================== */
-.text-institutional {
-    color: var(--primary-color);
-}
-
-.bg-institutional {
-    background-color: var(--primary-color);
-}
-
-.border-institutional {
-    border-color: var(--primary-color);
-}
-
-/* ==========================
-   Estilos para Materias Inactivas
-   ========================== */
-.materia-inactiva {
-    opacity: 0.7;
-    position: relative;
-    border-left-color: #6c757d !important;
-}
-
-.materia-inactiva::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: repeating-linear-gradient(
-        45deg,
-        transparent,
-        transparent 5px,
-        rgba(0,0,0,0.05) 5px,
-        rgba(0,0,0,0.05) 10px
-    );
-    pointer-events: none;
-    border-radius: 4px;
-}
-
-.materia-inactiva .class-content h6 {
-    color: #6c757d !important;
-}
-
-.materia-inactiva:hover {
-    opacity: 0.8;
-}
-
-/* Badge para materias inactivas */
-.badge.bg-warning {
-    font-size: 0.6rem;
-    padding: 0.2rem 0.4rem;
-}
-
-/* Indicadores de estado en el panel de grupo */
-.text-success .bi-check-circle {
-    color: #28a745;
-}
-
-.text-warning .bi-exclamation-triangle {
-    color: #ffc107;
-}
-
-/* ==========================
-   Responsive para nuevos filtros
-   ========================== */
-@media (max-width: 768px) {
-    .selection-panel .col-md-3,
-    .selection-panel .col-md-4 {
-        margin-bottom: 1rem;
-    }
-    
-    .selected-group-indicator small {
-        font-size: 0.8rem;
-    }
-}
-
-/* ==========================
-   Estados de filtro activo
-   ========================== */
-.filter-active {
-    border: 2px solid var(--primary-color);
-    background-color: rgba(26, 75, 140, 0.05);
-}
-
-
-
-/* ==========================
-   Estilos para Grupos Inactivos
-   ========================== */
-.grupo-inactivo {
-    background: linear-gradient(135deg, #6c757d, #495057) !important;
-    border-left: 4px solid #ffc107;
-}
-
-.grupo-inactivo h5 {
-    color: #fff !important;
-}
-
-.grupo-inactivo small {
-    color: rgba(255, 255, 255, 0.8) !important;
-}
-
-/* Opciones de select para grupos inactivos */
-select option.text-warning {
-    color: #856404 !important;
-    background-color: #fff3cd;
-}
-
-/* ==========================
-   Estadísticas en estado vacío
-   ========================== */
-.stats-container {
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 10px;
-    padding: 1.5rem;
-    backdrop-filter: blur(10px);
-}
-
-.stat-item h5 {
-    font-weight: bold;
-    margin-bottom: 0.5rem;
-}
-
-.stat-item small {
-    color: #6c757d;
-    font-size: 0.8rem;
-}
-
-/* ==========================
-   Responsive para múltiples filtros
-   ========================== */
-@media (max-width: 768px) {
-    .selection-panel .col-md-3,
-    .selection-panel .col-md-2 {
-        margin-bottom: 1rem;
-    }
-    
-    .selected-group-indicator .d-flex {
-        flex-direction: column;
-        align-items: flex-start !important;
-    }
-    
-    .selected-group-indicator .badge {
-        margin-top: 0.5rem;
-        align-self: flex-end;
-    }
-}
-
-/* ==========================
-   Mejoras visuales para filtros
-   ========================== */
-.form-select:focus {
-    border-color: var(--primary-color);
-    box-shadow: 0 0 0 0.2rem rgba(26, 75, 140, 0.25);
-}
-
-/* Indicador de grupo inactivo en el select */
-select option[class*="text-warning"] {
-    font-style: italic;
 }

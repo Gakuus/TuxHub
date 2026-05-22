@@ -47,6 +47,7 @@ $is_tablet = preg_match('/(ipad|tablet|playbook|silk)|(android(?!.*mobile))/i', 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     <link href="css/login.css" rel="stylesheet">
+    <link href="css/components.css" rel="stylesheet">
     
     <!-- reCAPTCHA -->
     <script src="https://www.google.com/recaptcha/api.js" async defer></script>
@@ -165,10 +166,16 @@ $is_tablet = preg_match('/(ipad|tablet|playbook|silk)|(android(?!.*mobile))/i', 
                 Conexión segura protegida por encriptación
             </div>
 
-            <a href="password_reset_request.php" class="forgot-password" aria-label="Recuperar contraseña">
-                <i class="bi bi-key" aria-hidden="true"></i> 
-                ¿Olvidaste tu contraseña?
-            </a>
+            <div class="d-flex justify-content-between mt-3">
+                <a href="password_reset_request.php" class="forgot-password" aria-label="Recuperar contraseña">
+                    <i class="bi bi-key" aria-hidden="true"></i> 
+                    ¿Olvidaste tu contraseña?
+                </a>
+                <a href="registro.php" class="register-link" aria-label="Registrarse">
+                    <i class="bi bi-person-plus" aria-hidden="true"></i> 
+                    Registrarse
+                </a>
+            </div>
         </form>
     </div>
 </div>

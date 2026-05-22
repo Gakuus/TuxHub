@@ -12,7 +12,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Configuración de seguridad
 ini_set('session.cookie_httponly', 1);
-ini_set('session.cookie_secure', 1); // Solo para HTTPS
+if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
+    ini_set('session.cookie_secure', 1);
+}
+ini_set('session.use_strict_mode', 1);
 ini_set('session.cookie_samesite', 'Strict');
 
 // Regenerar ID de sesión para prevenir session fixation

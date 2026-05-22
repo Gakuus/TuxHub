@@ -1,20 +1,23 @@
 <?php
-// TEMPORAL: Para debug - ELIMINAR DESPUÉS DE FUNCIONAR
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-
 session_start();
 require_once 'db_connection.php';
 
+$is_https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+            || ($_SERVER['SERVER_PORT'] ?? 80) == 443;
+
 // ========= CONFIGURACIÓN DE SEGURIDAD =========
 ini_set('session.cookie_httponly', 1);
-ini_set('session.cookie_secure', 1); // Para HTTPS
+if ($is_https) {
+    ini_set('session.cookie_secure', 1);
+}
 ini_set('session.use_strict_mode', 1);
+ini_set('session.cookie_samesite', 'Lax');
+ini_set('session.use_only_cookies', 1);
 
 // Headers de seguridad
 header("X-Frame-Options: DENY");
 header("X-Content-Type-Options: nosniff");
+header("Referrer-Policy: strict-origin-when-cross-origin");
 
 // ========= FUNCIONES AUXILIARES =========
 function redirect_error($code) {

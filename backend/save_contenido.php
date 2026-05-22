@@ -29,15 +29,25 @@ try {
 
         // Procesar imagen
         if (isset($_FILES['imagen_file']) && $_FILES['imagen_file']['error'] === UPLOAD_ERR_OK) {
-            // Validar tipo de archivo
-            $allowed_types = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-            $file_type = $_FILES['imagen_file']['type'];
+            $tmp_name = $_FILES['imagen_file']['tmp_name'];
             
-            if (!in_array($file_type, $allowed_types)) {
+            // Validar tamaño máximo (5MB)
+            $max_size = 5 * 1024 * 1024;
+            if ($_FILES['imagen_file']['size'] > $max_size) {
+                throw new Exception("La imagen no puede superar los 5MB");
+            }
+            
+            // Validar que sea una imagen real usando getimagesize()
+            $img_info = @getimagesize($tmp_name);
+            if ($img_info === false) {
+                throw new Exception("El archivo no es una imagen válida");
+            }
+            
+            $allowed_mime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+            if (!in_array($img_info['mime'], $allowed_mime)) {
                 throw new Exception("Solo se permiten archivos de imagen (JPG, PNG, GIF, WebP)");
             }
             
-            $tmp_name = $_FILES['imagen_file']['tmp_name'];
             $imagenData = file_get_contents($tmp_name);
         }
 

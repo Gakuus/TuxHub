@@ -1,6 +1,10 @@
 <?php
 session_start();
 
+header("X-Frame-Options: DENY");
+header("X-Content-Type-Options: nosniff");
+header("Referrer-Policy: strict-origin-when-cross-origin");
+
 /* ============================================
    🔐 CONTROL DE SESIÓN E INACTIVIDAD MEJORADO
    ============================================ */
@@ -51,6 +55,18 @@ if (!$conn || !$conn->ping()) {
     header("Location: index.php?error=db_conexion");
     exit();
 }
+
+// Mapa de CSS específico por página
+$page_css_map = [
+    'home' => 'home.css',
+    'salones' => 'salones.css',
+    'recursos' => 'recursos.css',
+    'horarios' => 'horarios.css',
+    'agregar_materias' => 'materias.css',
+    'gestionar_contenido' => 'gestionar_contenido.css',
+    'registrar' => 'register.css'
+];
+$page_css = $page_css_map[$page] ?? null;
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -64,9 +80,12 @@ if (!$conn || !$conn->ping()) {
     <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="css/dashboard_mejoras.css"> 
+    <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/dashboard.css">
-      <link rel="icon" href="img/Logo.png" type="image/x-icon">
+    <?php if ($page_css): ?>
+    <link rel="stylesheet" href="css/<?= $page_css ?>">
+    <?php endif; ?>
+    <link rel="icon" href="img/Logo.png" type="image/x-icon">
 </head>
 <body>
 
@@ -85,6 +104,12 @@ if (!$conn || !$conn->ping()) {
             </li>
 
             <li class="nav-item">
+                <a class="nav-link <?= $page == 'horarios' ? 'active' : ''; ?>" href="dashboard.php?page=horarios">
+                    <i class="bi bi-calendar-week-fill me-2"></i> <span class="nav-text">Horarios</span>
+                </a>
+            </li>
+
+            <li class="nav-item">
                 <a class="nav-link <?= $page == 'salones' ? 'active' : ''; ?>" href="dashboard.php?page=salones">
                     <i class="bi bi-door-open-fill me-2"></i> <span class="nav-text">Salones</span>
                 </a>
@@ -97,8 +122,8 @@ if (!$conn || !$conn->ping()) {
             </li>
 
             <li class="nav-item">
-                <a class="nav-link <?= $page == 'horarios' ? 'active' : ''; ?>" href="dashboard.php?page=horarios">
-                    <i class="bi bi-calendar-week-fill me-2"></i> <span class="nav-text">Horarios</span>
+                <a class="nav-link <?= $page == 'profesores' ? 'active' : ''; ?>" href="dashboard.php?page=profesores">
+                    <i class="bi bi-person-badge me-2"></i> <span class="nav-text">Profesores</span>
                 </a>
             </li>
 
@@ -106,8 +131,20 @@ if (!$conn || !$conn->ping()) {
                 <li class="nav-item mt-3 pt-3 border-top border-secondary"></li>
 
                 <li class="nav-item">
+                    <a class="nav-link <?= $page == 'grupos' ? 'active' : ''; ?>" href="dashboard.php?page=grupos">
+                        <i class="bi bi-collection-fill me-2"></i> <span class="nav-text">Grupos</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link <?= $page == 'agregar_materias' ? 'active' : ''; ?>" href="dashboard.php?page=agregar_materias">
+                        <i class="bi bi-book me-2"></i> <span class="nav-text">Materias</span>
+                    </a>
+                </li>
+
+                <li class="nav-item">
                     <a class="nav-link <?= $page == 'registrar' ? 'active' : ''; ?>" href="dashboard.php?page=registrar">
-                        <i class="bi bi-person-plus-fill me-2"></i> <span class="nav-text">Registrar Usuario</span>
+                        <i class="bi bi-person-plus-fill me-2"></i> <span class="nav-text">Usuarios</span>
                     </a>
                 </li>
 
@@ -149,24 +186,30 @@ if (!$conn || !$conn->ping()) {
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a class="nav-link <?= $page == 'agregar_materias' ? 'active' : ''; ?>" href="dashboard.php?page=agregar_materias">
-                        <i class="bi bi-book me-2"></i> <span class="nav-text">Agregar Materias</span>
+                <li class="nav-item mt-3 pt-3 border-top border-secondary">
+                    <a class="nav-link text-danger" href="backend/logout.php">
+                        <i class="bi bi-box-arrow-right me-2"></i> <span class="nav-text">Cerrar Sesión</span>
                     </a>
                 </li>
 
-                <li class="nav-item">
-                    <a class="nav-link <?= $page == 'grupos' ? 'active' : ''; ?>" href="dashboard.php?page=grupos">
-                        <i class="bi bi-collection-fill me-2"></i> <span class="nav-text">Grupos</span>
-                    </a>
-                </li>
-                
-       <?php elseif ($rol_lower === "profesor"): ?>
-               <li class="nav-item mt-3 pt-3 border-top border-secondary"></li> 
+            <?php elseif ($rol_lower === "profesor"): ?>
+                <li class="nav-item mt-3 pt-3 border-top border-secondary"></li>
 
                 <li class="nav-item">
                     <a class="nav-link <?= $page == 'registrar' ? 'active' : ''; ?>" href="dashboard.php?page=registrar">
                         <i class="bi bi-person-plus-fill me-2"></i> <span class="nav-text">Registrar Alumno</span>
+                    </a>
+                </li>
+
+                <li class="nav-item mt-3 pt-3 border-top border-secondary">
+                    <a class="nav-link text-danger" href="backend/logout.php">
+                        <i class="bi bi-box-arrow-right me-2"></i> <span class="nav-text">Cerrar Sesión</span>
+                    </a>
+                </li>
+            <?php else: ?>
+                <li class="nav-item mt-3 pt-3 border-top border-secondary">
+                    <a class="nav-link text-danger" href="backend/logout.php">
+                        <i class="bi bi-box-arrow-right me-2"></i> <span class="nav-text">Cerrar Sesión</span>
                     </a>
                 </li>
             <?php endif; ?>
@@ -198,7 +241,7 @@ if (!$conn || !$conn->ping()) {
                                     <i class="bi bi-gear-fill"></i>
                                 </button>
                                 <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="settingsDropdown">
-                                    <li class="dropdown-header fw-semibold text-center">⚙️ Configuración</li>
+                                    <li class="dropdown-header fw-semibold text-center">Configuración</li>
                                     <li><hr class="dropdown-divider"></li>
                                     <li>
                                         <button class="dropdown-item d-flex justify-content-between align-items-center" id="themeToggle">
@@ -261,11 +304,11 @@ if (!$conn || !$conn->ping()) {
                                 if (file_exists($file_path) && is_file($file_path)) {
                                     include $file_path;
                                 } else {
-                                    echo '<div class="alert alert-danger">❌ Error: archivo de página no encontrado.</div>';
+                                    echo '<div class="alert alert-danger">Error: archivo de página no encontrado.</div>';
                                     error_log("Archivo no encontrado: " . $file_path);
                                 }
                             } else {
-                                echo '<div class="alert alert-warning">⚠️ Página no encontrada o sin permisos.</div>';
+                                echo '<div class="alert alert-warning">Página no encontrada o sin permisos.</div>';
                             }
                             ?>
                         </div>
@@ -279,5 +322,6 @@ if (!$conn || !$conn->ping()) {
 <!-- JavaScript -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="assets/dashboard.js"></script>
+<script src="assets/ui.js"></script>
 </body>
 </html>

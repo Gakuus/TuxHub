@@ -1,51 +1,66 @@
-function validarNumero(input) {
-    // Remover cualquier caracter que no sea número
-    input.value = input.value.replace(/[^0-9]/g, '');
-    
-    // Limitar el valor máximo a 50
-    if (input.value > 50) {
-        input.value = 50;
-    }
-    
-    // Asegurar que no esté vacío y sea al menos 1
-    if (input.value === '' || input.value < 1) {
-        input.value = 1;
-    }
-}
-
-function validarFormulario() {
-    const capacidad = document.querySelector('input[name="capacidad"]');
-    
-    // Validación final antes de enviar
-    if (capacidad.value === '' || capacidad.value < 1) {
-        alert('La capacidad debe ser al menos 1 persona');
-        capacidad.focus();
-        return false;
-    }
-    
-    if (capacidad.value > 50) {
-        alert('La capacidad no puede ser mayor a 50 personas');
-        capacidad.focus();
-        return false;
-    }
-    
-    return true;
-}
-
-// Prevenir pegado de texto no numérico
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
     const capacidadInput = document.querySelector('input[name="capacidad"]');
-    
-    if (capacidadInput) {
-        capacidadInput.addEventListener('paste', function(e) {
-            e.preventDefault();
-            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-            const numbersOnly = pastedText.replace(/[^0-9]/g, '');
-            if (numbersOnly > 50) {
-                this.value = 50;
-            } else {
-                this.value = numbersOnly;
+    if (!capacidadInput) return;
+
+    capacidadInput.addEventListener('input', () => {
+        capacidadInput.value = capacidadInput.value.replace(/[^0-9]/g, '');
+        let val = parseInt(capacidadInput.value, 10);
+        if (isNaN(val) || val < 1) val = 1;
+        if (val > 50) val = 50;
+        capacidadInput.value = val;
+    });
+
+    capacidadInput.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const text = (e.clipboardData || window.clipboardData).getData('text').replace(/[^0-9]/g, '');
+        let val = parseInt(text, 10);
+        if (isNaN(val) || val < 1) val = 1;
+        if (val > 50) val = 50;
+        capacidadInput.value = val;
+    });
+
+    const form = capacidadInput.closest('form');
+    if (form) {
+        form.addEventListener('submit', (e) => {
+            const val = parseInt(capacidadInput.value, 10);
+            if (isNaN(val) || val < 1) {
+                e.preventDefault();
+                ToastSystem.warning('Validación', 'La capacidad debe ser al menos 1 persona.');
+                capacidadInput.focus();
+                return;
             }
+            if (val > 50) {
+                e.preventDefault();
+                ToastSystem.warning('Validación', 'La capacidad no puede ser mayor a 50 personas.');
+                capacidadInput.focus();
+                return;
+            }
+        });
+    }
+
+    const imagenInput = document.querySelector('input[type="file"][name="imagen"]');
+    if (imagenInput) {
+        imagenInput.addEventListener('change', () => {
+            const file = imagenInput.files[0];
+            if (!file) return;
+            const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
+            if (!validTypes.includes(file.type)) {
+                ToastSystem.warning('Archivo no válido', 'Selecciona solo imágenes (JPG, PNG, GIF, WebP).');
+                imagenInput.value = '';
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                let preview = document.getElementById('salon-image-preview');
+                if (!preview) {
+                    preview = document.createElement('div');
+                    preview.id = 'salon-image-preview';
+                    preview.className = 'mt-2';
+                    imagenInput.parentNode.appendChild(preview);
+                }
+                preview.innerHTML = `<img src="${e.target.result}" alt="Vista previa" class="img-fluid rounded shadow-sm" style="max-height:150px">`;
+            };
+            reader.readAsDataURL(file);
         });
     }
 });

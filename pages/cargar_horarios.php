@@ -1,7 +1,7 @@
 <?php
 require_once __DIR__ . "/../backend/db_connection.php";
 $conn->set_charset("utf8mb4");
-session_start();
+if (session_status() === PHP_SESSION_NONE) session_start();
 
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -62,7 +62,7 @@ if(isset($dias['error']) || empty($dias)) {
 $grupos = [];
 if($profesor_id){
     $where_grupos = $filtro_grupos === 'activos' ? "AND g.activa = 1" : "";
-    
+
     $stmt = $conn->prepare("
         SELECT g.id, g.nombre, g.turno, g.activa
         FROM grupos g
@@ -237,145 +237,190 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['guardar'])){
 FIN_PROCESO:
 ?>
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cargar Horario</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
-    <link rel="stylesheet" href="/Agora/Agora/css/cargar_horario.css">
-</head>
-<body>
-    <div class="container mt-4">
-        <h2 class="mb-4"><i class="bi bi-plus-circle"></i> Cargar Horario</h2>
+<section class="cargar-horarios">
+  <div class="page-header">
+    <h2><i class="bi bi-plus-circle"></i> Cargar Horario</h2>
+  </div>
 
-        <?php foreach($mensajes as $m): ?>
-            <div class="alert alert-<?= $m['tipo'] ?>"><?= htmlspecialchars($m['texto']) ?></div>
-        <?php endforeach; ?>
+  <?php foreach($mensajes as $m): ?>
+    <div class="alert alert-<?= $m['tipo'] ?>"><?= htmlspecialchars($m['texto']) ?></div>
+  <?php endforeach; ?>
 
-        <form method="post" class="row g-3">
-            <!-- Filtros -->
-            <div class="filtro-section">
-                <div class="filtro-title">
-                    <i class="bi bi-funnel"></i>Filtros
-                </div>
-                <div class="row g-3">
-                    <div class="col-md-3">
-                        <label class="form-label">Filtrar Grupos</label>
-                        <select name="filtro_grupos" class="form-select" onchange="this.form.submit()">
-                            <option value="activos" <?= $filtro_grupos === 'activos' ? 'selected' : '' ?>>Activos</option>
-                            <option value="todos" <?= $filtro_grupos === 'todos' ? 'selected' : '' ?>>Todos</option>
-                        </select>
-                    </div>
+  <form method="post" class="card">
+    <div class="card-body">
+      <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
 
-                    <div class="col-md-3">
-                        <label class="form-label">Filtrar Materias</label>
-                        <select name="filtro_materias" class="form-select" onchange="this.form.submit()">
-                            <option value="activas" <?= $filtro_materias === 'activas' ? 'selected' : '' ?>>Activas</option>
-                            <option value="todas" <?= $filtro_materias === 'todas' ? 'selected' : '' ?>>Todas</option>
-                        </select>
-                    </div>
-                </div>
+      <div class="row g-3 mb-3">
+        <div class="col-md-6">
+          <div class="selection-panel">
+            <div class="filter-label"><i class="bi bi-funnel"></i> Filtrar Grupos</div>
+            <div class="filter-buttons">
+              <span class="filter-btn <?= $filtro_grupos === 'activos' ? 'active' : '' ?>" onclick="this.closest('form').querySelector('[name=filtro_grupos]').value='activos';this.closest('form').submit()">Activos</span>
+              <span class="filter-btn <?= $filtro_grupos === 'todos' ? 'active' : '' ?>" onclick="this.closest('form').querySelector('[name=filtro_grupos]').value='todos';this.closest('form').submit()">Todos</span>
             </div>
-
-            <!-- Seleccionar Profesor -->
-            <div class="col-md-3">
-                <label class="form-label">Profesor</label>
-                <select name="profesor_id" class="form-select" onchange="this.form.submit()" required>
-                    <option value="">-- Seleccione --</option>
-                    <?php foreach($profesores as $p): ?>
-                        <option value="<?= $p['id'] ?>" <?= ($profesor_id==$p['id'])?'selected':'' ?>>
-                            <?= htmlspecialchars($p['nombre']) ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
+            <input type="hidden" name="filtro_grupos" value="<?= $filtro_grupos ?>">
+          </div>
+        </div>
+        <div class="col-md-6">
+          <div class="selection-panel">
+            <div class="filter-label"><i class="bi bi-funnel"></i> Filtrar Materias</div>
+            <div class="filter-buttons">
+              <span class="filter-btn <?= $filtro_materias === 'activas' ? 'active' : '' ?>" onclick="this.closest('form').querySelector('[name=filtro_materias]').value='activas';this.closest('form').submit()">Activas</span>
+              <span class="filter-btn <?= $filtro_materias === 'todas' ? 'active' : '' ?>" onclick="this.closest('form').querySelector('[name=filtro_materias]').value='todas';this.closest('form').submit()">Todas</span>
             </div>
+            <input type="hidden" name="filtro_materias" value="<?= $filtro_materias ?>">
+          </div>
+        </div>
+      </div>
 
-            <!-- Seleccionar Grupo -->
-            <div class="col-md-3">
-                <label class="form-label">Grupo</label>
-                <select name="grupo_id" class="form-select" onchange="this.form.submit()" required>
-                    <option value="">-- Seleccione --</option>
-                    <?php foreach($grupos as $g): ?>
-                        <option value="<?= $g['id'] ?>" <?= ($grupo_id==$g['id'])?'selected':'' ?>>
-                            <?= htmlspecialchars($g['nombre']) ?> (<?= htmlspecialchars($g['turno']) ?>)
-                            <?= (!$g['activa']) ? ' - [INACTIVO]' : '' ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-                <div id="contador-grupos" class="contador-elementos"></div>
-            </div>
+      <div class="row g-3">
+        <div class="col-md-3">
+          <label class="form-label">Profesor</label>
+          <select name="profesor_id" class="form-select" onchange="this.form.submit()" required>
+            <option value="">-- Seleccione --</option>
+            <?php foreach($profesores as $p): ?>
+              <option value="<?= $p['id'] ?>" <?= ($profesor_id==$p['id'])?'selected':'' ?>>
+                <?= htmlspecialchars($p['nombre']) ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
 
-            <!-- Materia -->
-            <div class="col-md-3">
-                <label class="form-label">Materia</label>
-                <select name="materia_id" class="form-select" required>
-                    <option value="">-- Seleccione --</option>
-                    <?php foreach($materias as $m): ?>
-                        <option value="<?= $m['id'] ?>">
-                            <?= htmlspecialchars($m['nombre_materia']) ?>
-                            <?= (isset($m['activa']) && !$m['activa']) ? ' - [INACTIVA]' : '' ?>
-                        </option>
-                    <?php endforeach; ?>
-                </select>
-                <div id="contador-materias" class="contador-elementos"></div>
-            </div>
+        <div class="col-md-3">
+          <label class="form-label">Grupo</label>
+          <select name="grupo_id" class="form-select" onchange="this.form.submit()" required>
+            <option value="">-- Seleccione --</option>
+            <?php foreach($grupos as $g): ?>
+              <option value="<?= $g['id'] ?>" <?= ($grupo_id==$g['id'])?'selected':'' ?>>
+                <?= htmlspecialchars($g['nombre']) ?> (<?= htmlspecialchars($g['turno']) ?>)
+                <?= (!$g['activa']) ? ' - [INACTIVO]' : '' ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
 
-            <!-- Salón -->
-            <div class="col-md-3">
-                <label class="form-label">Salón</label>
-                <select name="salon_id" id="salon_id" class="form-select" onchange="mostrarCampoSalon(this)">
-                    <option value="">-- Seleccione --</option>
-                    <?php foreach($salones as $s): ?>
-                        <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['nombre_salon']) ?></option>
-                    <?php endforeach; ?>
-                    <option value="nuevo">➕ Agregar nuevo salón</option>
-                </select>
-            </div>
+        <div class="col-md-3">
+          <label class="form-label">Materia</label>
+          <select name="materia_id" class="form-select" required>
+            <option value="">-- Seleccione --</option>
+            <?php foreach($materias as $m): ?>
+              <option value="<?= $m['id'] ?>">
+                <?= htmlspecialchars($m['nombre_materia']) ?>
+                <?= (isset($m['activa']) && !$m['activa']) ? ' - [INACTIVA]' : '' ?>
+              </option>
+            <?php endforeach; ?>
+          </select>
+        </div>
 
-            <div class="col-md-3" id="nuevoSalonDiv" style="display:none;">
-                <label class="form-label">Nuevo Salón</label>
-                <input type="text" name="nuevo_salon" class="form-control" placeholder="Ej: Laboratorio 2">
-            </div>
+        <div class="col-md-3">
+          <label class="form-label">Salón</label>
+          <select name="salon_id" id="salon_id" class="form-select" onchange="mostrarCampoSalon(this)">
+            <option value="">-- Seleccione --</option>
+            <?php foreach($salones as $s): ?>
+              <option value="<?= $s['id'] ?>"><?= htmlspecialchars($s['nombre_salon']) ?></option>
+            <?php endforeach; ?>
+            <option value="nuevo">➕ Agregar nuevo salón</option>
+          </select>
+        </div>
 
-            <!-- Día y Bloque -->
-            <?php if($turno_grupo): ?>
-            <div class="col-md-3">
-                <label class="form-label">Día</label>
-                <select name="dia_id" class="form-select" required>
-                    <option value="">-- Seleccione día --</option>
-                    <?php foreach($dias as $d): ?>
-                        <option value="<?= $d['id'] ?>"><?= htmlspecialchars($d['nombre_dia']) ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
+        <div class="col-md-3" id="nuevoSalonDiv" style="display:none;">
+          <label class="form-label">Nuevo Salón</label>
+          <input type="text" name="nuevo_salon" class="form-control" placeholder="Ej: Laboratorio 2">
+        </div>
 
-            <div class="col-md-6">
-                <label class="form-label">Bloque inicio (Turno: <?= htmlspecialchars($turno_grupo) ?>)</label>
-                <select name="bloque_id" class="form-select" required>
-                    <option value="">-- Seleccione bloque --</option>
-                    <?php foreach($bloques as $b): ?>
-                        <option value="<?= $b['id'] ?>"><?= $b['hora_inicio'] ?> - <?= $b['hora_fin'] ?></option>
-                    <?php endforeach; ?>
-                </select>
-            </div>
+        <?php if($turno_grupo): ?>
+        <div class="col-md-3">
+          <label class="form-label">Día</label>
+          <select name="dia_id" class="form-select" required>
+            <option value="">-- Seleccione día --</option>
+            <?php foreach($dias as $d): ?>
+              <option value="<?= $d['id'] ?>"><?= htmlspecialchars($d['nombre_dia']) ?></option>
+            <?php endforeach; ?>
+          </select>
+        </div>
 
-            <div class="col-md-3">
-                <label class="form-label">Duración (bloques consecutivos)</label>
-                <input type="number" name="duracion" class="form-control" min="1" max="<?= count($bloques) ?>" value="1" required>
-                <small class="text-muted">Máx <?= count($bloques) ?> bloques consecutivos</small>
+        <div class="col-md-6">
+          <label class="form-label">Bloque inicio (Turno: <?= htmlspecialchars($turno_grupo) ?>)</label>
+          <div class="row g-2">
+            <div class="col-8">
+              <select name="bloque_id" class="form-select" required>
+                <option value="">-- Seleccione bloque --</option>
+                <?php foreach($bloques as $b): ?>
+                  <option value="<?= $b['id'] ?>"><?= $b['hora_inicio'] ?> - <?= $b['hora_fin'] ?></option>
+                <?php endforeach; ?>
+              </select>
             </div>
+            <div class="col-4">
+              <input type="number" name="duracion" class="form-control" min="1" max="<?= count($bloques) ?>" value="1" required placeholder="Bloques">
+              <small class="text-muted">Máx <?= count($bloques) ?></small>
+            </div>
+          </div>
+        </div>
 
-            <div class="col-12">
-                <button class="btn btn-success" type="submit" name="guardar">Guardar Horario</button>
-            </div>
-            <?php endif; ?>
-        </form>
+        <div class="col-12">
+          <button class="btn btn-success" type="submit" name="guardar"><i class="bi bi-save"></i> Guardar Horario</button>
+        </div>
+        <?php endif; ?>
+      </div>
     </div>
+  </form>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/Agora/Agora/assets/cargar_horario.js"></script>
-</body>
-</html>
+  <?php if ($grupo_id): ?>
+    <?php
+    $horario_view = $conn->prepare("
+        SELECT d.nombre_dia, b.hora_inicio, b.hora_fin, m.nombre_materia,
+               u.nombre as profe_nombre, s.nombre_salon
+        FROM horarios h
+        JOIN dias d ON d.id = h.dia_id
+        JOIN bloques_horarios b ON b.id = h.bloque_id
+        JOIN materias m ON m.id = h.materia_id
+        JOIN usuarios u ON u.id = h.profesor_id
+        JOIN salones s ON s.id = h.salon_id
+        WHERE h.grupo_id = ?
+        ORDER BY h.dia_id, b.hora_inicio
+    ");
+    $horario_view->bind_param("i", $grupo_id);
+    $horario_view->execute();
+    $horario_result = $horario_view->get_result();
+    ?>
+    <?php if ($horario_result && $horario_result->num_rows > 0): ?>
+      <div class="card mt-4">
+        <div class="card-header"><i class="bi bi-calendar-week"></i> Horario actual del grupo</div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-striped table-hover mb-0">
+              <thead>
+                <tr>
+                  <th>Día</th>
+                  <th>Horario</th>
+                  <th>Materia</th>
+                  <th>Profesor</th>
+                  <th>Salón</th>
+                </tr>
+              </thead>
+              <tbody>
+                <?php while ($hr = $horario_result->fetch_assoc()): ?>
+                  <tr>
+                    <td><?= htmlspecialchars($hr['nombre_dia']) ?></td>
+                    <td><?= htmlspecialchars($hr['hora_inicio']) ?> - <?= htmlspecialchars($hr['hora_fin']) ?></td>
+                    <td><?= htmlspecialchars($hr['nombre_materia']) ?></td>
+                    <td><?= htmlspecialchars($hr['profe_nombre']) ?></td>
+                    <td><?= htmlspecialchars($hr['nombre_salon']) ?></td>
+                  </tr>
+                <?php endwhile; ?>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    <?php endif; ?>
+    <?php $horario_view->close(); ?>
+  <?php endif; ?>
+</section>
+
+<script>
+function mostrarCampoSalon(sel) {
+    document.getElementById('nuevoSalonDiv').style.display = sel.value === 'nuevo' ? 'block' : 'none';
+}
+</script>
+<script src="/Agora/Agora/assets/cargar_horario.js"></script>

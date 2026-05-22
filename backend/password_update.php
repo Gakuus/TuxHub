@@ -114,8 +114,7 @@ $conn->begin_transaction();
 
 try {
     // 1. Buscar el ID de usuario asociado al token (y verificar que no haya expirado)
-    // Se recomienda añadir una columna 'expires_at' a tu tabla 'password_resets'
-    $stmt = $conn->prepare("SELECT user_id FROM password_resets WHERE token = ?"); // AND expires_at > NOW()
+    $stmt = $conn->prepare("SELECT user_id FROM password_resets WHERE token = ? AND expira > NOW()");
     $stmt->bind_param("s", $token);
     $stmt->execute();
     $result = $stmt->get_result();
