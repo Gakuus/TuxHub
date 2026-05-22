@@ -3,34 +3,13 @@ require_once __DIR__ . '/db_connection.php';
 require_once __DIR__ . '/send_email.php';
 require_once __DIR__ . '/helpers.php';
 
-// Generar CSRF token si no existe
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-
-// Procesar formulario POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Validar CSRF token
-    if (empty($_POST['csrf_token']) || empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
-        header("Location: ../password_reset.php?error=Token de seguridad inválido");
-        exit;
-    }
+    csrf_verify();
 
     $email = trim($_POST['email'] ?? '');
 
-    // Validaciones de entrada
-    if (empty($email)) {
-        header("Location: ../password_reset.php?error=Ingrese un correo válido");
-        exit;
-    }
-
-    if (strlen($email) > 50) {
-        header("Location: ../password_reset.php?error=El correo debe tener máximo 50 caracteres");
-        exit;
-    }
-
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        header("Location: ../password_reset.php?error=Formato de correo electrónico inválido");
+    if (empty($email) || strlen($email) > 50 || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        header("Location: ../password_reset_request.php?error=" . urlencode("Formato de correo electrónico inválido"));
         exit;
     }
 
@@ -44,23 +23,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->close();
 
     if ($rateData['count'] >= 5) {
-        header("Location: ../password_reset.php?error=Demasiadas solicitudes. Intente más tarde.");
+        app_log('warning', 'Rate limit excedido en recuperación de contraseña', ['ip' => $ip]);
+        header("Location: ../password_reset_request.php?error=" . urlencode("Demasiadas solicitudes. Intente más tarde."));
         exit;
     }
 
-    // Buscar usuario por email (Prepared Statement - Seguro contra SQL Injection)
+    // Buscar usuario por email
     $stmt = $conn->prepare("SELECT id, nombre FROM usuarios WHERE email = ?");
     $stmt->bind_param("s", $email);
     $stmt->execute();
     $result = $stmt->get_result();
 
-    // Mensaje genérico para evitar enumeración de usuarios
-    $mensajeExito = "Si el correo existe en nuestro sistema, se ha enviado un enlace de recuperación.";
-
     if ($result->num_rows === 0) {
-        // Simular delay para evitar timing attacks
+        app_log('info', 'Solicitud de recuperación para email no registrado', ['email' => $email]);
         sleep(1);
-        // Redirigir a página de éxito aunque el email no exista (seguridad)
         header("Location: ../password_reset_success.php");
         exit;
     }
@@ -69,20 +45,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $token = bin2hex(random_bytes(32));
     $expira = date("Y-m-d H:i:s", strtotime("+1 hour"));
 
-    // Guardar token en BD (Prepared Statement - Seguro contra SQL Injection)
     $stmt = $conn->prepare("INSERT INTO password_resets (user_id, token, expira, ip_address) VALUES (?, ?, ?, ?)
                             ON DUPLICATE KEY UPDATE token = VALUES(token), expira = VALUES(expira), ip_address = VALUES(ip_address), created_at = NOW()");
     $stmt->bind_param("isss", $user['id'], $token, $expira, $ip);
-    
+
     if (!$stmt->execute()) {
-        header("Location: ../password_reset.php?error=Error interno. Intente más tarde.");
+        app_log('error', 'Error al guardar token de recuperación', ['user_id' => $user['id']]);
+        header("Location: ../password_reset_request.php?error=" . urlencode("Error interno. Intente más tarde."));
         exit;
     }
     $stmt->close();
 
-    // Enviar email
-    $link = base_url() . "/password_reset_form.php?token=" . urlencode($token);
-    
+    $link = base_url() . "/backend/password_reset_form.php?token=" . urlencode($token);
+
     $mensajeEmail = "
         <!DOCTYPE html>
         <html>
@@ -92,9 +67,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <style>
                 body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; }
                 .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-                .header { background: #007bff; color: white; padding: 20px; text-align: center; }
+                .header { background: #667eea; color: white; padding: 20px; text-align: center; border-radius: 8px 8px 0 0; }
                 .content { background: #f9f9f9; padding: 20px; }
-                .button { display: inline-block; background: #007bff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 4px; }
+                .button { display: inline-block; background: #667eea; color: white; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; }
                 .footer { text-align: center; margin-top: 20px; font-size: 12px; color: #666; }
             </style>
         </head>
@@ -111,7 +86,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </p>
                     <p>O copia y pega este enlace en tu navegador:</p>
                     <p style='word-break: break-all; background: #eee; padding: 10px; border-radius: 4px;'>$link</p>
-                    <p><strong>Este enlace expirará en 1 hora.</strong></p>
+                    <p><strong>Este enlace expirar&aacute; en 1 hora.</strong></p>
                     <p>Si no solicitaste este cambio, por favor ignora este mensaje.</p>
                 </div>
                 <div class='footer'>
@@ -122,17 +97,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </html>
     ";
 
+    app_log('info', 'Enviando correo de recuperación', ['user_id' => $user['id'], 'email' => $email]);
+
     if (enviarCorreo($email, "Recuperar contraseña - Agora", $mensajeEmail)) {
-        // Redirigir a página de éxito
         header("Location: ../password_reset_success.php");
     } else {
-        header("Location: ../password_reset.php?error=No se pudo enviar el correo. Intente más tarde.");
+        app_log('error', 'Fallo al enviar correo de recuperación', ['user_id' => $user['id']]);
+        header("Location: ../password_reset_request.php?error=" . urlencode("No se pudo enviar el correo. Intente más tarde."));
     }
-    
+
     exit;
 }
 
-// Si se accede directamente al archivo sin POST, redirigir al formulario
-header("Location: ../password_reset.php");
+header("Location: ../password_reset_request.php");
 exit;
 ?>
