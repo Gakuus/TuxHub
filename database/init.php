@@ -1,11 +1,12 @@
 <?php
 /**
- * Inicializador de base de datos - Sistema Agora
- * 
- * Uso: php database/init.php
- * 
- * Crea la base de datos, tablas y datos iniciales.
- * Lee credenciales del archivo .env si existe.
+ * Inicializador de base de datos — Sistema Agora
+ *
+ * Uso:
+ *   php database/init.php              # Crear tablas nuevas (no destruye datos)
+ *   php database/init.php --force       # DROP + CREATE (reconstrucción completa)
+ *
+ * Lee credenciales del .env automáticamente.
  */
 
 $required_exts = ['mysqli', 'json', 'mbstring'];
@@ -20,7 +21,9 @@ if ($missing) {
     exit(1);
 }
 
-// Cargar configuración
+$force = in_array('--force', $argv ?? []);
+
+// Cargar .env
 $env_file = __DIR__ . '/../.env';
 if (file_exists($env_file)) {
     $lines = file($env_file, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
@@ -38,10 +41,11 @@ $db_host = $_ENV['DB_HOST'] ?? '127.0.0.1';
 $db_user = $_ENV['DB_USER'] ?? 'root';
 $db_pass = $_ENV['DB_PASS'] ?? '';
 $db_name = $_ENV['DB_NAME'] ?? 'db_agora';
+$db_port = (int) ($_ENV['DB_PORT'] ?? 3306);
 
-echo "🔧 Conectando a MySQL en {$db_host}...\n";
+echo "🔧 Conectando a MySQL en {$db_host}:{$db_port}...\n";
 
-$conn = new mysqli($db_host, $db_user, $db_pass, null, (int)($_ENV['DB_PORT'] ?? 3306));
+$conn = new mysqli($db_host, $db_user, $db_pass, null, $db_port);
 
 if ($conn->connect_error) {
     echo "❌ Error de conexión: " . $conn->connect_error . "\n";
@@ -51,7 +55,14 @@ if ($conn->connect_error) {
 
 echo "✅ Conectado.\n\n";
 
-// Ejecutar schema
+// Modo reconstrucción total
+if ($force) {
+    echo "⚠️  Modo --force: eliminando base de datos {$db_name}...\n";
+    $conn->query("DROP DATABASE IF EXISTS `{$db_name}`");
+    echo "✅ Base de datos eliminada.\n\n";
+}
+
+// Ejecutar schema.sql
 echo "📦 Ejecutando schema.sql...\n";
 $schema = file_get_contents(__DIR__ . '/schema.sql');
 if ($schema === false) {
@@ -60,16 +71,14 @@ if ($schema === false) {
 }
 
 if ($conn->multi_query($schema)) {
-    do {
-        if ($result = $conn->store_result()) $result->free();
-    } while ($conn->next_result());
+    do { if ($result = $conn->store_result()) $result->free(); } while ($conn->next_result());
     echo "✅ Schema ejecutado correctamente.\n";
 } else {
     echo "❌ Error en schema: " . $conn->error . "\n";
     exit(1);
 }
 
-// Ejecutar seed
+// Ejecutar seed.sql
 echo "🌱 Ejecutando seed.sql...\n";
 $seed = file_get_contents(__DIR__ . '/seed.sql');
 if ($seed === false) {
@@ -79,9 +88,7 @@ if ($seed === false) {
 
 $conn->select_db($db_name);
 if ($conn->multi_query($seed)) {
-    do {
-        if ($result = $conn->store_result()) $result->free();
-    } while ($conn->next_result());
+    do { if ($result = $conn->store_result()) $result->free(); } while ($conn->next_result());
     echo "✅ Seed ejecutado correctamente.\n";
 } else {
     echo "❌ Error en seed: " . $conn->error . "\n";
@@ -96,6 +103,3 @@ echo "  🎉 Base de datos inicializada.\n";
 echo "  DB: {$db_name}\n";
 echo "  Admin: cédula 00000000 / pass admin123\n";
 echo "═══════════════════════════════════════\n";
-echo "\n";
-echo "Próximo paso: Instalar PHP + MariaDB, luego:\n";
-echo "  php database/init.php\n";
