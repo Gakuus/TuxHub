@@ -107,10 +107,12 @@ function getGruposProfesor() {
             }
             echo json_encode(['success' => true, 'grupos' => $grupos]);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Error ejecutando consulta: ' . $stmt->error]);
+            app_log('error', 'Error ejecutando consulta en horarios_profesores', ['error' => $stmt->error]);
+echo json_encode(['success' => false, 'message' => 'Error interno del servidor']);
         }
     } else {
-        echo json_encode(['success' => false, 'message' => 'Error preparando consulta: ' . $conn->error]);
+        app_log('error', 'Error preparando consulta en horarios_profesores', ['error' => $conn->error]);
+        echo json_encode(['success' => false, 'message' => 'Error interno del servidor']);
     }
 }
 
@@ -167,10 +169,12 @@ function getBloquesProfesor() {
             }
             echo json_encode(['success' => true, 'bloques' => $bloques, 'dia_actual' => $dia_nombre]);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Error ejecutando consulta: ' . $stmt->error]);
+            app_log('error', 'Error ejecutando consulta en horarios_profesores', ['error' => $stmt->error]);
+echo json_encode(['success' => false, 'message' => 'Error interno del servidor']);
         }
     } else {
-        echo json_encode(['success' => false, 'message' => 'Error preparando consulta: ' . $conn->error]);
+        app_log('error', 'Error preparando consulta en horarios_profesores', ['error' => $conn->error]);
+        echo json_encode(['success' => false, 'message' => 'Error interno del servidor']);
     }
 }
 
@@ -217,10 +221,12 @@ function getHistorialAsistencias() {
             }
             echo json_encode(['success' => true, 'asistencias' => $asistencias]);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Error ejecutando consulta: ' . $stmt->error]);
+            app_log('error', 'Error ejecutando consulta en horarios_profesores', ['error' => $stmt->error]);
+echo json_encode(['success' => false, 'message' => 'Error interno del servidor']);
         }
     } else {
-        echo json_encode(['success' => false, 'message' => 'Error preparando consulta: ' . $conn->error]);
+        app_log('error', 'Error preparando consulta en horarios_profesores', ['error' => $conn->error]);
+        echo json_encode(['success' => false, 'message' => 'Error interno del servidor']);
     }
 }
 
@@ -233,12 +239,12 @@ function registrarAsistencia() {
     }
     
     $usuario_id = intval($_POST['usuario_id']);
-    $fecha = $conn->real_escape_string($_POST['fecha']);
+    $fecha = $_POST['fecha'];
     $grupo_id = intval($_POST['grupo_id']);
     $bloque_id = intval($_POST['bloque_id']);
     $salon_id = !empty($_POST['salon_id']) ? intval($_POST['salon_id']) : NULL;
-    $estado = $conn->real_escape_string($_POST['estado']);
-    $justificacion = !empty($_POST['justificacion']) ? $conn->real_escape_string($_POST['justificacion']) : NULL;
+    $estado = $_POST['estado'];
+    $justificacion = $_POST['justificacion'] ?? NULL;
     
     // Obtener el dia_id de la fecha
     $timestamp = strtotime($fecha);
@@ -287,10 +293,12 @@ function registrarAsistencia() {
         if ($stmt->execute()) {
             echo json_encode(['success' => true, 'message' => 'Asistencia registrada correctamente']);
         } else {
-            echo json_encode(['success' => false, 'message' => 'Error al registrar asistencia: ' . $stmt->error]);
+            app_log('error', 'Error registrando asistencia', ['error' => $stmt->error]);
+            echo json_encode(['success' => false, 'message' => 'Error al registrar asistencia']);
         }
     } else {
-        echo json_encode(['success' => false, 'message' => 'Error preparando consulta: ' . $conn->error]);
+        app_log('error', 'Error preparando consulta en horarios_profesores', ['error' => $conn->error]);
+        echo json_encode(['success' => false, 'message' => 'Error interno del servidor']);
     }
 }
 ?>

@@ -1,3 +1,10 @@
+# Forzar HTTPS (descomentar cuando SSL esté configurado)
+# <IfModule mod_rewrite.c>
+#     RewriteEngine On
+#     RewriteCond %{HTTPS} off
+#     RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
+# </IfModule>
+
 # Proteger directorios sensibles
 <FilesMatch "\.(env|env\.example|log|md|sql|json|lock)$">
     Require all denied
@@ -15,9 +22,16 @@ RedirectMatch 404 /backend/
 # Proteger vendor
 RedirectMatch 404 /vendor/
 
-# Security headers
+# Páginas de error personalizadas
+ErrorDocument 403 /TuxHub/403.php
+ErrorDocument 404 /TuxHub/404.php
+ErrorDocument 500 /TuxHub/500.php
+
+# Seguridad
 <IfModule mod_headers.c>
     Header always set X-Frame-Options "DENY"
     Header always set X-Content-Type-Options "nosniff"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    Header always set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    Header always set X-Content-Type-Options "nosniff"
 </IfModule>

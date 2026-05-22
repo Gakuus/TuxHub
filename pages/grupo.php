@@ -86,31 +86,42 @@ if (isset($_GET['activor'])) {
 // === AGREGAR GRUPO ===
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nombre_grupo'])) {
     csrf_verify();
-    $nombre_grupo = trim($conn->real_escape_string($_POST['nombre_grupo'] ?? ''));
-    $turno = trim($conn->real_escape_string($_POST['turno'] ?? ''));
+    $nombre_grupo = trim($_POST['nombre_grupo'] ?? '');
+    $turno = trim($_POST['turno'] ?? '');
 
     if (!empty($nombre_grupo) && !empty($turno)) {
         if (strlen($nombre_grupo) > 24) {
             $mensaje = "<div class='alert alert-danger'>⚠️ El nombre del grupo no puede superar los 24 caracteres.</div>";
         } else {
-            $check = $conn->query("SELECT id, activo FROM grupos WHERE nombre = '$nombre_grupo' AND turno = '$turno'");
+            $stmt = $conn->prepare("SELECT id, activo FROM grupos WHERE nombre = ? AND turno = ?");
+            $stmt->bind_param("ss", $nombre_grupo, $turno);
+            $stmt->execute();
+            $check = $stmt->get_result();
+            $stmt->close();
             if ($check->num_rows > 0) {
                 $grupo_existente = $check->fetch_assoc();
                 if ($grupo_existente['activo'] == 0) {
-                    if ($conn->query("UPDATE grupos SET activo = 1 WHERE id = {$grupo_existente['id']}")) {
-                        $mensaje = "<div class='alert alert-success'>✅ Grupo reactivodo correctamente.</div>";
+                    $stmt = $conn->prepare("UPDATE grupos SET activo = 1 WHERE id = ?");
+                    $stmt->bind_param("i", $grupo_existente['id']);
+                    if ($stmt->execute()) {
+                        $mensaje = "<div class='alert alert-success'>✅ Grupo reactivado correctamente.</div>";
                         $_POST['nombre_grupo'] = '';
                     }
+                    $stmt->close();
                 } else {
                     $mensaje = "<div class='alert alert-warning'>⚠️ El grupo ya existe y está activo.</div>";
                 }
             } else {
-                if ($conn->query("INSERT INTO grupos (nombre, turno, activo) VALUES ('$nombre_grupo', '$turno', 1)")) {
+                $stmt = $conn->prepare("INSERT INTO grupos (nombre, turno, activo) VALUES (?, ?, 1)");
+                $stmt->bind_param("ss", $nombre_grupo, $turno);
+                if ($stmt->execute()) {
                     $mensaje = "<div class='alert alert-success'>✅ Grupo agregado correctamente.</div>";
                     $_POST['nombre_grupo'] = '';
                 } else {
-                    $mensaje = "<div class='alert alert-danger'>❌ Error al insertar: " . htmlspecialchars($conn->error) . "</div>";
+                    $mensaje = "<div class='alert alert-danger'>❌ Error al insertar grupo.</div>";
+                    app_log('error', 'Error insertando grupo', ['error' => $stmt->error]);
                 }
+                $stmt->close();
             }
         }
     } else {
@@ -132,8 +143,13 @@ if ($turnos_query && $turnos_query->num_rows > 0) {
 // === FILTROS PARA LA TABLA ===
 $ver_inactivos = isset($_GET['ver_inactivos']) && $_GET['ver_inactivos'] == '1';
 $filtro_turno = isset($_GET['filtro_turno']) && $_GET['filtro_turno'] != '' ? $_GET['filtro_turno'] : '';
+$current_page = max(1, (int)($_GET['page'] ?? 1));
+$per_page = 20;
 
 $where_conditions = [];
+$params = [];
+$types = '';
+
 if ($ver_inactivos) {
     $where_conditions[] = "g.activo = 0";
 } else {
@@ -141,7 +157,9 @@ if ($ver_inactivos) {
 }
 
 if (!empty($filtro_turno)) {
-    $where_conditions[] = "g.turno = '" . $conn->real_escape_string($filtro_turno) . "'";
+    $where_conditions[] = "g.turno = ?";
+    $params[] = $filtro_turno;
+    $types .= 's';
 }
 
 $where_clause = "";
@@ -149,12 +167,36 @@ if (!empty($where_conditions)) {
     $where_clause = "WHERE " . implode(" AND ", $where_conditions);
 }
 
-$result = $conn->query("SELECT g.*, COUNT(h.id) as total_horarios 
-                       FROM grupos g 
-                       LEFT JOIN horarios h ON g.id = h.grupo_id 
-                       $where_clause
-                       GROUP BY g.id 
-                       ORDER BY g.id DESC");
+// COUNT total
+$sql_count = "SELECT COUNT(*) AS total FROM grupos g $where_clause";
+$stmt_count = $conn->prepare($sql_count);
+if (!empty($params)) {
+    $stmt_count->bind_param($types, ...$params);
+}
+$stmt_count->execute();
+$total = (int)$stmt_count->get_result()->fetch_assoc()['total'];
+$stmt_count->close();
+$paginfo = paginate($total, $current_page, $per_page);
+
+$sql_data = "SELECT g.*, COUNT(h.id) as total_horarios 
+             FROM grupos g 
+             LEFT JOIN horarios h ON g.id = h.grupo_id 
+             $where_clause
+             GROUP BY g.id 
+             ORDER BY g.id DESC
+             LIMIT ? OFFSET ?";
+$stmt_data = $conn->prepare($sql_data);
+$data_params = $params;
+$data_types = $types;
+$data_params[] = $per_page;
+$data_types .= 'i';
+$data_params[] = $paginfo['offset'];
+$data_types .= 'i';
+if (!empty($data_params)) {
+    $stmt_data->bind_param($data_types, ...$data_params);
+}
+$stmt_data->execute();
+$result = $stmt_data->get_result();
 
 $estadisticas_query = $conn->query("SELECT 
     SUM(activo = 1) as activos,
@@ -366,6 +408,14 @@ ORDER BY turno");
                     </tbody>
                 </table>
             </div>
+        </div>
+        <div class="card-footer d-flex justify-content-center">
+            <?php
+            $url_params = ['page' => 'grupos'];
+            if ($ver_inactivos) $url_params['ver_inactivos'] = '1';
+            if (!empty($filtro_turno)) $url_params['filtro_turno'] = $filtro_turno;
+            echo render_pagination($paginfo, 'dashboard.php?' . http_build_query($url_params));
+            ?>
         </div>
     </div>
 </div>

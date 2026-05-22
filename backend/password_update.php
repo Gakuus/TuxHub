@@ -90,6 +90,15 @@ $pass_len = strlen($password);
 if ($pass_len < MIN_PASS_LENGTH || $pass_len > MAX_PASS_LENGTH) {
     displayPage("La contraseña debe tener entre " . MIN_PASS_LENGTH . " y " . MAX_PASS_LENGTH . " caracteres.", 'error');
 }
+if (!preg_match('/[A-Z]/', $password)) {
+    displayPage("La contraseña debe contener al menos una mayúscula.", 'error');
+}
+if (!preg_match('/[a-z]/', $password)) {
+    displayPage("La contraseña debe contener al menos una minúscula.", 'error');
+}
+if (!preg_match('/[0-9]/', $password)) {
+    displayPage("La contraseña debe contener al menos un número.", 'error');
+}
 
 $conn->begin_transaction();
 

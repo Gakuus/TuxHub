@@ -1,76 +1,52 @@
-# Pendientes
+# Pendientes — Actualizado
 
-## 🔴 Criticos
+## ✅ Resuelto
 
-- [ ] **Archivos faltantes referenciados en el frontend**
-  - `backend/procesar_asistencia.php` (referenciado en `assets/profesores.js`)
-  - Varios CSS/JS listados en pages/ no existen en assets/ o css/
+### Sprint 0 — Seguridad
+- SQL Injection (7 archivos)
+- CSRF (7 endpoints)
+- XSS (4 archivos, 17 lugares)
+- Hardcoded paths eliminados
+- Error disclosure corregido (10 endpoints)
+- Subida de archivos segura
+- auth_admin.php simplificado
+- `$remoteip` bug en login_handler PHP
+- Debug display eliminado
+- reCAPTCHA server-side implementado
+- Uploads/.htaccess protección
 
-- [ ] **Verificar permisos de uploads/**
-  - `uploads/noticias/` necesita permisos de escritura para el servidor web
+### Sprint 0.5 — Arquitectura
+- Centralización de sesión (init_session)
+- Structured logging (app_log)
+- Password reset rediseñado + seguridad
+- Validación servidor de contraseña (register + reset)
+- Rate limiting en POST endpoints (6 archivos)
+- CSP headers en dashboard.php
+- HTTPS redirect listo en .htaccess
+- Permissions-Policy header
+- Páginas error 403/404/500 personalizadas
+- backend/procesar_asistencia.php creado
+- CSS variables globales
+- Índices BD en schema.sql
 
-- [ ] **Password reset** sin servidor SMTP configurado — PHPMailer intenta conectar a Gmail
+---
 
-## 🟡 Frontend — Errores visuales
+## 🔴 CRÍTICO
 
-- [ ] **Inconsistencia de estilos entre páginas**
-  - Cada página tiene su propio CSS con estilos distintos
-  - Faltan variables CSS globales (colores, fuentes, espaciado)
-  - Los `.btn-custom`, `.btn-primary-custom`, etc. varían por página
+Ninguno identificado.
 
-- [ ] **Sidebar del dashboard**
-  - El toggle sidebar no funciona correctamente en todos los tamaños
-  - Los items activos no se resaltan consistentemente
+## 🟡 ALTA
 
-- [ ] **Tablas sin diseño responsive**
-  - `ver_asistencias.php` tabla con datos crudos sin formato
-  - Varias tablas no tienen clase `table-responsive`
+- [ ] **Pruebas automatizadas** — Sin tests, riesgo de regresiones
+- [ ] **Paginación en listados** — Recursos, salones, horarios, asistencias
+- [ ] **Caché de datos maestros** — grupos, materias, salones
 
-- [ ] **Formularios sin estilos unificados**
-  - `agregar_salon.php` tiene su propio CSS separado
-  - `registrar_usuario.php` tiene su propio CSS
-  - Validaciones inconsistentes
+## 🟢 MEDIA / FRONTEND
 
-- [ ] **Falta de feedback visual**
-  - No hay spinners/loaders en operaciones AJAX
-  - Éxito/error se muestra de forma distinta según la página
-
-## 🟢 Frontend — Mejoras visuales
-
-- [ ] **Sistema de diseño unificado**
-  - Paleta de colores global (CSS custom properties)
-  - Tipografía consistente
-  - Espaciado y márgenes uniformes
-
-- [ ] **Dashboard principal (home.php)**
-  - Hero section con carrusel (actualmente 3 slides con imágenes locales)
-  - Sección de noticias con cards
-  - Mejorar espaciado y jerarquía visual
-
-- [ ] **Tarjetas de salones** (`salones.php`)
-  - Mejorar diseño de las cards
-  - Iconos de recursos más vistosos
-  - Indicador de estado más claro
-
-- [ ] **Tabla de horarios** (`horarios.php`)
-  - Celdas con colores por materia (ya implementado parcialmente)
-  - Tooltips con info completa
-  - Vista semanal más clara
-
-- [ ] **Página de recursos** (`recursos.php`)
-  - Diseño más moderno
-  - Filtros más intuitivos
-  - Tarjetas en lugar de tabla
-
-## 🔵 Base de datos
-
-- [ ] El schema.sql usa `db_agora` (minúsculas) — consistente con .env actual
-
-## ⚪ Mejoras generales
-
-- [ ] Agregar favicon
-- [ ] Meta tags OG para compartir
-- [ ] Modo oscuro (ya hay botón en dashboard pero no implementado)
-- [ ] Paginación en listados grandes
-- [ ] Búsqueda en tiempo real en tablas
-- [ ] Exportar a PDF/CSV (hay botón en horarios pero no implementado)
+- [ ] **Exportación PDF/CSV** — Botones placeholder no implementados
+- [ ] **Búsqueda en tiempo real** — Tablas sin filtro
+- [ ] **Notificaciones toast** — Reemplazar alerts Bootstrap
+- [ ] **Sidebar responsivo** — Verificar en todos los tamaños
+- [ ] **Sistema de migraciones** — Reemplazar CREATE TABLE IF NOT EXISTS
+- [ ] **Minificación de assets** — CSS/JS propios
+- [ ] **Spinners/loaders** en AJAX

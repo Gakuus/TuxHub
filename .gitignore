@@ -5,3 +5,4 @@ logs/
 .DS_Store
 Thumbs.db
 .git
+phpunit.phar

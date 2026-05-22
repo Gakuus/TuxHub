@@ -58,7 +58,7 @@ while ($b = $bloques_query->fetch_assoc()) {
                         </select>
                     </div>
                     <?php else: ?>
-                        <input type="hidden" id="selectProfesor" name="usuario_id" value="<?= $user_id ?>">
+                        <input type="hidden" id="selectProfesor" name="usuario_id" value="<?= (int)$user_id ?>">
                     <?php endif; ?>
 
                     <div class="col-md-3">
@@ -127,7 +127,7 @@ while ($b = $bloques_query->fetch_assoc()) {
 </div>
 
 <script>
-    const rolUsuario = "<?= $rol ?>";
-    const userId = "<?= $user_id ?>";
+    const rolUsuario = <?= json_encode($rol) ?>;
+    const userId = <?= json_encode($user_id) ?>;
 </script>
 <script src="assets/profesores.js"></script>

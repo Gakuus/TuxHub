@@ -1,0 +1,7 @@
+# Deshabilitar listado de directorios
+Options -Indexes
+
+# Bloquear ejecución de scripts PHP
+<FilesMatch "\.(php|phtml|php3|php4|php5|php7|phar|pl|cgi|py|rb|asp|aspx|sh|bash)$">
+    Require all denied
+</FilesMatch>

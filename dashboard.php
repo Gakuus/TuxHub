@@ -1,9 +1,17 @@
 <?php
-session_start();
+require_once __DIR__ . '/backend/helpers.php';
 
 header("X-Frame-Options: DENY");
 header("X-Content-Type-Options: nosniff");
 header("Referrer-Policy: strict-origin-when-cross-origin");
+header("Content-Security-Policy: "
+    . "default-src 'self'; "
+    . "script-src 'self' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com 'unsafe-inline'; "
+    . "style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline'; "
+    . "font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com; "
+    . "img-src 'self' data: https:; "
+    . "connect-src 'self' https://cdn.jsdelivr.net https://www.google.com; "
+    . "frame-src 'self' https://www.google.com;");
 
 /* ============================================
    🔐 CONTROL DE SESIÓN E INACTIVIDAD MEJORADO
@@ -80,6 +88,7 @@ $page_css = $page_css_map[$page] ?? null;
     <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="css/variables.css">
     <link rel="stylesheet" href="css/components.css">
     <link rel="stylesheet" href="css/dashboard.css">
     <?php if ($page_css): ?>

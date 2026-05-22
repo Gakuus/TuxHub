@@ -1,3 +1,12 @@
+const horariosManager = {
+    exportHorario() {
+        const params = new URLSearchParams(window.location.search);
+        params.set('page', 'recursos');
+        params.delete('page');
+        window.location.href = 'backend/exportar_horario.php?' + params.toString();
+    }
+};
+
 document.addEventListener('DOMContentLoaded', () => {
     const cards = document.querySelectorAll('.class-card');
     const materiaColors = [];

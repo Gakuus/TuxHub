@@ -6,6 +6,13 @@ require_once __DIR__ . '/helpers.php';
 
 csrf_verify();
 
+$ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+if (!rate_limit_check($ip, 'register', 20, 60)) {
+    http_response_code(429);
+    header("Location: ../pages/registrar_usuario.php?error=rate_limit");
+    exit;
+}
+
 // Validamos que sea POST
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {
     header("Location: ../pages/registrar_usuario.php");
@@ -42,6 +49,24 @@ try {
 
     if (!in_array($rol, ["alumno", "profesor", "administrador"])) {
         header("Location: ../pages/registrar_usuario.php?error=campos_invalidos");
+        exit();
+    }
+
+    $pass_len = strlen($password);
+    if ($pass_len < 8 || $pass_len > 24) {
+        header("Location: ../pages/registrar_usuario.php?error=pass_length");
+        exit();
+    }
+    if (!preg_match('/[A-Z]/', $password)) {
+        header("Location: ../pages/registrar_usuario.php?error=pass_mayus");
+        exit();
+    }
+    if (!preg_match('/[a-z]/', $password)) {
+        header("Location: ../pages/registrar_usuario.php?error=pass_minus");
+        exit();
+    }
+    if (!preg_match('/[0-9]/', $password)) {
+        header("Location: ../pages/registrar_usuario.php?error=pass_digit");
         exit();
     }
 

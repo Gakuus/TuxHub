@@ -1,75 +1,78 @@
-# Plan de Sprints
+# Plan de Sprints — Estado actual
 
-## Sprint 1 — Corrección de errores y consistencia base
+## ✅ COMPLETADO — Sprint 0: Seguridad (emergencia)
 
-**Objetivo:** Que el sistema funcione sin errores y todas las páginas compartan una base visual coherente.
+> **Duración:** Actual
+> **Estado:** ✅ Terminado — todas las vulnerabilidades críticas corregidas
 
-### Tareas
-
-- [ ] Crear archivos PHP/JS/CSS faltantes referenciados
-- [ ] Unificar CSS en un sistema de variables globales
-- [ ] Hacer que todas las páginas usen los mismos estilos base
-- [ ] Corregir sidebar toggle responsivo
-- [ ] Agregar `table-responsive` a todas las tablas
-- [ ] Verificar que todos los formularios tengan feedback visual
-- [ ] Asegurar que `uploads/noticias/` tenga permisos correctos
-
-**Estimación:** 3-4 sesiones
-
----
-
-## Sprint 2 — Overhaul visual
-
-**Objetivo:** Mejorar la apariencia general con paleta de colores, tipografía y espaciado consistentes.
-
-### Tareas
-
-- [ ] Definir paleta de colores principal (CSS custom properties en `dashboard.css`)
-- [ ] Tipografía global (Google Fonts o system-ui)
-- [ ] Rediseñar login page
-- [ ] Rediseñar dashboard sidebar y header
-- [ ] Unificar estilos de botones, cards, formularios
-- [ ] Agregar sombras y transiciones suaves
-- [ ] Mejorar la página de inicio (home.php)
-
-**Estimación:** 3-4 sesiones
+| Tarea | Archivos | Estado |
+|-------|----------|--------|
+| SQL Injection → prepared statements | 7 archivos backend | ✅ |
+| CSRF faltante | 5 endpoints POST | ✅ |
+| XSS en output | 17 lugares en 4 archivos | ✅ |
+| Hardcoded paths | 13+ ocurrencias | ✅ |
+| Centralización de sesión | `init_session()` en helpers.php | ✅ |
+| Structured logging | `app_log()` con JSON | ✅ |
+| Information disclosure | 10 endpoints | ✅ |
+| Subida de archivos segura | `save_contenido.php` | ✅ |
+| Rediseño flujo password reset | 4 páginas + CSRF + logs | ✅ |
+| Auth admin simplificado | `auth_admin.php` | ✅ |
+| Uploads protection | `.htaccess` | ✅ |
+| Composer install | PHPMailer v7 | ✅ |
 
 ---
 
-## Sprint 3 — UX y funcionalidad
+## 🔄 Pendiente — Sprint 1: Corrección de errores y consistencia base
 
-**Objetivo:** Mejorar la experiencia de usuario con feedback, navegación y ayudas visuales.
-
-### Tareas
-
-- [ ] Spinners/loaders en operaciones (AJAX, formularios)
-- [ ] Notificaciones toast para éxito/error
-- [ ] Confirmaciones antes de acciones destructivas
-- [ ] Búsqueda en tiempo real en tablas
-- [ ] Paginación en listados grandes
-- [ ] Tooltips en elementos importantes
-- [ ] Modo oscuro funcional
-
-**Estimación:** 2-3 sesiones
+| Tarea | Estado |
+|-------|--------|
+| Archivos faltantes referenciados | 🔴 Por revisar |
+| Unificar CSS (variables globales) | ❌ |
+| Sidebar toggle responsivo | ❌ |
+| `table-responsive` en tablas | ❌ |
+| Feedback visual en formularios | ❌ |
+| Permisos `uploads/noticias/` | ❌ |
 
 ---
 
-## Sprint 4 — Mobile y pulido final
+## Sprint 2: Overhaul visual
 
-**Objetivo:** Que el sistema se vea bien en todos los dispositivos y detalles finales.
-
-### Tareas
-
-- [ ] Probar y ajustar responsive en todas las páginas
-- [ ] Menú hamburguesa funcional en mobile
-- [ ] Tablas con scroll horizontal en mobile
-- [ ] Favicon
-- [ ] Meta tags OG
-- [ ] Performance (lazy loading, minificar assets)
-- [ ] Exportación a PDF/CSV funcional
-
-**Estimación:** 2-3 sesiones
+| Tarea | Estado |
+|-------|--------|
+| Login rediseñado | ✅ (ya se hizo en Sprint 0 con orbs, glass card, floating labels) |
+| Definir paleta de colores CSS | ❌ |
+| Dashboard sidebar/header | ❌ |
+| Unificar estilos botones/cards/forms | ❌ |
+| Home.php hero + noticias | ❌ |
 
 ---
 
-## Total estimado: 10-14 sesiones
+## Sprint 3: UX y funcionalidad
+
+| Tarea | Estado |
+|-------|--------|
+| Spinners/loaders AJAX | ❌ |
+| Notificaciones toast | ❌ |
+| Búsqueda en tiempo real | ❌ |
+| Paginación | ❌ |
+| Modo oscuro funcional | ❌ |
+
+---
+
+## Sprint 4: Mobile y pulido
+
+| Tarea | Estado |
+|--------|--------|
+| Responsive en todas las páginas | ❌ |
+| Menú hamburguesa mobile | ❌ |
+| Favicon | ❌ |
+| Meta tags OG | ❌ |
+| Exportación PDF/CSV | ❌ |
+
+---
+
+## 🏁 Siguiente prioridad recomendada
+
+```
+Sprint 1 → Archivos faltantes + CSS unificado → luego reCAPTCHA en login → HTTPS forzado → el resto
+```

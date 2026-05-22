@@ -119,6 +119,22 @@ if (strlen($cedula) > 8) {
     redirect_error('cedula_larga');
 }
 
+$remoteip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+
+// ========= VALIDACIÓN reCAPTCHA =========
+$recaptcha_secret = env('RECAPTCHA_SECRET_KEY');
+$recaptcha_response = $_POST['g-recaptcha-response'] ?? '';
+if (!empty($recaptcha_secret)) {
+    if (empty($recaptcha_response)) {
+        redirect_error('captcha');
+    }
+    $verify = file_get_contents("https://www.google.com/recaptcha/api/siteverify?secret=" . urlencode($recaptcha_secret) . "&response=" . urlencode($recaptcha_response) . "&remoteip=" . urlencode($remoteip));
+    $captcha_data = json_decode($verify);
+    if (!$captcha_data || !$captcha_data->success) {
+        redirect_error('captcha');
+    }
+} // Si no hay secret key configurado, se omite la validación
+
 // ========= CONTROL DE INTENTOS =========
 if (verificar_bloqueo_ip($conn, $remoteip)) {
     redirect_error('bloqueado');

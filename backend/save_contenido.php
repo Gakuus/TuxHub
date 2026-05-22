@@ -5,6 +5,15 @@ require_once __DIR__ . '/helpers.php';
 
 csrf_verify();
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    if (!rate_limit_check($ip, 'contenido', 20, 60)) {
+        http_response_code(429);
+        echo '<h2>Demasiadas solicitudes. Intenta más tarde.</h2>';
+        exit;
+    }
+}
+
 $tipo = $_POST['tipo'];
 $id = $_POST['id'] ?? null;
 $titulo = trim($_POST['titulo']);
@@ -50,12 +59,16 @@ try {
                 throw new Exception("Solo se permiten archivos de imagen (JPG, PNG, GIF, WebP)");
             }
             
-            if (!is_dir('uploads')) {
-                mkdir('uploads', 0755, true);
+            $upload_dir = __DIR__ . '/../uploads/noticias/';
+            if (!is_dir($upload_dir)) {
+                mkdir($upload_dir, 0755, true);
             }
-            $filename = 'uploads/' . uniqid() . '_' . basename($_FILES['imagen_file']['name']);
-            move_uploaded_file($tmp_name, $filename);
-            $imagen_ruta = $filename;
+            $ext = pathinfo($_FILES['imagen_file']['name'], PATHINFO_EXTENSION);
+            $safe_ext = preg_replace('/[^a-zA-Z0-9]/', '', $ext);
+            $filename = uniqid() . '_' . bin2hex(random_bytes(8)) . '.' . $safe_ext;
+            $destino = $upload_dir . $filename;
+            move_uploaded_file($tmp_name, $destino);
+            $imagen_ruta = 'uploads/noticias/' . $filename;
         }
 
         if ($id) {

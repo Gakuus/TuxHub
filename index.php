@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/backend/config.php';
 session_start();
 
 if (isset($_SESSION['user_id'])) {
@@ -21,7 +22,8 @@ $error_messages = [
 
     'bloqueado'       => "Demasiados intentos. Intenta en unos minutos.",
     'csrf'            => "Error de seguridad. Recarga la página.",
-    'metodo_invalido' => "Acceso incorrecto."
+    'metodo_invalido' => "Acceso incorrecto.",
+    'captcha'         => "Verificación de seguridad fallida. Intenta de nuevo."
 ];
 $error_message = $error_messages[$error_code] ?? null;
 $has_error = $error_message !== null;
@@ -45,11 +47,12 @@ $is_mobile = preg_match('/(android|iphone|ipod|blackberry|windows phone)/i', $_S
 
     <meta http-equiv="Content-Security-Policy" content="
         default-src 'self';
-        script-src 'self' https://cdn.jsdelivr.net 'unsafe-inline';
+        script-src 'self' https://cdn.jsdelivr.net https://www.google.com https://www.gstatic.com 'unsafe-inline';
         style-src 'self' https://cdn.jsdelivr.net https://fonts.googleapis.com 'unsafe-inline';
         font-src 'self' https://cdn.jsdelivr.net https://fonts.gstatic.com;
         img-src 'self' data: https:;
-        connect-src 'self' https://cdn.jsdelivr.net;
+        connect-src 'self' https://cdn.jsdelivr.net https://www.google.com;
+        frame-src 'self' https://www.google.com;
     ">
     <meta name="referrer" content="strict-origin-when-cross-origin">
     <meta name="theme-color" content="#667eea">
@@ -136,6 +139,11 @@ $is_mobile = preg_match('/(android|iphone|ipod|blackberry|windows phone)/i', $_S
                         <small class="input-hint">8 a 24 caracteres</small>
                     </div>
 
+                    <?php $recaptcha_site_key = env('RECAPTCHA_SITE_KEY'); ?>
+                    <?php if (!empty($recaptcha_site_key)): ?>
+                    <div class="g-recaptcha mb-3" data-sitekey="<?= htmlspecialchars($recaptcha_site_key) ?>"></div>
+                    <?php endif; ?>
+
                     <!-- Submit -->
                     <button type="submit" class="btn-login" id="submitBtn">
                         <span id="submitText">Iniciar Sesión</span>
@@ -175,5 +183,8 @@ $is_mobile = preg_match('/(android|iphone|ipod|blackberry|windows phone)/i', $_S
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script src="assets/login.js"></script>
+    <?php if (!empty(env('RECAPTCHA_SITE_KEY'))): ?>
+    <script src="https://www.google.com/recaptcha/api.js" async defer></script>
+    <?php endif; ?>
 </body>
 </html>

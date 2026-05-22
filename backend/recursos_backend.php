@@ -4,6 +4,15 @@ require_once __DIR__ . '/db_connection.php';
 
 require_auth();
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    if (!rate_limit_check($ip, 'recursos', 30, 60)) {
+        http_response_code(429);
+        echo json_encode(['ok' => false, 'msg' => 'Demasiadas solicitudes.']);
+        exit;
+    }
+}
+
 $user_id = (int)$_SESSION['user_id'];
 $rol = $_SESSION['rol'] ?? '';
 
@@ -118,7 +127,7 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'crear') {
     
     // Validación específica para Llaves y Controles
     if (($tipo === 'Llave' || $tipo === 'Control') && empty($salon_id)) {
-        mostrarConfirmacion('❌ Para recursos de tipo ' . $tipo . ' debes seleccionar un salón', 'danger');
+        mostrarConfirmacion('❌ Para recursos de tipo ' . htmlspecialchars($tipo, ENT_QUOTES, 'UTF-8') . ' debes seleccionar un salón', 'danger');
     }
     
     // Para Alargues, no debe tener salón asignado
@@ -135,7 +144,8 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'crear') {
     if ($stmt->execute()) {
         mostrarConfirmacion('✅ Recurso creado correctamente', 'success');
     } else {
-        mostrarConfirmacion('❌ Error al crear el recurso: ' . $conn->error, 'danger');
+        app_log('error', 'Error creando recurso', ['error' => $conn->error]);
+mostrarConfirmacion('❌ Error al crear el recurso', 'danger');
     }
     exit;
 }
@@ -175,7 +185,7 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'actualizar') {
     
     // Validación específica para Llaves y Controles
     if (($tipo === 'Llave' || $tipo === 'Control') && empty($salon_id)) {
-        mostrarConfirmacion('❌ Para recursos de tipo ' . $tipo . ' debes seleccionar un salón', 'danger');
+        mostrarConfirmacion('❌ Para recursos de tipo ' . htmlspecialchars($tipo, ENT_QUOTES, 'UTF-8') . ' debes seleccionar un salón', 'danger');
     }
     
     // Para Alargues, no debe tener salón asignado
@@ -196,7 +206,8 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'actualizar') {
             mostrarConfirmacion('❌ No se encontró el recurso a actualizar', 'danger');
         }
     } else {
-        mostrarConfirmacion('❌ Error al actualizar el recurso: ' . $conn->error, 'danger');
+        app_log('error', 'Error actualizando recurso', ['error' => $conn->error]);
+mostrarConfirmacion('❌ Error al actualizar el recurso', 'danger');
     }
     exit;
 }

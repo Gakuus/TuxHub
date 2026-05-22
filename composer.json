@@ -1,5 +1,19 @@
 {
     "require": {
         "phpmailer/phpmailer": "^7.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^10.0"
+    },
+    "autoload": {
+        "files": [
+            "backend/helpers.php"
+        ]
+    },
+    "scripts": {
+        "test": "php run_tests.php",
+        "test:phpunit": "vendor/bin/phpunit",
+        "lint": "find . -name '*.php' -not -path './vendor/*' -exec php -l {} \\; > /dev/null"
     }
+}
 }

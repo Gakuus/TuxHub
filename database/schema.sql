@@ -95,7 +95,10 @@ CREATE TABLE recursos (
     FOREIGN KEY (grupo_id)   REFERENCES grupos(id)   ON DELETE SET NULL,
     FOREIGN KEY (usuario_id) REFERENCES usuarios(id) ON DELETE SET NULL,
     INDEX idx_estado (estado),
-    INDEX idx_tipo (tipo)
+    INDEX idx_tipo (tipo),
+    INDEX idx_salon (salon_id),
+    INDEX idx_grupo (grupo_id),
+    INDEX idx_usuario (usuario_id)
 ) ENGINE=InnoDB;
 
 -- =====================================

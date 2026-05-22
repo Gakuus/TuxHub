@@ -61,15 +61,15 @@ if(isset($dias['error']) || empty($dias)) {
 // ==========================
 $grupos = [];
 if($profesor_id){
-    $where_grupos = $filtro_grupos === 'activos' ? "AND g.activo = 1" : "";
-
-    $stmt = $conn->prepare("
-        SELECT g.id, g.nombre, g.turno, g.activo
+    $sql_grupos = "SELECT g.id, g.nombre, g.turno, g.activo
         FROM grupos g
         JOIN grupos_profesores gp ON gp.grupo_id = g.id
-        WHERE gp.profesor_id = ? $where_grupos
-        ORDER BY g.nombre
-    ");
+        WHERE gp.profesor_id = ?";
+    if ($filtro_grupos === 'activos') {
+        $sql_grupos .= " AND g.activo = 1";
+    }
+    $sql_grupos .= " ORDER BY g.nombre";
+    $stmt = $conn->prepare($sql_grupos);
     $stmt->bind_param("i",$profesor_id);
     $stmt->execute();
     $res = $stmt->get_result();
@@ -258,7 +258,7 @@ FIN_PROCESO:
               <span class="filter-btn <?= $filtro_grupos === 'activos' ? 'active' : '' ?>" onclick="this.closest('form').querySelector('[name=filtro_grupos]').value='activos';this.closest('form').submit()">Activos</span>
               <span class="filter-btn <?= $filtro_grupos === 'todos' ? 'active' : '' ?>" onclick="this.closest('form').querySelector('[name=filtro_grupos]').value='todos';this.closest('form').submit()">Todos</span>
             </div>
-            <input type="hidden" name="filtro_grupos" value="<?= $filtro_grupos ?>">
+            <input type="hidden" name="filtro_grupos" value="<?= htmlspecialchars($filtro_grupos, ENT_QUOTES, 'UTF-8') ?>">
           </div>
         </div>
         <div class="col-md-6">
@@ -268,7 +268,7 @@ FIN_PROCESO:
               <span class="filter-btn <?= $filtro_materias === 'activas' ? 'active' : '' ?>" onclick="this.closest('form').querySelector('[name=filtro_materias]').value='activas';this.closest('form').submit()">Activas</span>
               <span class="filter-btn <?= $filtro_materias === 'todas' ? 'active' : '' ?>" onclick="this.closest('form').querySelector('[name=filtro_materias]').value='todas';this.closest('form').submit()">Todas</span>
             </div>
-            <input type="hidden" name="filtro_materias" value="<?= $filtro_materias ?>">
+            <input type="hidden" name="filtro_materias" value="<?= htmlspecialchars($filtro_materias, ENT_QUOTES, 'UTF-8') ?>">
           </div>
         </div>
       </div>

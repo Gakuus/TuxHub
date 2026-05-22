@@ -4,13 +4,11 @@ session_start();
 require_once __DIR__ . '/../backend/db_connection.php';
 $conn->set_charset('utf8mb4');
 
-// Mostrar errores solo si APP_ENV=development
 if (env('APP_ENV', 'production') === 'development') {
     ini_set('display_errors', 1);
     error_reporting(E_ALL);
 }
 
-// ---------- validar sesión ----------
 if (!isset($_SESSION['user_id'])) {
     echo "<div class='m-4 alert alert-danger'>Sin sesión activa. Inicia sesión.</div>";
     exit;
@@ -21,22 +19,58 @@ $user_id = (int)($_SESSION['user_id'] ?? 0);
 $errors = [];
 $notices = [];
 
-// Procesar mensajes de éxito/error
-if (isset($_GET['success'])) {
-    $notices[] = $_GET['success'];
-}
-if (isset($_GET['error'])) {
-    $errors[] = $_GET['error'];
-}
+if (isset($_GET['success'])) $notices[] = $_GET['success'];
+if (isset($_GET['error'])) $errors[] = $_GET['error'];
 
-// ---------- Obtener filtros ----------
 $filtro_tipo = $_GET['tipo'] ?? '';
 $filtro_salon = $_GET['salon'] ?? '';
+$busqueda = trim($_GET['q'] ?? '');
+$current_page = max(1, (int)($_GET['page'] ?? 1));
+$per_page = 12;
+$q_param = !empty($busqueda) ? '&q=' . urlencode($busqueda) : '';
 
-// ---------- consultas principales con manejo de errores ----------
 try {
-    // Construir consulta base
-    $sql_base = "
+    $conditions = [];
+    $params = [];
+    $types = '';
+
+    if (!empty($busqueda)) {
+        $conditions[] = "r.nombre LIKE ?";
+        $params[] = '%' . $busqueda . '%';
+        $types .= 's';
+    }
+    if (!empty($filtro_tipo)) {
+        $conditions[] = "r.tipo = ?";
+        $params[] = $filtro_tipo;
+        $types .= 's';
+    }
+    if (!empty($filtro_salon)) {
+        $conditions[] = "r.salon_id = ?";
+        $params[] = $filtro_salon;
+        $types .= 'i';
+    }
+
+    $where = '';
+    if (!empty($conditions)) {
+        $where = " WHERE " . implode(" AND ", $conditions);
+    }
+
+    // COUNT total
+    $sql_count = "SELECT COUNT(*) AS total FROM recursos r" . $where;
+    $total = 0;
+    if (!empty($params)) {
+        $stmt = $conn->prepare($sql_count);
+        $stmt->bind_param($types, ...$params);
+        $stmt->execute();
+        $total = (int)$stmt->get_result()->fetch_assoc()['total'];
+    } else {
+        $total = (int)$conn->query($sql_count)->fetch_assoc()['total'];
+    }
+
+    $paginfo = paginate($total, $current_page, $per_page);
+
+    // Data query with LIMIT
+    $sql_data = "
       SELECT r.*,
              s.nombre_salon,
              g.nombre AS grupo_nombre,
@@ -46,65 +80,32 @@ try {
       LEFT JOIN salones s ON r.salon_id = s.id
       LEFT JOIN grupos g ON r.grupo_id = g.id
       LEFT JOIN usuarios u ON r.usuario_id = u.id
+      $where
+      ORDER BY r.id DESC
+      LIMIT ? OFFSET ?
     ";
-    
-    // Preparar condiciones WHERE
-    $conditions = [];
-    $params = [];
-    $types = '';
-    
-    // Aplicar filtro de tipo si existe
-    if (!empty($filtro_tipo)) {
-        $conditions[] = "r.tipo = ?";
-        $params[] = $filtro_tipo;
-        $types .= 's';
-    }
-    
-    // Aplicar filtro de salón si existe
-    if (!empty($filtro_salon)) {
-        $conditions[] = "r.salon_id = ?";
-        $params[] = $filtro_salon;
-        $types .= 'i';
-    }
-    
-    // Construir consulta final
-    if (!empty($conditions)) {
-        $sql_base .= " WHERE " . implode(" AND ", $conditions);
-    }
-    
-    $sql_base .= " ORDER BY r.id DESC";
-    
-    // Ejecutar consulta
-    if (!empty($params)) {
-        $stmt = $conn->prepare($sql_base);
-        $stmt->bind_param($types, ...$params);
-        $stmt->execute();
-        $res_recursos = $stmt->get_result();
-    } else {
-        $res_recursos = $conn->query($sql_base);
-    }
-    
+    $data_params = $params;
+    $data_types = $types;
+    $data_params[] = $per_page;
+    $data_types .= 'i';
+    $data_params[] = $paginfo['offset'];
+    $data_types .= 'i';
+
+    $stmt = $conn->prepare($sql_data);
+    $stmt->bind_param($data_types, ...$data_params);
+    $stmt->execute();
+    $res_recursos = $stmt->get_result();
+
     if ($res_recursos === false) throw new Exception("Error al consultar recursos: " . $conn->error);
 
-    // Consultar salones para los formularios y filtros
     $salones = $conn->query("SELECT id, nombre_salon FROM salones ORDER BY nombre_salon ASC");
-    
-    // Consultar grupos según el rol del usuario
+
     if ($rol === 'admin') {
         $grupos = $conn->query("SELECT id, nombre FROM grupos ORDER BY nombre ASC");
     } elseif ($rol === 'profesor') {
-        $sql_grupos = "SELECT DISTINCT g.id, g.nombre 
-                      FROM grupos g 
-                      INNER JOIN usuarios u ON u.grupo_id = g.id 
-                      WHERE u.rol = 'alumno' 
-                      ORDER BY g.nombre ASC";
-        $grupos = $conn->query($sql_grupos);
+        $grupos = $conn->query("SELECT DISTINCT g.id, g.nombre FROM grupos g INNER JOIN usuarios u ON u.grupo_id = g.id WHERE u.rol = 'alumno' ORDER BY g.nombre ASC");
     } elseif ($rol === 'alumno') {
-        $sql_grupos = "SELECT g.id, g.nombre 
-                      FROM grupos g 
-                      INNER JOIN usuarios u ON u.grupo_id = g.id 
-                      WHERE u.id = ?";
-        $stmt = $conn->prepare($sql_grupos);
+        $stmt = $conn->prepare("SELECT g.id, g.nombre FROM grupos g INNER JOIN usuarios u ON u.grupo_id = g.id WHERE u.id = ?");
         $stmt->bind_param('i', $user_id);
         $stmt->execute();
         $grupos = $stmt->get_result();
@@ -115,28 +116,23 @@ try {
     if (!isset($res_recursos)) $res_recursos = null;
     if (!isset($salones)) $salones = null;
     if (!isset($grupos)) $grupos = null;
+    $paginfo = paginate(0, 1, $per_page);
 }
 
-// Calcular estadísticas
-$stats = [
-    'total' => 0,
-    'disponibles' => 0,
-    'ocupados' => 0,
-    'reservados' => 0
-];
+$stats = ['total' => $total, 'disponibles' => 0, 'ocupados' => 0, 'reservados' => 0];
 
-if ($res_recursos && $res_recursos->num_rows > 0) {
-    $res_recursos->data_seek(0);
-    while($r = $res_recursos->fetch_assoc()) {
-        $stats['total']++;
-        switch($r['estado']) {
+$recurso_rows = [];
+if (isset($res_recursos) && $res_recursos && $res_recursos->num_rows > 0) {
+    while ($r = $res_recursos->fetch_assoc()) {
+        $recurso_rows[] = $r;
+        switch ($r['estado']) {
             case 'Disponible': $stats['disponibles']++; break;
             case 'Ocupado': $stats['ocupados']++; break;
             case 'Reservado': $stats['reservados']++; break;
         }
     }
-    $res_recursos->data_seek(0);
 }
+$total_recursos = count($recurso_rows);
 ?>
 <div class="recursos-section">
     <div class="page-header">
@@ -196,19 +192,19 @@ if ($res_recursos && $res_recursos->num_rows > 0) {
                     <i class="bi bi-funnel"></i>Filtrar por tipo:
                 </div>
                 <div class="filter-buttons">
-                    <a href="dashboard.php?page=recursos<?= !empty($filtro_salon) ? '&salon=' . urlencode($filtro_salon) : '' ?>" 
+                    <a href="dashboard.php?page=recursos<?= $q_param ?><?= !empty($filtro_salon) ? '&salon=' . urlencode($filtro_salon) : '' ?>" 
                        class="filter-btn <?= empty($filtro_tipo) ? 'active' : '' ?>">
                         <i class="bi bi-collection"></i> Todos
                     </a>
-                    <a href="dashboard.php?page=recursos&tipo=Alargue<?= !empty($filtro_salon) ? '&salon=' . urlencode($filtro_salon) : '' ?>" 
+                    <a href="dashboard.php?page=recursos&tipo=Alargue<?= $q_param ?><?= !empty($filtro_salon) ? '&salon=' . urlencode($filtro_salon) : '' ?>" 
                        class="filter-btn <?= $filtro_tipo === 'Alargue' ? 'active' : '' ?>">
                         <i class="bi bi-plug"></i> Alargues
                     </a>
-                    <a href="dashboard.php?page=recursos&tipo=Llave<?= !empty($filtro_salon) ? '&salon=' . urlencode($filtro_salon) : '' ?>" 
+                    <a href="dashboard.php?page=recursos&tipo=Llave<?= $q_param ?><?= !empty($filtro_salon) ? '&salon=' . urlencode($filtro_salon) : '' ?>" 
                        class="filter-btn <?= $filtro_tipo === 'Llave' ? 'active' : '' ?>">
                         <i class="bi bi-key"></i> Llaves
                     </a>
-                    <a href="dashboard.php?page=recursos&tipo=Control<?= !empty($filtro_salon) ? '&salon=' . urlencode($filtro_salon) : '' ?>" 
+                    <a href="dashboard.php?page=recursos&tipo=Control<?= $q_param ?><?= !empty($filtro_salon) ? '&salon=' . urlencode($filtro_salon) : '' ?>" 
                        class="filter-btn <?= $filtro_tipo === 'Control' ? 'active' : '' ?>">
                         <i class="bi bi-controller"></i> Controles
                     </a>
@@ -253,13 +249,32 @@ if ($res_recursos && $res_recursos->num_rows > 0) {
         </div>
     </div>
 
+    <!-- Búsqueda en tiempo real -->
+    <div class="row mb-3">
+        <div class="col-md-6 col-lg-4">
+            <div class="input-group">
+                <span class="input-group-text bg-transparent"><i class="bi bi-search"></i></span>
+                <input type="text" id="searchRecursos" class="form-control" placeholder="Buscar recurso..."
+                       value="<?= htmlspecialchars($busqueda, ENT_QUOTES, 'UTF-8') ?>"
+                       autocomplete="off">
+                <?php if (!empty($busqueda)): ?>
+                <a href="dashboard.php?page=recursos<?= !empty($filtro_tipo) ? '&tipo=' . urlencode($filtro_tipo) : '' ?><?= !empty($filtro_salon) ? '&salon=' . urlencode($filtro_salon) : '' ?>"
+                   class="btn btn-outline-secondary"><i class="bi bi-x-lg"></i></a>
+                <?php endif; ?>
+            </div>
+        </div>
+    </div>
+
     <!-- Información de filtros activos -->
-    <?php if (!empty($filtro_tipo) || !empty($filtro_salon)): ?>
+    <?php if (!empty($filtro_tipo) || !empty($filtro_salon) || !empty($busqueda)): ?>
         <div class="alert alert-info py-2 mb-4">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
                     <i class="bi bi-funnel me-2"></i> 
                     <strong>Filtros activos:</strong>
+                    <?php if (!empty($busqueda)): ?>
+                        <span class="badge bg-secondary me-2">Búsqueda: "<?= htmlspecialchars($busqueda, ENT_QUOTES, 'UTF-8') ?>"</span>
+                    <?php endif; ?>
                     <?php if (!empty($filtro_tipo)): ?>
                         <span class="badge bg-primary me-2">Tipo: <?= htmlspecialchars($filtro_tipo, ENT_QUOTES, 'UTF-8') ?></span>
                     <?php endif; ?>
@@ -287,8 +302,8 @@ if ($res_recursos && $res_recursos->num_rows > 0) {
 
     <!-- Grid de Recursos -->
     <div class="recursos-grid">
-        <?php if ($res_recursos && $res_recursos->num_rows > 0): ?>
-            <?php while ($r = $res_recursos->fetch_assoc()): ?>
+        <?php if ($total_recursos > 0): ?>
+            <?php foreach ($recurso_rows as $r): ?>
                 <div class="recurso-card card">
                     <div class="recurso-header">
                         <span class="recurso-type badge"><?= htmlspecialchars($r['tipo'], ENT_QUOTES, 'UTF-8') ?></span>
@@ -495,7 +510,7 @@ if ($res_recursos && $res_recursos->num_rows > 0) {
                         </div>
                     <?php endif; ?>
                 </div>
-            <?php endwhile; ?>
+            <?php endforeach; ?>
         <?php else: ?>
             <div class="empty-state" style="grid-column: 1 / -1;">
                 <i class="bi bi-inbox"></i>
@@ -510,4 +525,36 @@ if ($res_recursos && $res_recursos->num_rows > 0) {
             </div>
         <?php endif; ?>
     </div>
+
+    <?php
+    $url_params = ['page' => 'recursos'];
+    if (!empty($busqueda)) $url_params['q'] = $busqueda;
+    if (!empty($filtro_tipo)) $url_params['tipo'] = $filtro_tipo;
+    if (!empty($filtro_salon)) $url_params['salon'] = $filtro_salon;
+    echo render_pagination($paginfo, 'dashboard.php?' . http_build_query($url_params));
+    ?>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const input = document.getElementById('searchRecursos');
+    if (!input) return;
+
+    let timer = null;
+    const buildUrl = (q) => {
+        const params = new URLSearchParams(window.location.search);
+        params.set('page', 'recursos');
+        if (q) { params.set('q', q); } else { params.delete('q'); }
+        params.delete('page');
+        return 'dashboard.php?page=recursos&' + params.toString();
+    };
+
+    input.addEventListener('input', () => {
+        clearTimeout(timer);
+        timer = setTimeout(() => {
+            const q = input.value.trim();
+            window.location.href = buildUrl(q);
+        }, 400);
+    });
+});
+</script>

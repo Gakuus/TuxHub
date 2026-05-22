@@ -24,7 +24,8 @@ if (!in_array($role, $allowed)) {
 $sql = "SELECT id, nombre, COALESCE(cedula,'') AS cedula FROM usuarios WHERE rol = ? AND grupo_id = ? ORDER BY nombre ASC";
 $stmt = $conn->prepare($sql);
 if (!$stmt) {
-    echo json_encode(['error' => 'Error prepare: ' . $conn->error]);
+    app_log('error', 'Error prepare en get_users_by_role_group', ['error' => $conn->error]);
+    echo json_encode(['error' => 'Error interno del servidor']);
     exit;
 }
 $stmt->bind_param('si', $role, $grupo_id);

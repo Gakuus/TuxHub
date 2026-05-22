@@ -31,6 +31,7 @@ try {
         exit();
     }
 } catch (Exception $e) {
-    header("Location: ../dashboard.php?page=grupos&msg=" . urlencode("ERR:Error al eliminar: " . $e->getMessage()));
+    app_log('error', 'Error al eliminar grupo', ['id' => $id, 'error' => $e->getMessage()]);
+    header("Location: ../dashboard.php?page=grupos&msg=" . urlencode("ERR:Error interno al eliminar el grupo."));
     exit();
 }

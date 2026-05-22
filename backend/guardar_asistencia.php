@@ -4,6 +4,15 @@ require_once __DIR__ . '/helpers.php';
 
 require_auth();
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $ip = $_SERVER['REMOTE_ADDR'] ?? '0.0.0.0';
+    if (!rate_limit_check($ip, 'asistencia', 30, 60)) {
+        http_response_code(429);
+        echo json_encode(['ok' => false, 'msg' => 'Demasiadas solicitudes.']);
+        exit;
+    }
+}
+
 // ===================
 // MOSTRAR HISTORIAL
 // ===================
@@ -112,6 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if ($stmt->execute()) {
         echo json_encode(["status" => "success", "message" => "Asistencia registrada correctamente."]);
     } else {
-        echo json_encode(["status" => "danger", "message" => "Error: " . $stmt->error]);
+        app_log('error', 'Error guardando asistencia', ['error' => $stmt->error]);
+echo json_encode(["status" => "danger", "message" => "Error al guardar la asistencia"]);
     }
 }

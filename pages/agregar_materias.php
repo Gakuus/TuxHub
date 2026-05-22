@@ -96,39 +96,41 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $mensaje = "<div class='alert alert-danger'>El nombre no puede superar los 24 caracteres.</div>";
             } else {
                 // Verificar si la materia existe (activa o inactiva)
-                $check = $conn->query("SELECT id, activa FROM materias WHERE nombre_materia = '$nombre_materia'");
+                $stmt = $conn->prepare("SELECT id, activa FROM materias WHERE nombre_materia = ?");
+                $stmt->bind_param("s", $nombre_materia);
+                $stmt->execute();
+                $check = $stmt->get_result();
+                $stmt->close();
                 if ($check->num_rows > 0) {
                     $materia_existente = $check->fetch_assoc();
-                    // Si existe pero está inactiva, reactivarla
                     if ($materia_existente['activa'] == 0) {
-                        if ($conn->query("UPDATE materias SET activa = 1 WHERE id = {$materia_existente['id']}")) {
+                        $stmt = $conn->prepare("UPDATE materias SET activa = 1 WHERE id = ?");
+                        $stmt->bind_param("i", $materia_existente['id']);
+                        if ($stmt->execute()) {
                             $mensaje = "<div class='alert alert-success'>Materia reactivada correctamente.</div>";
                             $_POST['nombre_materia'] = '';
                         }
+                        $stmt->close();
                     } else {
                         $mensaje = "<div class='alert alert-warning'>La materia ya existe y est&aacute; activa.</div>";
                     }
                 } else {
-                    // Crear nueva materia
-                    if ($conn->query("INSERT INTO materias (nombre_materia, activa) VALUES ('$nombre_materia', 1)")) {
+                    $stmt = $conn->prepare("INSERT INTO materias (nombre_materia, activa) VALUES (?, 1)");
+                    $stmt->bind_param("s", $nombre_materia);
+                    if ($stmt->execute()) {
                         $mensaje = "<div class='alert alert-success'>Materia agregada correctamente.</div>";
                         $_POST['nombre_materia'] = '';
                     } else {
-                        $mensaje = "<div class='alert alert-danger'>Error al insertar: " . htmlspecialchars($conn->error) . "</div>";
+                        $mensaje = "<div class='alert alert-danger'>Error al insertar la materia.</div>";
+                        app_log('error', 'Error insertando materia', ['error' => $stmt->error]);
                     }
+                    $stmt->close();
                 }
             }
         } else {
             $mensaje = "<div class='alert alert-danger'>Debe ingresar el nombre de la materia.</div>";
         }
     }
-}
-
-// === VERIFICAR ESTRUCTURA DE LA TABLA ===
-$table_structure = $conn->query("DESCRIBE materias");
-error_log("DEBUG: Estructura de la tabla materias:");
-while ($column = $table_structure->fetch_assoc()) {
-    error_log("DEBUG - Columna: " . $column['Field'] . " - Tipo: " . $column['Type'] . " - Default: " . $column['Default']);
 }
 
 // === FILTRO PARA VER INACTIVAS ===

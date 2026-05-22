@@ -90,7 +90,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'], $_POST['sal
         // Validar que haya al menos un bloque seleccionado
         if (empty($bloques)) {
             $_SESSION['error'] = "Debes seleccionar al menos un bloque horario.";
-            echo "<script>window.location.href = '" . htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8') . "';</script>";
+            echo "<script>window.location.href = '" . 'dashboard.php?page=salones' . "';</script>";
             exit();
         }
 
@@ -126,7 +126,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'], $_POST['sal
         $stmt_upd->execute();
         $stmt_upd->close();
         
-        echo "<script>window.location.href = '" . htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8') . "';</script>";
+        echo "<script>window.location.href = '" . 'dashboard.php?page=salones' . "';</script>";
         exit();
     }
 
@@ -146,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'], $_POST['sal
         $stmt_upd->execute();
         $stmt_upd->close();
         
-        echo "<script>window.location.href = '" . htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8') . "';</script>";
+        echo "<script>window.location.href = '" . 'dashboard.php?page=salones' . "';</script>";
         exit();
     }
 
@@ -166,7 +166,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'], $_POST['sal
         $stmt_upd->execute();
         $stmt_upd->close();
         
-        echo "<script>window.location.href = '" . htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8') . "';</script>";
+        echo "<script>window.location.href = '" . 'dashboard.php?page=salones' . "';</script>";
         exit();
     }
 
@@ -215,14 +215,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'], $_POST['sal
                 $stmt->close();
             }
 
-            echo "<script>window.location.href = '" . htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8') . "';</script>";
+            echo "<script>window.location.href = '" . 'dashboard.php?page=salones' . "';</script>";
             exit();
         }
         
         $stmt->execute();
         $stmt->close();
         
-        echo "<script>window.location.href = '" . htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8') . "';</script>";
+        echo "<script>window.location.href = '" . 'dashboard.php?page=salones' . "';</script>";
         exit();
     }
 
@@ -241,7 +241,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'], $_POST['sal
 
         if ($usos_activos > 0) {
             $_SESSION['error'] = "No se puede eliminar el salón porque tiene usos activos. Primero desmarca el uso.";
-            echo "<script>window.location.href = '" . htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8') . "';</script>";
+            echo "<script>window.location.href = '" . 'dashboard.php?page=salones' . "';</script>";
             exit();
         } else {
             $stmt = $conn->prepare("DELETE FROM salon_usos WHERE salon_id=?");
@@ -254,7 +254,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'], $_POST['sal
             $stmt->execute();
             $stmt->close();
             
-            echo "<script>window.location.href = '" . htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8') . "';</script>";
+            echo "<script>window.location.href = '" . 'dashboard.php?page=salones' . "';</script>";
             exit();
         }
     }
