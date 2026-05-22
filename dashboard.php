@@ -91,129 +91,126 @@ $page_css = $page_css_map[$page] ?? null;
 
 <div id="wrapper">
     <!-- Sidebar -->
-    <nav class="sidebar d-flex flex-column" id="sidebarMenu">
-        <a href="dashboard.php?page=home" class="sidebar-header p-3 text-decoration-none text-center">
-            <img src="img/Logo.png" alt="Logo" loading="lazy">
-        </a>
+    <nav class="sidebar" id="sidebarMenu">
+        <!-- Brand -->
+        <div class="sidebar-brand">
+            <img src="img/Logo.png" alt="Agora" class="sidebar-logo">
+            <div class="sidebar-brand-text">
+                <span class="sidebar-brand-name">Agora</span>
+                <span class="sidebar-brand-sub">Gestión del Instituto</span>
+            </div>
+        </div>
 
-        <ul class="nav flex-column p-2 flex-grow-1">
-            <li class="nav-item">
-                <a class="nav-link <?= $page == 'home' ? 'active' : ''; ?>" href="dashboard.php?page=home">
-                    <i class="bi bi-grid-fill me-2"></i> <span class="nav-text">Dashboard</span>
-                </a>
-            </li>
+        <!-- User profile -->
+        <div class="sidebar-user">
+            <div class="sidebar-avatar"><?= strtoupper(substr($nombre, 0, 1)) ?></div>
+            <div class="sidebar-user-info">
+                <span class="sidebar-user-name"><?= htmlspecialchars($nombre) ?></span>
+                <span class="sidebar-user-role role-<?= $rol_lower ?>">
+                    <i class="bi <?= $rol_lower === 'admin' ? 'bi-shield-fill-check' : ($rol_lower === 'profesor' ? 'bi-person-vcard-fill' : 'bi-mortarboard-fill') ?>"></i>
+                    <?= $rol ?>
+                </span>
+            </div>
+        </div>
 
-            <li class="nav-item">
-                <a class="nav-link <?= $page == 'horarios' ? 'active' : ''; ?>" href="dashboard.php?page=horarios">
-                    <i class="bi bi-calendar-week-fill me-2"></i> <span class="nav-text">Horarios</span>
+        <!-- Navigation -->
+        <div class="sidebar-nav">
+            <div class="nav-section">
+                <span class="nav-section-title">Principal</span>
+                <a class="nav-link <?= $page == 'home' ? 'active' : '' ?>" href="dashboard.php?page=home">
+                    <i class="bi bi-grid-fill"></i>
+                    <span class="nav-text">Dashboard</span>
                 </a>
-            </li>
+            </div>
 
-            <li class="nav-item">
-                <a class="nav-link <?= $page == 'salones' ? 'active' : ''; ?>" href="dashboard.php?page=salones">
-                    <i class="bi bi-door-open-fill me-2"></i> <span class="nav-text">Salones</span>
+            <div class="nav-section">
+                <span class="nav-section-title">Académico</span>
+                <a class="nav-link <?= $page == 'horarios' ? 'active' : '' ?>" href="dashboard.php?page=horarios">
+                    <i class="bi bi-calendar-week-fill"></i>
+                    <span class="nav-text">Horarios</span>
                 </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link <?= $page == 'recursos' ? 'active' : ''; ?>" href="dashboard.php?page=recursos">
-                    <i class="bi bi-box-seam-fill me-2"></i> <span class="nav-text">Recursos</span>
+                <a class="nav-link <?= $page == 'salones' ? 'active' : '' ?>" href="dashboard.php?page=salones">
+                    <i class="bi bi-door-open-fill"></i>
+                    <span class="nav-text">Salones</span>
                 </a>
-            </li>
-
-            <li class="nav-item">
-                <a class="nav-link <?= $page == 'profesores' ? 'active' : ''; ?>" href="dashboard.php?page=profesores">
-                    <i class="bi bi-person-badge me-2"></i> <span class="nav-text">Profesores</span>
+                <a class="nav-link <?= $page == 'recursos' ? 'active' : '' ?>" href="dashboard.php?page=recursos">
+                    <i class="bi bi-box-seam-fill"></i>
+                    <span class="nav-text">Recursos</span>
                 </a>
-            </li>
+                <a class="nav-link <?= $page == 'profesores' ? 'active' : '' ?>" href="dashboard.php?page=profesores">
+                    <i class="bi bi-person-badge"></i>
+                    <span class="nav-text">Profesores</span>
+                </a>
+            </div>
 
             <?php if ($rol_lower === "admin"): ?>
-                <li class="nav-item mt-3 pt-3 border-top border-secondary"></li>
+            <div class="nav-section">
+                <span class="nav-section-title">Administración</span>
+                <a class="nav-link <?= $page == 'grupos' ? 'active' : '' ?>" href="dashboard.php?page=grupos">
+                    <i class="bi bi-collection-fill"></i>
+                    <span class="nav-text">Grupos</span>
+                </a>
+                <a class="nav-link <?= $page == 'agregar_materias' ? 'active' : '' ?>" href="dashboard.php?page=agregar_materias">
+                    <i class="bi bi-book"></i>
+                    <span class="nav-text">Materias</span>
+                </a>
+                <a class="nav-link <?= $page == 'registrar' ? 'active' : '' ?>" href="dashboard.php?page=registrar">
+                    <i class="bi bi-person-plus-fill"></i>
+                    <span class="nav-text">Usuarios</span>
+                </a>
+                <a class="nav-link <?= $page == 'gestionar_contenido' && ($_GET['tipo'] ?? '') == 'noticias' ? 'active' : '' ?>"
+                   href="dashboard.php?page=gestionar_contenido&tipo=noticias">
+                    <i class="bi bi-newspaper"></i>
+                    <span class="nav-text">Noticias</span>
+                </a>
+                <a class="nav-link <?= $page == 'gestionar_contenido' && ($_GET['tipo'] ?? '') == 'avisos' ? 'active' : '' ?>"
+                   href="dashboard.php?page=gestionar_contenido&tipo=avisos">
+                    <i class="bi bi-exclamation-triangle"></i>
+                    <span class="nav-text">Avisos</span>
+                </a>
+            </div>
 
-                <li class="nav-item">
-                    <a class="nav-link <?= $page == 'grupos' ? 'active' : ''; ?>" href="dashboard.php?page=grupos">
-                        <i class="bi bi-collection-fill me-2"></i> <span class="nav-text">Grupos</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link <?= $page == 'agregar_materias' ? 'active' : ''; ?>" href="dashboard.php?page=agregar_materias">
-                        <i class="bi bi-book me-2"></i> <span class="nav-text">Materias</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link <?= $page == 'registrar' ? 'active' : ''; ?>" href="dashboard.php?page=registrar">
-                        <i class="bi bi-person-plus-fill me-2"></i> <span class="nav-text">Usuarios</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link <?= $page == 'gestionar_contenido' && ($_GET['tipo'] ?? '') == 'noticias' ? 'active' : ''; ?>" 
-                    href="dashboard.php?page=gestionar_contenido&tipo=noticias">
-                        <i class="bi bi-newspaper me-2"></i> <span class="nav-text">Noticias</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link <?= $page == 'gestionar_contenido' && ($_GET['tipo'] ?? '') == 'avisos' ? 'active' : ''; ?>" 
-                    href="dashboard.php?page=gestionar_contenido&tipo=avisos">
-                        <i class="bi bi-exclamation-triangle me-2"></i> <span class="nav-text">Avisos</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link <?= $page == 'cargar_horarios' ? 'active' : ''; ?>" href="dashboard.php?page=cargar_horarios">
-                        <i class="bi bi-plus-circle me-2"></i> <span class="nav-text">Cargar Horarios</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link <?= $page == 'asignar_grupos' ? 'active' : ''; ?>" href="dashboard.php?page=asignar_grupos">
-                        <i class="bi bi-diagram-3-fill me-2"></i> <span class="nav-text">Asignar Grupos</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link <?= $page == 'agregar_salon' ? 'active' : ''; ?>" href="dashboard.php?page=agregar_salon">
-                        <i class="bi bi-building-add me-2"></i> <span class="nav-text">Agregar Salón</span>
-                    </a>
-                </li>
-
-                <li class="nav-item">
-                    <a class="nav-link <?= $page == 'agregar_recursos' ? 'active' : ''; ?>" href="dashboard.php?page=agregar_recursos">
-                        <i class="bi bi-plus-square me-2"></i> <span class="nav-text">Agregar Recursos</span>
-                    </a>
-                </li>
-
-                <li class="nav-item mt-3 pt-3 border-top border-secondary">
-                    <a class="nav-link text-danger" href="backend/logout.php">
-                        <i class="bi bi-box-arrow-right me-2"></i> <span class="nav-text">Cerrar Sesión</span>
-                    </a>
-                </li>
-
+            <div class="nav-section">
+                <span class="nav-section-title">Configuración</span>
+                <a class="nav-link <?= $page == 'cargar_horarios' ? 'active' : '' ?>" href="dashboard.php?page=cargar_horarios">
+                    <i class="bi bi-plus-circle"></i>
+                    <span class="nav-text">Cargar Horarios</span>
+                </a>
+                <a class="nav-link <?= $page == 'asignar_grupos' ? 'active' : '' ?>" href="dashboard.php?page=asignar_grupos">
+                    <i class="bi bi-diagram-3-fill"></i>
+                    <span class="nav-text">Asignar Grupos</span>
+                </a>
+                <a class="nav-link <?= $page == 'agregar_salon' ? 'active' : '' ?>" href="dashboard.php?page=agregar_salon">
+                    <i class="bi bi-building-add"></i>
+                    <span class="nav-text">Agregar Salón</span>
+                </a>
+                <a class="nav-link <?= $page == 'agregar_recursos' ? 'active' : '' ?>" href="dashboard.php?page=agregar_recursos">
+                    <i class="bi bi-plus-square"></i>
+                    <span class="nav-text">Agregar Recurso</span>
+                </a>
+            </div>
             <?php elseif ($rol_lower === "profesor"): ?>
-                <li class="nav-item mt-3 pt-3 border-top border-secondary"></li>
-
-                <li class="nav-item">
-                    <a class="nav-link <?= $page == 'registrar' ? 'active' : ''; ?>" href="dashboard.php?page=registrar">
-                        <i class="bi bi-person-plus-fill me-2"></i> <span class="nav-text">Registrar Alumno</span>
-                    </a>
-                </li>
-
-                <li class="nav-item mt-3 pt-3 border-top border-secondary">
-                    <a class="nav-link text-danger" href="backend/logout.php">
-                        <i class="bi bi-box-arrow-right me-2"></i> <span class="nav-text">Cerrar Sesión</span>
-                    </a>
-                </li>
-            <?php else: ?>
-                <li class="nav-item mt-3 pt-3 border-top border-secondary">
-                    <a class="nav-link text-danger" href="backend/logout.php">
-                        <i class="bi bi-box-arrow-right me-2"></i> <span class="nav-text">Cerrar Sesión</span>
-                    </a>
-                </li>
+            <div class="nav-section">
+                <span class="nav-section-title">Docente</span>
+                <a class="nav-link <?= $page == 'registrar' ? 'active' : '' ?>" href="dashboard.php?page=registrar">
+                    <i class="bi bi-person-plus-fill"></i>
+                    <span class="nav-text">Registrar Alumno</span>
+                </a>
+            </div>
             <?php endif; ?>
-        </ul>
+        </div>
+
+        <!-- Bottom actions -->
+        <div class="sidebar-footer">
+            <button class="sidebar-footer-btn" id="themeToggle" title="Cambiar tema">
+                <i class="bi bi-moon-fill"></i>
+                <span>Modo oscuro</span>
+            </button>
+            <a href="backend/logout.php" class="sidebar-footer-btn sidebar-logout" title="Cerrar sesión">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Cerrar sesión</span>
+            </a>
+        </div>
     </nav>
 
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
@@ -224,44 +221,23 @@ $page_css = $page_css_map[$page] ?? null;
             <div class="container-fluid">
                 <div class="row align-items-center">
                     <div class="col-auto">
-                        <button class="btn btn-outline-dark toggle-btn" id="toggleSidebar">
+                        <button class="toggle-btn" id="toggleSidebar" aria-label="Toggle sidebar">
                             <i class="bi bi-list"></i>
                         </button>
                     </div>
                     <div class="col">
-                        <h2 class="h5 mb-0 text-dark welcome-text" id="welcomeText">
-                            Bienvenido, <span class="fw-bold"><?= $nombre ?></span> (<?= $rol ?>)
+                        <h2 class="welcome-text">
+                            Bienvenido, <span class="fw-bold"><?= $nombre ?></span>
+                            <span class="role-indicator role-<?= $rol_lower ?>"><?= $rol ?></span>
                         </h2>
                     </div>
-                    <div class="col-auto">
-                        <div class="d-flex align-items-center gap-2">
-                            <!-- Botón Configuración -->
-                            <div class="dropdown">
-                                <button class="btn btn-outline-secondary d-flex align-items-center" id="settingsDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="bi bi-gear-fill"></i>
-                                </button>
-                                <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="settingsDropdown">
-                                    <li class="dropdown-header fw-semibold text-center">Configuración</li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li>
-                                        <button class="dropdown-item d-flex justify-content-between align-items-center" id="themeToggle">
-                                            <span id="themeLabel">Modo oscuro</span>
-                                            <i class="bi bi-moon-fill"></i>
-                                        </button>
-                                    </li>
-                                    <li>
-                                        <button class="dropdown-item d-flex justify-content-between align-items-center" id="languageToggle">
-                                            <span id="langLabel">Español</span>
-                                            <span><img id="langIcon" src="https://flagcdn.com/w20/es.png" alt="Español" width="20" height="14" loading="lazy"></span>
-                                        </button>
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <a href="backend/logout.php" class="btn btn-outline-danger">
-                                <i class="bi bi-box-arrow-right"></i>
-                            </a>
-                        </div>
+                    <div class="col-auto d-flex align-items-center gap-2">
+                        <button class="header-btn" id="headerThemeToggle" title="Cambiar tema">
+                            <i class="bi bi-moon-fill"></i>
+                        </button>
+                        <a href="backend/logout.php" class="header-btn header-logout" title="Cerrar sesión">
+                            <i class="bi bi-box-arrow-right"></i>
+                        </a>
                     </div>
                 </div>
             </div>
