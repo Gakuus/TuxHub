@@ -26,14 +26,33 @@ composer install
 
 ## Configuración
 
-> **Importante:** Las credenciales están actualmente hardcodeadas. Se recomienda migrar a variables de entorno (`.env`).
+Copiar `.env.example` como `.env` y completar:
 
-| Archivo | Parámetro | Descripción |
-|---------|-----------|-------------|
-| `backend/db_connection.php` | `$host`, `$user`, `$password`, `$database` | Conexión MySQL |
-| `backend/send_email.php` | `$mail->Username`, `$mail->Password` | SMTP Gmail |
-| `backend/login_handler.php` | `$recaptcha_secret` | reCAPTCHA v2 secret key |
-| `index.php` | `data-sitekey` | reCAPTCHA v2 site key |
+```env
+# Base de datos
+DB_HOST=127.0.0.1
+DB_USER=usuario
+DB_PASS=contraseña
+DB_NAME=db_agora
+
+# SMTP (opcional, para recuperación de contraseña)
+SMTP_HOST=smtp.gmail.com
+SMTP_USER=tu_correo@gmail.com
+SMTP_PASS=contraseña_app
+
+# reCAPTCHA v2 (opcional)
+RECAPTCHA_SITE_KEY=tu_site_key
+RECAPTCHA_SECRET_KEY=tu_secret_key
+
+# AI Chat (opcional)
+# Groq (gratis, sin tarjeta): https://console.groq.com
+CHAT_PROVIDER=openai
+CHAT_API_URL=https://api.groq.com/openai/v1/chat/completions
+CHAT_API_KEY=gsk_tu_key
+CHAT_MODEL=llama-3.1-8b-instant
+```
+
+> `.env` está protegido por `.htaccess` y no se puede acceder vía web.
 
 ## Estructura del proyecto
 
@@ -70,6 +89,7 @@ composer install
 - **Asistencias**: Registro y consulta por fecha, grupo, profesor
 - **Contenido**: Noticias y avisos con imágenes (CRUD admin)
 - **Recuperación de contraseña**: Vía email con PHPMailer + Gmail SMTP
+- **Chat AI**: Widget flotante con asistente virtual. Responde preguntas sobre el proyecto usando Groq (gratis), OpenAI, Gemini, Ollama o DeepSeek. CSRF + rate limiting + XSS-safe
 
 ## Licencia
 

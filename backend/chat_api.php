@@ -39,14 +39,7 @@ if (!rate_limit_check($_SERVER['REMOTE_ADDR'] ?? 'unknown', 'chat', 20, 60)) {
     exit;
 }
 
-$provider = env('CHAT_PROVIDER', 'gemini');
-$api_key = env('GEMINI_API_KEY', '');
-$model = env('GEMINI_MODEL', 'gemini-2.0-flash');
-
-if (empty($api_key)) {
-    echo json_encode(['ok' => false, 'msg' => 'API key de Gemini no configurada. Revisa el archivo .env']);
-    exit;
-}
+$provider = env('CHAT_PROVIDER', 'openai');
 
 $context_file = __DIR__ . '/../ANALISIS.md';
 $project_context = '';
@@ -75,6 +68,14 @@ PROMPT;
 // Gemini API
 // ---------------------------------------------------------------------------
 if ($provider === 'gemini') {
+    $api_key = env('GEMINI_API_KEY', '');
+    $model = env('GEMINI_MODEL', 'gemini-2.0-flash');
+
+    if (empty($api_key)) {
+        echo json_encode(['ok' => false, 'msg' => 'API key de Gemini no configurada. Revisa el archivo .env']);
+        exit;
+    }
+
     $url = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent?key=" . urlencode($api_key);
 
     $payload = [

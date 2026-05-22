@@ -23,7 +23,9 @@ Sistema de gestión académica para instituciones educativas.
 │   └── *.php              # Endpoints
 ├── pages/                 # Vistas (incluidas por dashboard.php)
 ├── assets/                # JavaScript
+│   └── chat.js            # Widget chat AI
 ├── css/                   # Hojas de estilo
+│   └── chat.css           # Estilos del chat AI
 ├── img/                   # Imagenes
 ├── uploads/noticias/      # Imagenes de noticias
 ├── database/              # Schema + seed SQL
@@ -43,6 +45,33 @@ php database/init.php
 ```bash
 php -S localhost:8000
 ```
+
+## Configuración
+
+El proyecto usa un archivo `.env` para todas las credenciales sensibles (base de datos, SMTP, reCAPTCHA, AI Chat). Ver `.env.example` como plantilla.
+
+### AI Chat
+
+Widget flotante accesible desde el dashboard. Soporta:
+
+| Proveedor | API Key | Costo |
+|-----------|---------|-------|
+| **Groq** | Desde [console.groq.com](https://console.groq.com) | Gratis |
+| **OpenAI** | Desde platform.openai.com | Pago |
+| **Gemini** | Desde aistudio.google.com | Free tier (limitado) |
+| **Ollama** | Local (localhost:11434) | Gratis, sin internet |
+| **DeepSeek** | Desde platform.deepseek.com | Crédito inicial gratis |
+
+Ejemplo de config para Groq (recomendado):
+
+```env
+CHAT_PROVIDER=openai
+CHAT_API_URL=https://api.groq.com/openai/v1/chat/completions
+CHAT_API_KEY=gsk_tu_key
+CHAT_MODEL=llama-3.1-8b-instant
+```
+
+> Seguridad: API key solo server-side, CSRF con hash_equals, rate limiting 20 req/min, respuestas sanitizadas contra XSS.
 
 ## Credenciales por defecto
 

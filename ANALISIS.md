@@ -51,7 +51,7 @@ Proyecto PHP sin framework para gestión educativa. Arquitectura clásica de arc
 | 27 | **Protección uploads** | `.htaccess` en `uploads/` bloquea ejecución PHP y listado |
 | 28 | **Helpers nuevos** | `sanitize_filename()`, `paginate()`, `render_pagination()`, `validate_password_strength()`, `rate_limit_check()` |
 | 29 | **Tests automatizados** | 19 tests (runner propio por falta de ext-xmlwriter). Cobertura: paginate, validate_password, sanitize, csrf, render_pagination |
-| 30 | **Chat AI integrado** | Widget flotante con icono de chat. Consulta una API compatible con OpenAI (funciona con OpenAI, Ollama, LM Studio). Contexto basado en ANALISIS.md para responder sobre el proyecto. CSRF + rate limiting + logging |
+| 30 | **Chat AI integrado** | Widget flotante con icono de chat. Soporta múltiples proveedores (Groq, OpenAI, Gemini, Ollama, DeepSeek). Contexto basado en ANALISIS.md para responder sobre el proyecto. CSRF + rate limiting + logging + XSS-safe rendering |
 
 ---
 
@@ -60,6 +60,22 @@ Proyecto PHP sin framework para gestión educativa. Arquitectura clásica de arc
 **Ninguno.** Todos los SQL injection, XSS, CSRF y Host Header Injection han sido corregidos.
 
 ---
+
+## 🤖 Chat AI — Análisis de seguridad
+
+| Aspecto | Estado |
+|---------|--------|
+| API key | Solo server-side via cURL. Nunca se envía al cliente |
+| Archivo `.env` | Bloqueado por `.htaccess` |
+| Autenticación | `require_auth()` — solo usuarios logueados |
+| CSRF | Token en body JSON, verificado con `hash_equals()` |
+| Rate limiting | 20 req/min por IP vía `rate_limit_check()` |
+| Input validation | Máx 2000 caracteres, vacío rechazado |
+| XSS (user) | `textContent` — seguro |
+| XSS (respuesta IA) | `renderMarkdown()` escapa `& < >` primero, luego solo agrega tags fijos vía regex |
+| SSRF | URL del proveedor desde `.env`, no de input usuario |
+| Logging | No se logean mensajes, solo metadatos (longitud, user_id, provider) |
+| CSP | `connect-src 'self'` permite fetch local a `chat_api.php` |
 
 ## 🟡 Recomendaciones futuras
 
