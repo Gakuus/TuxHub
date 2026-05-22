@@ -51,6 +51,7 @@ Proyecto PHP sin framework para gestión educativa. Arquitectura clásica de arc
 | 27 | **Protección uploads** | `.htaccess` en `uploads/` bloquea ejecución PHP y listado |
 | 28 | **Helpers nuevos** | `sanitize_filename()`, `paginate()`, `render_pagination()`, `validate_password_strength()`, `rate_limit_check()` |
 | 29 | **Tests automatizados** | 19 tests (runner propio por falta de ext-xmlwriter). Cobertura: paginate, validate_password, sanitize, csrf, render_pagination |
+| 30 | **Chat AI integrado** | Widget flotante con icono de chat. Consulta una API compatible con OpenAI (funciona con OpenAI, Ollama, LM Studio). Contexto basado en ANALISIS.md para responder sobre el proyecto. CSRF + rate limiting + logging |
 
 ---
 
@@ -79,11 +80,11 @@ Proyecto PHP sin framework para gestión educativa. Arquitectura clásica de arc
 
 | Métrica | Valor |
 |---------|-------|
-| Archivos PHP modificados | ~35 |
+| Archivos PHP modificados | ~36 |
 | Vulnerabilidades críticas cerradas | 8 |
 | Vulnerabilidades altas cerradas | 12 |
-| Funcionalidades nuevas | 9 |
-| Líneas de código agregadas | ~800 |
+| Funcionalidades nuevas | 10 |
+| Líneas de código agregadas | ~1100 |
 | Líneas eliminadas (código inseguro) | ~150 |
 | Tests | 19, 0 fallos |
 | Dependencias agregadas | PHPUnit ^10 (dev), PHPMailer ^7.0 |

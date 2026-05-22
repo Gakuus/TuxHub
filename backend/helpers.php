@@ -125,7 +125,7 @@ function rate_limit_check(string $ip, string $action = 'default', int $max = 10,
         $data = json_decode(file_get_contents($file), true) ?? [];
     }
     // Limpiar entradas viejas
-    $data = array_filter($data, fn($t) => ($now - $t) < $window);
+    $data = array_filter($data, fn($entry) => ($now - $entry['time']) < $window);
     // Contar intentos de esta IP
     $attempts = 0;
     foreach ($data as $entry) {

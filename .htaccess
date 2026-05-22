@@ -16,8 +16,19 @@ Options -Indexes
 # Proteger el directorio .git
 RedirectMatch 404 /\.git
 
-# Proteger backend
-RedirectMatch 404 /backend/
+# Proteger backend - bloquear archivos sensibles (no AJAX endpoints)
+<Files "config.php">
+    Require all denied
+</Files>
+<Files "db_connection.php">
+    Require all denied
+</Files>
+<Files "helpers.php">
+    Require all denied
+</Files>
+<Files "send_email.php">
+    Require all denied
+</Files>
 
 # Proteger vendor
 RedirectMatch 404 /vendor/

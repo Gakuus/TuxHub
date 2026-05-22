@@ -83,6 +83,7 @@ $page_css = $page_css_map[$page] ?? null;
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Dashboard de gestión académica">
     <meta name="robots" content="noindex, nofollow">
+    <meta name="csrf-token" content="<?= csrf_token() ?>">
     <title>Dashboard - Agora</title>
 
     <!-- CSS -->
@@ -94,6 +95,7 @@ $page_css = $page_css_map[$page] ?? null;
     <?php if ($page_css): ?>
     <link rel="stylesheet" href="css/<?= $page_css ?>">
     <?php endif; ?>
+    <link rel="stylesheet" href="css/chat.css">
     <link rel="icon" href="img/Logo.png" type="image/x-icon">
 </head>
 <body>
@@ -304,9 +306,36 @@ $page_css = $page_css_map[$page] ?? null;
     </div>
 </div>
 
+<!-- Chat Widget -->
+<div class="chat-container" id="chatContainer">
+    <div class="chat-header">
+        <div class="chat-header-title">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.88.54 3.63 1.48 5.12L2 22l5.12-1.48C8.37 21.46 10.12 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>
+            Asistente Agora
+        </div>
+        <button class="chat-header-close" id="chatCloseBtn" aria-label="Cerrar chat">
+            <svg viewBox="0 0 24 24"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+    </div>
+    <div class="chat-messages" id="chatMessages">
+        <div class="chat-greeting">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.88.54 3.63 1.48 5.12L2 22l5.12-1.48C8.37 21.46 10.12 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>
+            <div>¡Hola! Soy el asistente del Sistema Agora.<br>Pregúntame sobre el proyecto, su arquitectura, seguridad o cómo usar los módulos.</div>
+        </div>
+    </div>
+    <div class="chat-input-area">
+        <input type="text" id="chatInput" placeholder="Escribe tu pregunta..." maxlength="2000">
+        <button id="chatSendBtn">Enviar</button>
+    </div>
+</div>
+<button class="chat-btn" id="chatToggleBtn" aria-label="Abrir chat">
+    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12c0 1.88.54 3.63 1.48 5.12L2 22l5.12-1.48C8.37 21.46 10.12 22 12 22c5.52 0 10-4.48 10-10S17.52 2 12 2z"/></svg>
+</button>
+
 <!-- JavaScript -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="assets/dashboard.js"></script>
 <script src="assets/ui.js"></script>
+<script src="assets/chat.js"></script>
 </body>
 </html>
