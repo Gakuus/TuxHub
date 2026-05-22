@@ -18,7 +18,7 @@ $error_messages = [
     'cedula_larga'    => "La cédula debe tener exactamente 8 dígitos.",
     'credenciales'    => "Credenciales incorrectas.",
     'pass_invalida'   => "La contraseña debe tener entre 8 y 24 caracteres.",
-    'captcha'         => "Verifica el captcha.",
+
     'bloqueado'       => "Demasiados intentos. Intenta en unos minutos.",
     'csrf'            => "Error de seguridad. Recarga la página.",
     'metodo_invalido' => "Acceso incorrecto."

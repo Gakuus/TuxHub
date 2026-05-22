@@ -111,35 +111,6 @@ if (empty($_POST['csrf_token']) || empty($_SESSION['csrf_token']) ||
     redirect_error('csrf');
 }
 
-// ========= CAPTCHA =========
-$recaptcha_secret = "6LeskeMrAAAAAEwZ1CwNR2BhiQrDiM47qQPdJ4mr";
-$response = $_POST['g-recaptcha-response'] ?? '';
-$remoteip = $_SERVER['REMOTE_ADDR'] ?? '';
-
-if (empty($response)) {
-    redirect_error('captcha');
-}
-
-try {
-    $verify = file_get_contents(
-        "https://www.google.com/recaptcha/api/siteverify?secret=$recaptcha_secret&response=$response&remoteip=$remoteip"
-    );
-
-    if ($verify === false) {
-        error_log("Error de conexión con reCAPTCHA");
-        redirect_error('captcha');
-    }
-
-    $captcha_data = json_decode($verify, true);
-    if (!$captcha_data['success']) {
-        error_log("CAPTCHA fail: " . implode(',', $captcha_data['error-codes'] ?? []));
-        redirect_error('captcha');
-    }
-} catch (Exception $e) {
-    error_log("Error en CAPTCHA: " . $e->getMessage());
-    redirect_error('captcha');
-}
-
 // ========= VALIDACIÓN DE INPUTS =========
 $cedula = limpiar_input($_POST['cedula'] ?? '');
 $password = $_POST['password'] ?? '';
