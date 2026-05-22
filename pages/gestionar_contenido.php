@@ -156,4 +156,4 @@ if ($id) {
   </div>
 </section>
 
-<script src="/Agora/Agora/assets/gestionar_contenido.js"></script>
+<script src="assets/gestionar_contenido.js"></script>

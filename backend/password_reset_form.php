@@ -8,7 +8,7 @@
 
 <style>
     body {
-        background: url('/Agora/Agora/img/itsp.jpeg') no-repeat center center fixed;
+        background: url('../img/itsp.jpeg') no-repeat center center fixed;
         background-size: cover;
         height: 100vh;
         display: flex;

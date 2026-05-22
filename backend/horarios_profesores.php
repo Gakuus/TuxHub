@@ -1,9 +1,8 @@
 <?php
-session_start();
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/db_connection.php';
 
-require_once 'db_connection.php';
+require_auth();
 
 header('Content-Type: application/json');
 

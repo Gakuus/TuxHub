@@ -166,4 +166,4 @@ if (isset($_POST['profesor_id']) && $_POST['profesor_id'] !== '') {
   </form>
 </section>
 
-<script src="/Agora/Agora/assets/asignar_grupos.js"></script>
+<script src="assets/asignar_grupos.js"></script>

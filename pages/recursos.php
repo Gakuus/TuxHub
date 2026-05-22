@@ -332,12 +332,12 @@ if ($res_recursos && $res_recursos->num_rows > 0) {
                             <a href="dashboard.php?page=agregar_recursos&edit=<?= (int)$r['id'] ?>" class="btn btn-warning btn-sm" title="Editar recurso">
                                 <i class="bi bi-pencil"></i> Editar
                             </a>
-                            <a href="/Agora/Agora/backend/recursos_backend.php?delete=<?= (int)$r['id'] ?>" class="btn btn-danger btn-sm" title="Eliminar recurso"
+                            <a href="backend/recursos_backend.php?delete=<?= (int)$r['id'] ?>" class="btn btn-danger btn-sm" title="Eliminar recurso"
                                onclick="return confirm('¿Estás seguro de eliminar el recurso <?= htmlspecialchars($r['nombre'], ENT_QUOTES, 'UTF-8') ?>?');">
                                 <i class="bi bi-trash"></i>
                             </a>
                             <?php if ($r['estado'] === 'Ocupado'): ?>
-                                <form method="POST" action="/Agora/Agora/backend/recursos_backend.php">
+                                <form method="POST" action="backend/recursos_backend.php">
                                     <input type="hidden" name="accion" value="marcar_uso">
                                     <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
                                     <input type="hidden" name="tipo_uso" value="liberar">
@@ -350,7 +350,7 @@ if ($res_recursos && $res_recursos->num_rows > 0) {
                         </div>
                     <?php elseif ($rol === 'profesor'): ?>
                         <div class="action-row">
-                            <form method="POST" action="/Agora/Agora/backend/recursos_backend.php" class="usage-form w-100" data-tipo="<?= htmlspecialchars($r['tipo'], ENT_QUOTES, 'UTF-8') ?>">
+                            <form method="POST" action="backend/recursos_backend.php" class="usage-form w-100" data-tipo="<?= htmlspecialchars($r['tipo'], ENT_QUOTES, 'UTF-8') ?>">
                                 <input type="hidden" name="accion" value="marcar_uso">
                                 <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
                                 <input type="hidden" name="mantener_salon" value="<?= $r['tipo'] !== 'Alargue' ? '1' : '0' ?>">
@@ -412,7 +412,7 @@ if ($res_recursos && $res_recursos->num_rows > 0) {
                             </form>
                             <div class="d-flex gap-2 mt-2">
                                 <?php if ($r['estado'] === 'Disponible'): ?>
-                                    <form method="POST" action="/Agora/Agora/backend/recursos_backend.php">
+                                    <form method="POST" action="backend/recursos_backend.php">
                                         <input type="hidden" name="accion" value="reservar">
                                         <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
                                         <button type="submit" class="btn btn-outline-primary btn-sm">
@@ -420,7 +420,7 @@ if ($res_recursos && $res_recursos->num_rows > 0) {
                                         </button>
                                     </form>
                                 <?php elseif ($r['estado'] === 'Reservado' && (int)($r['usuario_id'] ?? 0) === $user_id): ?>
-                                    <form method="POST" action="/Agora/Agora/backend/recursos_backend.php">
+                                    <form method="POST" action="backend/recursos_backend.php">
                                         <input type="hidden" name="accion" value="cancelar_reserva">
                                         <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
                                         <button type="submit" class="btn btn-outline-danger btn-sm">
@@ -432,7 +432,7 @@ if ($res_recursos && $res_recursos->num_rows > 0) {
                         </div>
                     <?php elseif ($rol === 'alumno'): ?>
                         <div class="action-row">
-                            <form method="POST" action="/Agora/Agora/backend/recursos_backend.php" class="usage-form w-100" data-tipo="<?= htmlspecialchars($r['tipo'], ENT_QUOTES, 'UTF-8') ?>">
+                            <form method="POST" action="backend/recursos_backend.php" class="usage-form w-100" data-tipo="<?= htmlspecialchars($r['tipo'], ENT_QUOTES, 'UTF-8') ?>">
                                 <input type="hidden" name="accion" value="marcar_uso">
                                 <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
                                 <input type="hidden" name="mantener_salon" value="<?= $r['tipo'] !== 'Alargue' ? '1' : '0' ?>">

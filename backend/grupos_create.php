@@ -1,6 +1,8 @@
 <?php
-session_start();
 require_once __DIR__ . '/db_connection.php';
+require_once __DIR__ . '/helpers.php';
+
+csrf_verify();
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: ../index.php?error=requerido");

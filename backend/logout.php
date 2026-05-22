@@ -1,6 +1,5 @@
 <?php
-// logout.php
-session_start();
+require_once __DIR__ . '/helpers.php';
 
 // Verificar token CSRF si es una solicitud POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -10,23 +9,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-// Configuración de seguridad
-ini_set('session.cookie_httponly', 1);
-if (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') {
-    ini_set('session.cookie_secure', 1);
+// Registrar logout en log
+if (isset($_SESSION['user_id'])) {
+    app_log('info', 'Usuario cerró sesión', ['user_id' => $_SESSION['user_id']]);
 }
-ini_set('session.use_strict_mode', 1);
-ini_set('session.cookie_samesite', 'Strict');
 
 // Regenerar ID de sesión para prevenir session fixation
 session_regenerate_id(true);
-
-// Guardar información del logout para auditoría (opcional)
-if (isset($_SESSION['user_id'])) {
-    $user_id = $_SESSION['user_id'];
-    $logout_time = date('Y-m-d H:i:s');
-    // Aquí podrías guardar en un log: "Usuario $user_id cerró sesión a las $logout_time"
-}
 
 // Limpiar completamente la sesión
 $_SESSION = [];

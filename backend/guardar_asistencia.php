@@ -1,34 +1,57 @@
 <?php
 require_once __DIR__ . '/db_connection.php';
-session_start();
+require_once __DIR__ . '/helpers.php';
+
+require_auth();
 
 // ===================
 // MOSTRAR HISTORIAL
 // ===================
 if (isset($_GET['historial'])) {
     $rol = $_SESSION['rol'] ?? null;
-    $user_id = $_SESSION['user_id'] ?? null;
+    $user_id = (int)($_SESSION['user_id'] ?? 0);
     $fecha = $_GET['fecha'] ?? '';
-    $grupo_id = $_GET['grupo_id'] ?? '';
+    $grupo_id = !empty($_GET['grupo_id']) ? (int)$_GET['grupo_id'] : null;
 
-    $where = [];
-    if ($rol === 'profesor') $where[] = "a.usuario_id = '$user_id'";
-    if (!empty($fecha)) $where[] = "a.fecha = '$fecha'";
-    if (!empty($grupo_id)) $where[] = "a.grupo_id = '$grupo_id'";
-    $where_sql = $where ? "WHERE " . implode(" AND ", $where) : "";
+    $conditions = [];
+    $params = [];
+    $types = "";
 
-    $q = $conn->query("
-        SELECT a.*, u.nombre AS profesor, g.nombre AS grupo, s.nombre_salon AS salon,
-               d.nombre_dia AS dia, bh.hora_inicio, bh.hora_fin
-        FROM asistencias a
-        INNER JOIN usuarios u ON a.usuario_id = u.id
-        INNER JOIN grupos g ON a.grupo_id = g.id
-        LEFT JOIN salones s ON a.salon_id = s.id
-        LEFT JOIN dias d ON a.dia_id = d.id
-        LEFT JOIN bloques_horarios bh ON a.bloque_id = bh.id
-        $where_sql
-        ORDER BY a.fecha DESC, d.id, bh.hora_inicio
-    ");
+    if ($rol === 'profesor' && $user_id) {
+        $conditions[] = "a.usuario_id = ?";
+        $params[] = $user_id;
+        $types .= "i";
+    }
+    if (!empty($fecha)) {
+        $conditions[] = "a.fecha = ?";
+        $params[] = $fecha;
+        $types .= "s";
+    }
+    if ($grupo_id) {
+        $conditions[] = "a.grupo_id = ?";
+        $params[] = $grupo_id;
+        $types .= "i";
+    }
+
+    $where_sql = $conditions ? "WHERE " . implode(" AND ", $conditions) : "";
+
+    $sql = "SELECT a.*, u.nombre AS profesor, g.nombre AS grupo, s.nombre_salon AS salon,
+                   d.nombre_dia AS dia, bh.hora_inicio, bh.hora_fin
+            FROM asistencias a
+            INNER JOIN usuarios u ON a.usuario_id = u.id
+            INNER JOIN grupos g ON a.grupo_id = g.id
+            LEFT JOIN salones s ON a.salon_id = s.id
+            LEFT JOIN dias d ON a.dia_id = d.id
+            LEFT JOIN bloques_horarios bh ON a.bloque_id = bh.id
+            $where_sql
+            ORDER BY a.fecha DESC, d.id, bh.hora_inicio";
+
+    $stmt = $conn->prepare($sql);
+    if ($params) {
+        $stmt->bind_param($types, ...$params);
+    }
+    $stmt->execute();
+    $q = $stmt->get_result();
 
     echo "<table class='table table-bordered table-hover'>
         <thead class='table-dark text-center'>
@@ -44,7 +67,7 @@ if (isset($_GET['historial'])) {
                 <td>" . htmlspecialchars($r['dia'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>
                 <td>" . ($r['hora_inicio'] ? htmlspecialchars("{$r['hora_inicio']} - {$r['hora_fin']}", ENT_QUOTES, 'UTF-8') : '') . "</td>
                 <td>" . htmlspecialchars($r['salon'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>
-                <td>" . ($r['estado'] === 'asistio' ? '✅ Asistió' : '❌ Inasistencia') . "</td>
+                <td>" . ($r['estado'] === 'asistio' ? 'Asistio' : 'Inasistencia') . "</td>
                 <td>" . htmlspecialchars($r['justificacion'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>
             </tr>";
         }
@@ -60,32 +83,35 @@ if (isset($_GET['historial'])) {
 // GUARDAR ASISTENCIA
 // ===================
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $usuario_id = $_POST['usuario_id'] ?? '';
-    $grupo_id = $_POST['grupo_id'] ?? '';
+    csrf_verify();
+    $usuario_id = (int)($_POST['usuario_id'] ?? 0);
+    $grupo_id = !empty($_POST['grupo_id']) ? (int)$_POST['grupo_id'] : null;
     $fecha = $_POST['fecha'] ?? '';
     $estado = $_POST['estado'] ?? '';
-    $salon_id = $_POST['salon_id'] ?: 'NULL';
-    $justificacion = $conn->real_escape_string($_POST['justificacion'] ?? '');
+    $salon_id = !empty($_POST['salon_id']) ? (int)$_POST['salon_id'] : null;
+    $justificacion = $_POST['justificacion'] ?? '';
 
-    $dia_id = 'NULL';
-    $bloque_id = 'NULL';
+    $dia_id = null;
+    $bloque_id = null;
     if (!empty($_POST['horario_id'])) {
         $h_id = (int)$_POST['horario_id'];
-        $h_res = $conn->query("SELECT dia_id, bloque_id FROM horarios WHERE id = $h_id");
+        $stmt_h = $conn->prepare("SELECT dia_id, bloque_id FROM horarios WHERE id = ?");
+        $stmt_h->bind_param("i", $h_id);
+        $stmt_h->execute();
+        $h_res = $stmt_h->get_result();
         if ($h_row = $h_res->fetch_assoc()) {
             $dia_id = $h_row['dia_id'];
             $bloque_id = $h_row['bloque_id'];
         }
+        $stmt_h->close();
     }
 
-    $sql = "
-        INSERT INTO asistencias (usuario_id, grupo_id, fecha, estado, justificacion, dia_id, bloque_id, salon_id)
-        VALUES ('$usuario_id', '$grupo_id', '$fecha', '$estado', '$justificacion', $dia_id, $bloque_id, $salon_id)
-    ";
+    $stmt = $conn->prepare("INSERT INTO asistencias (usuario_id, grupo_id, fecha, estado, justificacion, dia_id, bloque_id, salon_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+    $stmt->bind_param("issssiii", $usuario_id, $grupo_id, $fecha, $estado, $justificacion, $dia_id, $bloque_id, $salon_id);
 
-    if ($conn->query($sql)) {
-        echo json_encode(["status" => "success", "message" => "✅ Asistencia registrada correctamente."]);
+    if ($stmt->execute()) {
+        echo json_encode(["status" => "success", "message" => "Asistencia registrada correctamente."]);
     } else {
-        echo json_encode(["status" => "danger", "message" => "⚠️ Error: " . $conn->error]);
+        echo json_encode(["status" => "danger", "message" => "Error: " . $stmt->error]);
     }
 }

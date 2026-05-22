@@ -138,4 +138,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
   </form>
 </section>
 
-<script src="/Agora/Agora/assets/agregar_salon.js"></script>
+<script src="assets/agregar_salon.js"></script>

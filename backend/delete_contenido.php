@@ -1,7 +1,8 @@
 <?php
-session_start();
 require_once __DIR__ . '/db_connection.php';
 require_once __DIR__ . '/helpers.php';
+
+require_auth();
 
 $tipo = $_GET['tipo'] ?? 'noticias';
 $id = $_GET['id'] ?? null;

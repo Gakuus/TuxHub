@@ -2,8 +2,9 @@
 // Protecciones básicas
 require_once __DIR__ . '/auth_admin.php';
 require_once __DIR__ . '/db_connection.php';
+require_once __DIR__ . '/helpers.php';
 
-session_start(); 
+csrf_verify();
 
 // Validamos que sea POST
 if ($_SERVER["REQUEST_METHOD"] !== "POST") {

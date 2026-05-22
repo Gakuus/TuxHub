@@ -1,7 +1,9 @@
 <?php
-session_start();
 require_once 'auth_admin.php';
 require_once 'db_connection.php';
+require_once __DIR__ . '/helpers.php';
+
+csrf_verify();
 
 $tipo = $_POST['tipo'];
 $id = $_POST['id'] ?? null;
@@ -109,8 +111,7 @@ try {
     }
 
     // Redirección exitosa
-    $baseURL = "https://" . $_SERVER['HTTP_HOST'] . "/Agora/Agora/dashboard.php";
-    $url = $baseURL . "?page=gestionar_contenido&tipo=" . urlencode($tipo) . "&success=1";
+    $url = base_url() . "/dashboard.php?page=gestionar_contenido&tipo=" . urlencode($tipo) . "&success=1";
     
     echo "
     <script>
@@ -123,8 +124,7 @@ try {
 
 } catch (Exception $e) {
     // Redirección con error
-    $baseURL = "https://" . $_SERVER['HTTP_HOST'] . "/Agora/Agora/dashboard.php";
-    $url = $baseURL . "?page=gestionar_contenido&tipo=" . urlencode($tipo) . "&error=" . urlencode($e->getMessage());
+    $url = base_url() . "/dashboard.php?page=gestionar_contenido&tipo=" . urlencode($tipo) . "&error=" . urlencode($e->getMessage());
     
     echo "
     <script>

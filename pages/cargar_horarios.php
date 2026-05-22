@@ -423,4 +423,4 @@ function mostrarCampoSalon(sel) {
     document.getElementById('nuevoSalonDiv').style.display = sel.value === 'nuevo' ? 'block' : 'none';
 }
 </script>
-<script src="/Agora/Agora/assets/cargar_horario.js"></script>
+<script src="assets/cargar_horario.js"></script>

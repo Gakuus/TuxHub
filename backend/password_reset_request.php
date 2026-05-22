@@ -1,14 +1,7 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
-
 require_once __DIR__ . '/db_connection.php';
 require_once __DIR__ . '/send_email.php';
-
-// Iniciar sesión
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
+require_once __DIR__ . '/helpers.php';
 
 // Generar CSRF token si no existe
 if (empty($_SESSION['csrf_token'])) {
@@ -88,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->close();
 
     // Enviar email
-    $link = "https://dbitsp.tailff9876.ts.net/Agora/Agora/password_reset_form.php?token=" . urlencode($token);
+    $link = base_url() . "/password_reset_form.php?token=" . urlencode($token);
     
     $mensajeEmail = "
         <!DOCTYPE html>

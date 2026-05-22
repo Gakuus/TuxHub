@@ -1,6 +1,44 @@
 <?php
-if (session_status() === PHP_SESSION_NONE) {
+
+function init_session(): void {
+    if (session_status() === PHP_SESSION_ACTIVE) return;
+
+    $is_https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+                || ($_SERVER['SERVER_PORT'] ?? 80) == 443;
+
+    ini_set('session.cookie_httponly', 1);
+    if ($is_https) {
+        ini_set('session.cookie_secure', 1);
+    }
+    ini_set('session.use_strict_mode', 1);
+    ini_set('session.cookie_samesite', 'Lax');
+    ini_set('session.use_only_cookies', 1);
+
     session_start();
+}
+
+init_session();
+
+function app_log(string $level, string $message, array $context = []): void {
+    $log_dir = __DIR__ . '/../logs';
+    if (!is_dir($log_dir)) {
+        @mkdir($log_dir, 0755, true);
+    }
+
+    $entry = [
+        'time'    => date('Y-m-d H:i:s'),
+        'level'   => strtoupper($level),
+        'message' => $message,
+        'ip'      => $_SERVER['REMOTE_ADDR'] ?? 'cli',
+        'user_id' => $_SESSION['user_id'] ?? null,
+    ];
+
+    if ($context) {
+        $entry['context'] = $context;
+    }
+
+    $file = $log_dir . '/app-' . date('Y-m-d') . '.log';
+    file_put_contents($file, json_encode($entry, JSON_UNESCAPED_UNICODE) . "\n", FILE_APPEND | LOCK_EX);
 }
 
 function csrf_verify(): void {

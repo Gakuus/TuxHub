@@ -74,7 +74,7 @@ try {
 ?>
 
 <!-- Incluir CSS -->
-<link rel="stylesheet" href="/Agora/Agora/css/recursos.css">
+<link rel="stylesheet" href="css/recursos.css">
 
 <div class="d-flex justify-content-between align-items-center mb-4 form-recurso-container">
     <h4 class="mb-0"><?= $is_editing ? '✏️ Editar Recurso' : '➕ Agregar Recurso' ?></h4>
@@ -89,7 +89,7 @@ try {
 <?php endforeach; ?>
 
 <!-- Formulario -->
-<form method="POST" action="/Agora/Agora/backend/recursos_backend.php" class="row g-3" id="formRecurso">
+<form method="POST" action="backend/recursos_backend.php" class="row g-3" id="formRecurso">
     <input type="hidden" name="id" value="<?= $is_editing ? $recurso_data['id'] : '' ?>">
     
     <div class="col-md-6">
@@ -147,4 +147,4 @@ try {
 </form>
 
 <!-- Incluir JavaScript -->
-<script src="/Agora/Agora/assets/recursos_form.js"></script>
+<script src="assets/recursos_form.js"></script>

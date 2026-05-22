@@ -34,7 +34,7 @@ function displayPage(string $message, string $type = 'success'): void
             @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap');
             body {
                 font-family: 'Poppins', sans-serif;
-                background: url('/Agora/Agora/img/itsp.jpeg') no-repeat center center fixed;
+                background: url('../img/itsp.jpeg') no-repeat center center fixed;
         background-size: cover;
                 display: flex;
                 justify-content: center;

@@ -1,18 +1,9 @@
 <?php
-session_start();
-require_once 'db_connection.php';
+require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/db_connection.php';
 
 $is_https = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
             || ($_SERVER['SERVER_PORT'] ?? 80) == 443;
-
-// ========= CONFIGURACIÓN DE SEGURIDAD =========
-ini_set('session.cookie_httponly', 1);
-if ($is_https) {
-    ini_set('session.cookie_secure', 1);
-}
-ini_set('session.use_strict_mode', 1);
-ini_set('session.cookie_samesite', 'Lax');
-ini_set('session.use_only_cookies', 1);
 
 // Headers de seguridad
 header("X-Frame-Options: DENY");
@@ -152,6 +143,7 @@ try {
     $result = $stmt->get_result();
 
     if ($result->num_rows !== 1) {
+        app_log('warning', 'Login fallido: usuario no encontrado', ['cedula' => $cedula, 'ip' => $remoteip]);
         registrar_intento_fallido($conn, $remoteip, $cedula);
         redirect_error('credenciales');
     }
@@ -187,7 +179,10 @@ try {
     }
 
     // ========= LIMPIAR INTENTOS FALLIDOS =========
-    $conn->query("DELETE FROM login_intentos WHERE ip = '$remoteip'");
+    $stmt_del = $conn->prepare("DELETE FROM login_intentos WHERE ip = ?");
+    $stmt_del->bind_param("s", $remoteip);
+    $stmt_del->execute();
+    $stmt_del->close();
 
     // ========= REGISTRAR LOGIN EXITOSO =========
     try {
@@ -214,6 +209,8 @@ try {
 
     // Generar nuevo token CSRF
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+
+    app_log('info', 'Login exitoso', ['user_id' => $user['id'], 'rol' => $user['rol']]);
 
     // ========= REDIRECCIÓN =========
     header("Location: ../dashboard.php");

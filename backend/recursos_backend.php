@@ -1,13 +1,8 @@
 <?php
-// backend/recursos_backend.php
-session_start();
-require_once 'db_connection.php';
+require_once __DIR__ . '/helpers.php';
+require_once __DIR__ . '/db_connection.php';
 
-// Verificar que el usuario esté autenticado
-if (!isset($_SESSION['user_id'])) {
-    header('Location: /Agora/Agora/dashboard.php?page=recursos&error=' . urlencode('No autorizado'));
-    exit;
-}
+require_auth();
 
 $user_id = (int)$_SESSION['user_id'];
 $rol = $_SESSION['rol'] ?? '';
@@ -16,6 +11,7 @@ $rol = $_SESSION['rol'] ?? '';
 function mostrarConfirmacion($mensaje, $tipo = 'success') {
     $color = $tipo === 'success' ? 'success' : 'danger';
     $icono = $tipo === 'success' ? 'check-circle' : 'exclamation-triangle';
+    $destino = '../dashboard.php?page=recursos';
     
     echo <<<HTML
     <!DOCTYPE html>
@@ -62,7 +58,7 @@ function mostrarConfirmacion($mensaje, $tipo = 'success') {
             <h3 class="mb-3">{$mensaje}</h3>
             <p class="countdown">Redirigiendo a recursos en <span id="countdown">3</span> segundos...</p>
             <div class="mt-4">
-                <a href="/Agora/Agora/dashboard.php?page=recursos" class="btn btn-$color">
+                <a href="{$destino}" class="btn btn-$color">
                     <i class="bi bi-arrow-left"></i> Volver a Recursos
                 </a>
             </div>
@@ -78,7 +74,7 @@ function mostrarConfirmacion($mensaje, $tipo = 'success') {
                 
                 if (seconds <= 0) {
                     clearInterval(countdown);
-                    window.location.href = '/Agora/Agora/dashboard.php?page=recursos';
+                    window.location.href = '{$destino}';
                 }
             }, 1000);
         </script>
