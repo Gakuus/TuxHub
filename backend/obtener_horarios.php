@@ -10,11 +10,13 @@ if (!$profesor_id || !$grupo_id) {
 }
 
 $sql = "
-    SELECT id, dia, TIME_FORMAT(hora_inicio, '%H:%i') AS hora_inicio,
-           TIME_FORMAT(hora_fin, '%H:%i') AS hora_fin
-    FROM horarios
-    WHERE profesor_id = '$profesor_id' AND grupo_id = '$grupo_id'
-    ORDER BY FIELD(dia,'Lunes','Martes','Miércoles','Jueves','Viernes'), hora_inicio
+    SELECT h.id, d.nombre_dia AS dia, TIME_FORMAT(bh.hora_inicio, '%H:%i') AS hora_inicio,
+           TIME_FORMAT(bh.hora_fin, '%H:%i') AS hora_fin
+    FROM horarios h
+    JOIN dias d ON h.dia_id = d.id
+    JOIN bloques_horarios bh ON h.bloque_id = bh.id
+    WHERE h.profesor_id = '$profesor_id' AND h.grupo_id = '$grupo_id'
+    ORDER BY d.id, bh.hora_inicio
 ";
 $result = $conn->query($sql);
 

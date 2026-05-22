@@ -7,24 +7,32 @@ $user_id = (int)($_SESSION['user_id'] ?? 0);
 
 if ($rol === 'admin') {
     $sql = "
-        SELECT a.id, u.nombre AS profesor, g.nombre AS grupo, a.dia, h.dia AS dia_horario,
-               CONCAT(h.hora_inicio, ' - ', h.hora_fin) AS horario, s.nombre AS salon, a.estado, a.justificacion
+        SELECT a.id, u.nombre AS profesor, g.nombre AS grupo,
+               d.nombre_dia AS dia_horario,
+               CONCAT(bh.hora_inicio, ' - ', bh.hora_fin) AS horario, s.nombre_salon AS salon, a.estado, a.justificacion,
+               GROUP_CONCAT(DISTINCT sr.recurso SEPARATOR ', ') AS recursos
         FROM asistencias a
         LEFT JOIN usuarios u ON a.usuario_id = u.id
         LEFT JOIN grupos g ON a.grupo_id = g.id
         LEFT JOIN salones s ON a.salon_id = s.id
-        LEFT JOIN horarios h ON a.horario_id = h.id
+        LEFT JOIN dias d ON a.dia_id = d.id
+        LEFT JOIN bloques_horarios bh ON a.bloque_id = bh.id
+        LEFT JOIN salon_recursos sr ON s.id = sr.salon_id
         ORDER BY a.fecha DESC
     ";
     $res = $conn->query($sql);
 } elseif ($rol === 'profesor') {
     $sql = "
-        SELECT a.id, g.nombre AS grupo, a.dia, h.dia AS dia_horario,
-               CONCAT(h.hora_inicio, ' - ', h.hora_fin) AS horario, s.nombre AS salon, a.estado, a.justificacion
+        SELECT a.id, g.nombre AS grupo,
+               d.nombre_dia AS dia_horario,
+               CONCAT(bh.hora_inicio, ' - ', bh.hora_fin) AS horario, s.nombre_salon AS salon, a.estado, a.justificacion,
+               GROUP_CONCAT(DISTINCT sr.recurso SEPARATOR ', ') AS recursos
         FROM asistencias a
         LEFT JOIN grupos g ON a.grupo_id = g.id
         LEFT JOIN salones s ON a.salon_id = s.id
-        LEFT JOIN horarios h ON a.horario_id = h.id
+        LEFT JOIN dias d ON a.dia_id = d.id
+        LEFT JOIN bloques_horarios bh ON a.bloque_id = bh.id
+        LEFT JOIN salon_recursos sr ON s.id = sr.salon_id
         WHERE a.usuario_id = ?
         ORDER BY a.fecha DESC
     ";
@@ -66,7 +74,7 @@ while ($row = $res->fetch_assoc()) {
     echo "<tr>";
     if ($rol === 'admin' || $rol === 'alumno') echo "<td>" . htmlspecialchars($row['profesor'] ?? '') . "</td>";
     echo "<td>" . htmlspecialchars($row['grupo'] ?? '') . "</td>
-          <td>" . htmlspecialchars($row['dia'] ?? $row['dia_horario'] ?? '') . "</td>
+          <td>" . htmlspecialchars($row['dia_horario'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>
           <td>" . htmlspecialchars($row['horario'] ?? '-') . "</td>
           <td>" . htmlspecialchars($row['salon'] ?? '-') . "</td>
           <td>" . htmlspecialchars($row['estado'] ?? '') . "</td>

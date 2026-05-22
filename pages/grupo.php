@@ -16,12 +16,12 @@ $nombre = $_SESSION['user_name'] ?? "Usuario";
 $mensaje = "";
 
 // === DESACTIVAR GRUPO ===
-if (isset($_GET['desactivar'])) {
+if (isset($_GET['desactivor'])) {
     if ($rol_lower !== 'admin') {
         $mensaje = '<div class="alert alert-danger">❌ No tienes permisos.</div>';
     } else {
         csrf_verify_get();
-        $id = (int) $_GET['desactivar'];
+        $id = (int) $_GET['desactivor'];
         
         $stmt = $conn->prepare("SELECT nombre FROM grupos WHERE id = ?");
         $stmt->bind_param("i", $id);
@@ -32,16 +32,16 @@ if (isset($_GET['desactivar'])) {
         if ($check->num_rows > 0) {
             $grupo = $check->fetch_assoc();
             
-            $stmt = $conn->prepare("UPDATE grupos SET activa = 0 WHERE id = ?");
+            $stmt = $conn->prepare("UPDATE grupos SET activo = 0 WHERE id = ?");
             $stmt->bind_param("i", $id);
             $updated = $stmt->execute();
             $stmt->close();
             
             if ($updated) {
-                $mensaje = "<div class='alert alert-warning'>✅ Grupo '" . htmlspecialchars($grupo['nombre'], ENT_QUOTES, 'UTF-8') . "' desactivado correctamente.</div>";
+                $mensaje = "<div class='alert alert-warning'>✅ Grupo '" . htmlspecialchars($grupo['nombre'], ENT_QUOTES, 'UTF-8') . "' desactivodo correctamente.</div>";
                 echo "<script>setTimeout(() => { window.location.href = 'dashboard.php?page=grupos'; }, 1000);</script>";
             } else {
-                $mensaje = "<div class='alert alert-danger'>❌ Error al desactivar.</div>";
+                $mensaje = "<div class='alert alert-danger'>❌ Error al desactivor.</div>";
             }
         } else {
             $mensaje = "<div class='alert alert-danger'>❌ El grupo no existe.</div>";
@@ -50,12 +50,12 @@ if (isset($_GET['desactivar'])) {
 }
 
 // === ACTIVAR GRUPO ===
-if (isset($_GET['activar'])) {
+if (isset($_GET['activor'])) {
     if ($rol_lower !== 'admin') {
         $mensaje = '<div class="alert alert-danger">❌ No tienes permisos.</div>';
     } else {
         csrf_verify_get();
-        $id = (int) $_GET['activar'];
+        $id = (int) $_GET['activor'];
         
         $stmt = $conn->prepare("SELECT nombre FROM grupos WHERE id = ?");
         $stmt->bind_param("i", $id);
@@ -66,16 +66,16 @@ if (isset($_GET['activar'])) {
         if ($check->num_rows > 0) {
             $grupo = $check->fetch_assoc();
             
-            $stmt = $conn->prepare("UPDATE grupos SET activa = 1 WHERE id = ?");
+            $stmt = $conn->prepare("UPDATE grupos SET activo = 1 WHERE id = ?");
             $stmt->bind_param("i", $id);
             $updated = $stmt->execute();
             $stmt->close();
             
             if ($updated) {
-                $mensaje = "<div class='alert alert-success'>✅ Grupo '" . htmlspecialchars($grupo['nombre'], ENT_QUOTES, 'UTF-8') . "' activado correctamente.</div>";
+                $mensaje = "<div class='alert alert-success'>✅ Grupo '" . htmlspecialchars($grupo['nombre'], ENT_QUOTES, 'UTF-8') . "' activodo correctamente.</div>";
                 echo "<script>setTimeout(() => { window.location.href = 'dashboard.php?page=grupos'; }, 1000);</script>";
             } else {
-                $mensaje = "<div class='alert alert-danger'>❌ Error al activar.</div>";
+                $mensaje = "<div class='alert alert-danger'>❌ Error al activor.</div>";
             }
         } else {
             $mensaje = '<div class="alert alert-danger">❌ El grupo no existe.</div>';
@@ -85,6 +85,7 @@ if (isset($_GET['activar'])) {
 
 // === AGREGAR GRUPO ===
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nombre_grupo'])) {
+    csrf_verify();
     $nombre_grupo = trim($conn->real_escape_string($_POST['nombre_grupo'] ?? ''));
     $turno = trim($conn->real_escape_string($_POST['turno'] ?? ''));
 
@@ -92,19 +93,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nombre_grupo'])) {
         if (strlen($nombre_grupo) > 24) {
             $mensaje = "<div class='alert alert-danger'>⚠️ El nombre del grupo no puede superar los 24 caracteres.</div>";
         } else {
-            $check = $conn->query("SELECT id, activa FROM grupos WHERE nombre = '$nombre_grupo' AND turno = '$turno'");
+            $check = $conn->query("SELECT id, activo FROM grupos WHERE nombre = '$nombre_grupo' AND turno = '$turno'");
             if ($check->num_rows > 0) {
                 $grupo_existente = $check->fetch_assoc();
-                if ($grupo_existente['activa'] == 0) {
-                    if ($conn->query("UPDATE grupos SET activa = 1 WHERE id = {$grupo_existente['id']}")) {
-                        $mensaje = "<div class='alert alert-success'>✅ Grupo reactivado correctamente.</div>";
+                if ($grupo_existente['activo'] == 0) {
+                    if ($conn->query("UPDATE grupos SET activo = 1 WHERE id = {$grupo_existente['id']}")) {
+                        $mensaje = "<div class='alert alert-success'>✅ Grupo reactivodo correctamente.</div>";
                         $_POST['nombre_grupo'] = '';
                     }
                 } else {
                     $mensaje = "<div class='alert alert-warning'>⚠️ El grupo ya existe y está activo.</div>";
                 }
             } else {
-                if ($conn->query("INSERT INTO grupos (nombre, turno, activa) VALUES ('$nombre_grupo', '$turno', 1)")) {
+                if ($conn->query("INSERT INTO grupos (nombre, turno, activo) VALUES ('$nombre_grupo', '$turno', 1)")) {
                     $mensaje = "<div class='alert alert-success'>✅ Grupo agregado correctamente.</div>";
                     $_POST['nombre_grupo'] = '';
                 } else {
@@ -134,9 +135,9 @@ $filtro_turno = isset($_GET['filtro_turno']) && $_GET['filtro_turno'] != '' ? $_
 
 $where_conditions = [];
 if ($ver_inactivos) {
-    $where_conditions[] = "g.activa = 0";
+    $where_conditions[] = "g.activo = 0";
 } else {
-    $where_conditions[] = "g.activa = 1";
+    $where_conditions[] = "g.activo = 1";
 }
 
 if (!empty($filtro_turno)) {
@@ -156,16 +157,16 @@ $result = $conn->query("SELECT g.*, COUNT(h.id) as total_horarios
                        ORDER BY g.id DESC");
 
 $estadisticas_query = $conn->query("SELECT 
-    SUM(activa = 1) as activos,
-    SUM(activa = 0) as inactivos
+    SUM(activo = 1) as activos,
+    SUM(activo = 0) as inactivos
 FROM grupos");
 $estadisticas = $estadisticas_query ? $estadisticas_query->fetch_assoc() : ['activos' => 0, 'inactivos' => 0];
 
 $estadisticas_turnos = $conn->query("SELECT 
     turno,
     COUNT(*) as total,
-    SUM(activa = 1) as activos,
-    SUM(activa = 0) as inactivos
+    SUM(activo = 1) as activos,
+    SUM(activo = 0) as inactivos
 FROM grupos 
 GROUP BY turno 
 ORDER BY turno");
@@ -252,6 +253,7 @@ ORDER BY turno");
                     </select>
                 </div>
                 <div class="col-md-3 d-flex align-items-end">
+                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                     <button type="submit" class="btn btn-primary w-100">
                         <i class="bi bi-check-circle"></i> Agregar/Reactivar Grupo
                     </button>
@@ -318,8 +320,8 @@ ORDER BY turno");
                                         </span>
                                     </td>
                                     <td>
-                                        <span class="status-badge <?= $row['activa'] ? 'available' : 'inactive' ?>">
-                                            <?= $row['activa'] ? 'Activo' : 'Inactivo' ?>
+                                        <span class="status-badge <?= $row['activo'] ? 'available' : 'inactive' ?>">
+                                            <?= $row['activo'] ? 'Activo' : 'Inactivo' ?>
                                         </span>
                                     </td>
                                     <td>
@@ -329,17 +331,17 @@ ORDER BY turno");
                                     </td>
                                     <td>
                                         <?php if ($rol_lower === 'admin'): ?>
-                                            <?php if ($row['activa']): ?>
-                                                <a href="dashboard.php?page=grupos&desactivar=<?= (int)$row['id'] ?>&filtro_turno=<?= htmlspecialchars($filtro_turno, ENT_QUOTES, 'UTF-8') ?>&ver_inactivos=<?= $ver_inactivos ? '1' : '0' ?><?= $csrf_param ?>" 
+                                            <?php if ($row['activo']): ?>
+                                                <a href="dashboard.php?page=grupos&desactivor=<?= (int)$row['id'] ?>&filtro_turno=<?= htmlspecialchars($filtro_turno, ENT_QUOTES, 'UTF-8') ?>&ver_inactivos=<?= $ver_inactivos ? '1' : '0' ?><?= $csrf_param ?>" 
                                                    class="btn btn-outline-warning btn-sm"
-                                                   onclick="return confirmAction('desactivar', '<?= addslashes(htmlspecialchars($row['nombre'], ENT_QUOTES, 'UTF-8')) ?>');">
-                                                    <i class="bi bi-eye-slash"></i> Desactivar
+                                                   onclick="return confirmAction('desactivor', '<?= addslashes(htmlspecialchars($row['nombre'], ENT_QUOTES, 'UTF-8')) ?>');">
+                                                    <i class="bi bi-eye-slash"></i> Desactivor
                                                 </a>
                                             <?php else: ?>
-                                                <a href="dashboard.php?page=grupos&activar=<?= (int)$row['id'] ?>&filtro_turno=<?= htmlspecialchars($filtro_turno, ENT_QUOTES, 'UTF-8') ?>&ver_inactivos=<?= $ver_inactivos ? '1' : '0' ?><?= $csrf_param ?>" 
+                                                <a href="dashboard.php?page=grupos&activor=<?= (int)$row['id'] ?>&filtro_turno=<?= htmlspecialchars($filtro_turno, ENT_QUOTES, 'UTF-8') ?>&ver_inactivos=<?= $ver_inactivos ? '1' : '0' ?><?= $csrf_param ?>" 
                                                    class="btn btn-outline-success btn-sm"
-                                                   onclick="return confirmAction('activar', '<?= addslashes(htmlspecialchars($row['nombre'], ENT_QUOTES, 'UTF-8')) ?>');">
-                                                    <i class="bi bi-eye"></i> Reactivar
+                                                   onclick="return confirmAction('activor', '<?= addslashes(htmlspecialchars($row['nombre'], ENT_QUOTES, 'UTF-8')) ?>');">
+                                                    <i class="bi bi-eye"></i> Reactivor
                                                 </a>
                                             <?php endif; ?>
                                         <?php else: ?>

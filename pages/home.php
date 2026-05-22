@@ -122,9 +122,9 @@ if (isset($_SESSION['user_id']) && $rol === 'profesor') {
         <?php while ($noticia = $noticias->fetch_assoc()): ?>
           <div class="col-md-6 col-lg-4">
             <div class="news-card h-100 p-3 rounded-3" style="background:rgba(255,255,255,0.6);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(255,255,255,0.3);border-radius:14px;transition:all .3s ease;">
-              <?php if (!empty($noticia['imagen'])): ?>
+              <?php if (!empty($noticia['imagen_ruta'])): ?>
                 <div class="mb-2 rounded-2 overflow-hidden" style="max-height:150px;">
-                  <img src="data:image/jpeg;base64,<?= base64_encode($noticia['imagen']) ?>" class="w-100" style="object-fit:cover;height:150px;" alt="Imagen">
+                  <img src="<?= htmlspecialchars($noticia['imagen_ruta'], ENT_QUOTES, 'UTF-8') ?>" class="w-100" style="object-fit:cover;height:150px;" alt="Imagen">
                 </div>
               <?php endif; ?>
               <h6 class="fw-bold"><?= htmlspecialchars($noticia['titulo']) ?></h6>

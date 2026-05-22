@@ -178,12 +178,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'], $_POST['sal
         $observaciones = trim($_POST['observaciones']);
         $recursos_sel = $_POST['recursos'] ?? [];
 
-        $recursos_array = array_fill_keys($recursos_disponibles, false);
-        foreach ($recursos_sel as $r) {
-            if (isset($recursos_array[$r])) $recursos_array[$r] = true;
-        }
-        $recursos_json = json_encode($recursos_array);
-
         // Para profesores, solo permitir editar observaciones
         if ($rol === 'profesor') {
             $stmt = $conn->prepare("
@@ -196,10 +190,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion'], $_POST['sal
             // Para admins, permitir editar todos los campos
             $stmt = $conn->prepare("
                 UPDATE salones 
-                SET nombre_salon=?, capacidad=?, ubicacion=?, observaciones=?, recursos=? 
+                SET nombre_salon=?, capacidad=?, ubicacion=?, observaciones=? 
                 WHERE id=?
             ");
-            $stmt->bind_param("sisssi", $nombre, $capacidad, $ubicacion, $observaciones, $recursos_json, $salon_id);
+            $stmt->bind_param("sissi", $nombre, $capacidad, $ubicacion, $observaciones, $salon_id);
+
+            $stmt->execute();
+            $stmt->close();
+
+            // Actualizar recursos en salon_recursos
+            $stmt = $conn->prepare("DELETE FROM salon_recursos WHERE salon_id=?");
+            $stmt->bind_param("i", $salon_id);
+            $stmt->execute();
+            $stmt->close();
+
+            if (!empty($recursos_sel)) {
+                $stmt = $conn->prepare("INSERT INTO salon_recursos (salon_id, recurso, cantidad) VALUES (?, ?, 1)");
+                foreach ($recursos_sel as $r) {
+                    if (in_array($r, $recursos_disponibles)) {
+                        $stmt->bind_param("is", $salon_id, $r);
+                        $stmt->execute();
+                    }
+                }
+                $stmt->close();
+            }
+
+            echo "<script>window.location.href = '" . htmlspecialchars($_SERVER['PHP_SELF'], ENT_QUOTES, 'UTF-8') . "';</script>";
+            exit();
         }
         
         $stmt->execute();
@@ -251,7 +268,6 @@ $sql = "
         s.id AS salon_id,
         s.nombre_salon,
         s.capacidad,
-        s.recursos,
         s.estado,
         s.ubicacion,
         s.observaciones,
@@ -270,6 +286,15 @@ $sql = "
     ORDER BY s.nombre_salon
 ";
 $result = $conn->query($sql);
+
+// Fetch recursos from salon_recursos
+$recursos_por_salon = [];
+$rec_res = $conn->query("SELECT salon_id, recurso FROM salon_recursos ORDER BY salon_id, recurso");
+if ($rec_res) {
+    while ($rr = $rec_res->fetch_assoc()) {
+        $recursos_por_salon[$rr['salon_id']][] = $rr['recurso'];
+    }
+}
 ?>
 
 <div class="salones-section">
@@ -327,14 +352,7 @@ $result = $conn->query($sql);
     <div class="cards-grid">
         <?php if ($result->num_rows > 0): ?>
             <?php while ($row = $result->fetch_assoc()): 
-                $recursos_json = $row['recursos'] ?? '';
-                $recursos_list = [];
-                if ($recursos_json) {
-                    $decoded = json_decode($recursos_json,true);
-                    if (is_array($decoded)) {
-                        $recursos_list = array_keys(array_filter($decoded));
-                    }
-                }
+                $recursos_list = $recursos_por_salon[$row['salon_id']] ?? [];
             ?>
             <div class="salon-card card">
                 <div class="salon-header">

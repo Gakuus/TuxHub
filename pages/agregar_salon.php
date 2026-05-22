@@ -52,22 +52,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
         }
 
         if (empty($errores)) {
-            // Crear array de recursos con valores booleanos
-            $recursos_array = array_fill_keys($recursos_disponibles, false);
-            foreach ($recursos_sel as $r) {
-                if (isset($recursos_array[$r])) {
-                    $recursos_array[$r] = true;
-                }
-            }
-
-            $recursos_json = json_encode($recursos_array, JSON_UNESCAPED_UNICODE);
-
             // Insertar en la base de datos
-            $stmt = $conn->prepare("INSERT INTO salones (nombre_salon, capacidad, ubicacion, observaciones, recursos, estado)
-                                    VALUES (?, ?, ?, ?, ?, 'disponible')");
-            $stmt->bind_param("sisss", $nombre, $capacidad, $ubicacion, $observaciones, $recursos_json);
+            $stmt = $conn->prepare("INSERT INTO salones (nombre_salon, capacidad, ubicacion, observaciones, estado)
+                                    VALUES (?, ?, ?, ?, 'disponible')");
+            $stmt->bind_param("siss", $nombre, $capacidad, $ubicacion, $observaciones);
 
             if ($stmt->execute()) {
+                $salon_id = $stmt->insert_id;
+
+                // Insertar recursos en tabla salon_recursos
+                if (!empty($recursos_sel)) {
+                    $stmt_r = $conn->prepare("INSERT INTO salon_recursos (salon_id, recurso, cantidad) VALUES (?, ?, 1)");
+                    foreach ($recursos_sel as $r) {
+                        if (in_array($r, $recursos_disponibles)) {
+                            $stmt_r->bind_param("is", $salon_id, $r);
+                            $stmt_r->execute();
+                        }
+                    }
+                    $stmt_r->close();
+                }
+
                 echo '<div class="alert alert-success mt-3">✅ Salón agregado correctamente.</div>';
             } else {
                 echo '<div class="alert alert-danger mt-3">❌ Error al agregar salón: ' . htmlspecialchars($stmt->error) . '</div>';

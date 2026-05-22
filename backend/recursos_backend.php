@@ -90,6 +90,10 @@ HTML;
 
 // CREAR NUEVO RECURSO
 if (isset($_POST['accion']) && $_POST['accion'] === 'crear') {
+    if (empty($_POST['csrf_token']) || empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        echo json_encode(['success' => false, 'error' => 'CSRF token inválido.']);
+        exit;
+    }
     // Verificar permisos de admin
     if ($rol !== 'admin') {
         mostrarConfirmacion('❌ No tienes permisos para crear recursos', 'danger');
@@ -142,6 +146,10 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'crear') {
 
 // ACTUALIZAR RECURSO
 if (isset($_POST['accion']) && $_POST['accion'] === 'actualizar') {
+    if (empty($_POST['csrf_token']) || empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        echo json_encode(['success' => false, 'error' => 'CSRF token inválido.']);
+        exit;
+    }
     // Verificar permisos de admin
     if ($rol !== 'admin') {
         mostrarConfirmacion('❌ No tienes permisos para editar recursos', 'danger');
@@ -199,6 +207,10 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'actualizar') {
 
 // Marcar uso (ocupar/liberar)
 if (isset($_POST['accion']) && $_POST['accion'] === 'marcar_uso') {
+    if (empty($_POST['csrf_token']) || empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        echo json_encode(['success' => false, 'error' => 'CSRF token inválido.']);
+        exit;
+    }
     $id = (int)$_POST['id'];
     $salon_id = !empty($_POST['salon_id']) ? (int)$_POST['salon_id'] : NULL;
     $grupo_id = !empty($_POST['grupo_id']) ? (int)$_POST['grupo_id'] : NULL;
@@ -265,6 +277,10 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'marcar_uso') {
 
 // Reservar recurso
 if (isset($_POST['accion']) && $_POST['accion'] === 'reservar') {
+    if (empty($_POST['csrf_token']) || empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        echo json_encode(['success' => false, 'error' => 'CSRF token inválido.']);
+        exit;
+    }
     $id = (int)$_POST['id'];
     
     // Permitir reservar a todos los roles excepto invitados
@@ -290,6 +306,10 @@ if (isset($_POST['accion']) && $_POST['accion'] === 'reservar') {
 
 // Cancelar reserva
 if (isset($_POST['accion']) && $_POST['accion'] === 'cancelar_reserva') {
+    if (empty($_POST['csrf_token']) || empty($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        echo json_encode(['success' => false, 'error' => 'CSRF token inválido.']);
+        exit;
+    }
     $id = (int)$_POST['id'];
     
     if ($rol === 'admin') {

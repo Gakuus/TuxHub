@@ -30,7 +30,7 @@ if($dias_result && $dias_result->num_rows){
 // ==========================
 $grupos = [];
 if($rol === "admin"){
-    $sql = "SELECT id, nombre, activa FROM grupos";
+    $sql = "SELECT id, nombre, activo FROM grupos";
     $params = [];
     $types = "";
     
@@ -43,9 +43,9 @@ if($rol === "admin"){
     }
     
     if ($filtro_estado_grupos === 'activos') {
-        $conditions[] = "(activa = 1 OR activa IS NULL)";
+        $conditions[] = "(activo = 1 OR activo IS NULL)";
     } elseif ($filtro_estado_grupos === 'inactivos') {
-        $conditions[] = "activa = 0";
+        $conditions[] = "activo = 0";
     }
     
     if (!empty($conditions)) {
@@ -68,7 +68,7 @@ if($rol === "admin"){
     
 } elseif($rol === "profesor"){
     $sql = "
-        SELECT g.id, g.nombre, g.activa
+        SELECT g.id, g.nombre, g.activo
         FROM grupos g
         JOIN grupos_profesores gp ON gp.grupo_id = g.id
         WHERE gp.profesor_id = ?
@@ -83,9 +83,9 @@ if($rol === "admin"){
     }
     
     if ($filtro_estado_grupos === 'activos') {
-        $sql .= " AND (g.activa = 1 OR g.activa IS NULL)";
+        $sql .= " AND (g.activo = 1 OR g.activo IS NULL)";
     } elseif ($filtro_estado_grupos === 'inactivos') {
-        $sql .= " AND g.activa = 0";
+        $sql .= " AND g.activo = 0";
     }
     
     $sql .= " ORDER BY g.nombre";
@@ -99,7 +99,7 @@ if($rol === "admin"){
     
 } elseif($rol === "alumno"){
     if($grupo_id){
-        $stmt = $conn->prepare("SELECT id, nombre, activa FROM grupos WHERE id=?");
+        $stmt = $conn->prepare("SELECT id, nombre, activo FROM grupos WHERE id=?");
         $stmt->bind_param("i", $grupo_id);
         $stmt->execute();
         $res = $stmt->get_result();
@@ -215,7 +215,7 @@ function getMateriaClass($materiaNombre, $esActiva = true) {
 }
 
 function isGrupoActivo($grupo) {
-    return $grupo['activa'] == 1 || $grupo['activa'] === null;
+    return $grupo['activo'] == 1 || $grupo['activo'] === null;
 }
 
 $total_materias = count($materias_activas) + count($materias_inactivas);
@@ -224,7 +224,7 @@ $materias_inactivas_count = count($materias_inactivas);
 
 $grupos_activos = array_filter($grupos, 'isGrupoActivo');
 $grupos_inactivos = array_filter($grupos, function($grupo) {
-    return $grupo['activa'] == 0;
+    return $grupo['activo'] == 0;
 });
 $grupos_activos_count = count($grupos_activos);
 $grupos_inactivos_count = count($grupos_inactivos);

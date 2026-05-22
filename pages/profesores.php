@@ -27,7 +27,7 @@ while ($s = $salones_query->fetch_assoc()) {
 
 // Cargar bloques horarios (siempre disponibles, sin filtro por día)
 $bloques = [];
-$bloques_query = $conn->query("SELECT id, nombre_bloque, hora_inicio, hora_fin FROM bloques_horarios ORDER BY hora_inicio");
+$bloques_query = $conn->query("SELECT id, hora_inicio, hora_fin FROM bloques_horarios ORDER BY hora_inicio");
 while ($b = $bloques_query->fetch_assoc()) {
     $bloques[] = $b;
 }
@@ -87,8 +87,7 @@ while ($b = $bloques_query->fetch_assoc()) {
                             <option value="">Seleccionar bloque</option>
                             <?php foreach ($bloques as $bloque): ?>
                                 <option value="<?= $bloque['id'] ?>">
-                                    <?= htmlspecialchars($bloque['nombre_bloque']) ?> 
-                                    (<?= substr($bloque['hora_inicio'], 0, 5) ?> - <?= substr($bloque['hora_fin'], 0, 5) ?>)
+                                    <?= htmlspecialchars($bloque['hora_inicio'] . ' - ' . $bloque['hora_fin']) ?>
                                 </option>
                             <?php endforeach; ?>
                         </select>

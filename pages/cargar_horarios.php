@@ -61,10 +61,10 @@ if(isset($dias['error']) || empty($dias)) {
 // ==========================
 $grupos = [];
 if($profesor_id){
-    $where_grupos = $filtro_grupos === 'activos' ? "AND g.activa = 1" : "";
+    $where_grupos = $filtro_grupos === 'activos' ? "AND g.activo = 1" : "";
 
     $stmt = $conn->prepare("
-        SELECT g.id, g.nombre, g.turno, g.activa
+        SELECT g.id, g.nombre, g.turno, g.activo
         FROM grupos g
         JOIN grupos_profesores gp ON gp.grupo_id = g.id
         WHERE gp.profesor_id = ? $where_grupos
@@ -83,14 +83,14 @@ if($profesor_id){
 $turno_grupo = null;
 $bloques = [];
 if($grupo_id){
-    $stmt = $conn->prepare("SELECT turno, activa FROM grupos WHERE id=?");
+    $stmt = $conn->prepare("SELECT turno, activo FROM grupos WHERE id=?");
     $stmt->bind_param("i",$grupo_id);
     $stmt->execute();
     $res = $stmt->get_result();
     if($res && $res->num_rows) {
         $grupo_data = $res->fetch_assoc();
         $turno_grupo = $grupo_data['turno'];
-        $grupo_activo = $grupo_data['activa'];
+        $grupo_activo = $grupo_data['activo'];
     }
     $stmt->close();
 
@@ -293,7 +293,7 @@ FIN_PROCESO:
             <?php foreach($grupos as $g): ?>
               <option value="<?= $g['id'] ?>" <?= ($grupo_id==$g['id'])?'selected':'' ?>>
                 <?= htmlspecialchars($g['nombre']) ?> (<?= htmlspecialchars($g['turno']) ?>)
-                <?= (!$g['activa']) ? ' - [INACTIVO]' : '' ?>
+                <?= (!$g['activo']) ? ' - [INACTIVO]' : '' ?>
               </option>
             <?php endforeach; ?>
           </select>
@@ -346,7 +346,7 @@ FIN_PROCESO:
               <select name="bloque_id" class="form-select" required>
                 <option value="">-- Seleccione bloque --</option>
                 <?php foreach($bloques as $b): ?>
-                  <option value="<?= $b['id'] ?>"><?= $b['hora_inicio'] ?> - <?= $b['hora_fin'] ?></option>
+                  <option value="<?= $b['id'] ?>"><?= htmlspecialchars($b['hora_inicio']) ?> - <?= htmlspecialchars($b['hora_fin']) ?></option>
                 <?php endforeach; ?>
               </select>
             </div>

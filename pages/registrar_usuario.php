@@ -34,15 +34,15 @@ $errors = [];
 try {
     if ($rol_actual === 'profesor') {
         $stmt = $conn->prepare("
-            SELECT g.id, g.nombre, g.activa
+            SELECT g.id, g.nombre, g.activo
             FROM grupos g
             INNER JOIN grupos_profesores gp ON gp.grupo_id = g.id
             WHERE gp.profesor_id = ?
-            ORDER BY g.activa DESC, g.nombre
+            ORDER BY g.activo DESC, g.nombre
         ");
         $stmt->bind_param("i", $user_id);
     } else {
-        $stmt = $conn->prepare("SELECT id, nombre, activa FROM grupos ORDER BY activa DESC, nombre");
+        $stmt = $conn->prepare("SELECT id, nombre, activo FROM grupos ORDER BY activo DESC, nombre");
     }
     $stmt->execute();
     $result = $stmt->get_result();
@@ -51,8 +51,8 @@ try {
     
     // Separar grupos activos e inactivos
     foreach ($grupos_disponibles as $grupo) {
-        // Asumimos que 'activa' es 1 para activo, 0 para inactivo
-        if ($grupo['activa'] == 1) {
+        // Asumimos que 'activo' es 1 para activo, 0 para inactivo
+        if ($grupo['activo'] == 1) {
             $grupos_activos[] = $grupo;
         } else {
             $grupos_inactivos[] = $grupo;
@@ -136,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Verifica que los grupos elegidos pertenezcan al profesor y estén activos
         if (!empty($grupos)) {
             $stmt = $conn->prepare("
-                SELECT gp.grupo_id, g.activa 
+                SELECT gp.grupo_id, g.activo 
                 FROM grupos_profesores gp 
                 INNER JOIN grupos g ON g.id = gp.grupo_id 
                 WHERE gp.profesor_id = ?
@@ -146,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $result = $stmt->get_result();
             $grupos_permitidos = [];
             while ($row = $result->fetch_assoc()) {
-                $grupos_permitidos[$row['grupo_id']] = $row['activa'];
+                $grupos_permitidos[$row['grupo_id']] = $row['activo'];
             }
             $stmt->close();
 
@@ -166,14 +166,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         
         // Verificar que los grupos seleccionados estén activos (para admin)
         if (!empty($grupos)) {
-            $stmt = $conn->prepare("SELECT id, activa FROM grupos WHERE id IN (" . implode(',', array_fill(0, count($grupos), '?')) . ")");
+            $stmt = $conn->prepare("SELECT id, activo FROM grupos WHERE id IN (" . implode(',', array_fill(0, count($grupos), '?')) . ")");
             $types = str_repeat('i', count($grupos));
             $stmt->bind_param($types, ...$grupos);
             $stmt->execute();
             $result = $stmt->get_result();
             $estados_grupos = [];
             while ($row = $result->fetch_assoc()) {
-                $estados_grupos[$row['id']] = $row['activa'];
+                $estados_grupos[$row['id']] = $row['activo'];
             }
             $stmt->close();
 

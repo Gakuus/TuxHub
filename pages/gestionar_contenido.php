@@ -90,10 +90,10 @@ if ($id) {
             <div class="preview-img-container mt-2 text-center"></div>
           </div>
 
-          <?php if (!empty($item['imagen'])): ?>
+          <?php if (!empty($item['imagen_ruta'])): ?>
             <div class="mb-3">
               <p class="mb-1 text-muted small">Imagen actual:</p>
-              <img src="data:image/jpeg;base64,<?= base64_encode($item['imagen']) ?>"
+              <img src="<?= htmlspecialchars($item['imagen_ruta'], ENT_QUOTES, 'UTF-8') ?>"
                    alt="Imagen" class="rounded-2 shadow-sm" style="max-height:150px;">
             </div>
           <?php endif; ?>

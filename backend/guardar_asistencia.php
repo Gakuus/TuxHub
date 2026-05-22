@@ -19,14 +19,15 @@ if (isset($_GET['historial'])) {
 
     $q = $conn->query("
         SELECT a.*, u.nombre AS profesor, g.nombre AS grupo, s.nombre_salon AS salon,
-               h.hora_inicio, h.hora_fin, h.dia
+               d.nombre_dia AS dia, bh.hora_inicio, bh.hora_fin
         FROM asistencias a
         INNER JOIN usuarios u ON a.usuario_id = u.id
         INNER JOIN grupos g ON a.grupo_id = g.id
         LEFT JOIN salones s ON a.salon_id = s.id
-        LEFT JOIN horarios h ON a.horario_id = h.id
+        LEFT JOIN dias d ON a.dia_id = d.id
+        LEFT JOIN bloques_horarios bh ON a.bloque_id = bh.id
         $where_sql
-        ORDER BY a.fecha DESC, h.dia, h.hora_inicio
+        ORDER BY a.fecha DESC, d.id, bh.hora_inicio
     ");
 
     echo "<table class='table table-bordered table-hover'>
@@ -37,14 +38,14 @@ if (isset($_GET['historial'])) {
     if ($q->num_rows) {
         while ($r = $q->fetch_assoc()) {
             echo "<tr>
-                <td>{$r['fecha']}</td>
-                <td>{$r['profesor']}</td>
-                <td>{$r['grupo']}</td>
-                <td>{$r['dia']}</td>
-                <td>".($r['hora_inicio'] ? "{$r['hora_inicio']} - {$r['hora_fin']}" : "")."</td>
-                <td>{$r['salon']}</td>
-                <td>".($r['estado']==='asistio'?'✅ Asistió':'❌ Inasistencia')."</td>
-                <td>{$r['justificacion']}</td>
+                <td>" . htmlspecialchars($r['fecha'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>
+                <td>" . htmlspecialchars($r['profesor'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>
+                <td>" . htmlspecialchars($r['grupo'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>
+                <td>" . htmlspecialchars($r['dia'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>
+                <td>" . ($r['hora_inicio'] ? htmlspecialchars("{$r['hora_inicio']} - {$r['hora_fin']}", ENT_QUOTES, 'UTF-8') : '') . "</td>
+                <td>" . htmlspecialchars($r['salon'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>
+                <td>" . ($r['estado'] === 'asistio' ? '✅ Asistió' : '❌ Inasistencia') . "</td>
+                <td>" . htmlspecialchars($r['justificacion'] ?? '', ENT_QUOTES, 'UTF-8') . "</td>
             </tr>";
         }
     } else {
@@ -63,13 +64,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $grupo_id = $_POST['grupo_id'] ?? '';
     $fecha = $_POST['fecha'] ?? '';
     $estado = $_POST['estado'] ?? '';
-    $horario_id = $_POST['horario_id'] ?: 'NULL';
     $salon_id = $_POST['salon_id'] ?: 'NULL';
     $justificacion = $conn->real_escape_string($_POST['justificacion'] ?? '');
 
+    $dia_id = 'NULL';
+    $bloque_id = 'NULL';
+    if (!empty($_POST['horario_id'])) {
+        $h_id = (int)$_POST['horario_id'];
+        $h_res = $conn->query("SELECT dia_id, bloque_id FROM horarios WHERE id = $h_id");
+        if ($h_row = $h_res->fetch_assoc()) {
+            $dia_id = $h_row['dia_id'];
+            $bloque_id = $h_row['bloque_id'];
+        }
+    }
+
     $sql = "
-        INSERT INTO asistencias (usuario_id, grupo_id, fecha, estado, horario_id, salon_id, justificacion)
-        VALUES ('$usuario_id', '$grupo_id', '$fecha', '$estado', $horario_id, $salon_id, '$justificacion')
+        INSERT INTO asistencias (usuario_id, grupo_id, fecha, estado, justificacion, dia_id, bloque_id, salon_id)
+        VALUES ('$usuario_id', '$grupo_id', '$fecha', '$estado', '$justificacion', $dia_id, $bloque_id, $salon_id)
     ";
 
     if ($conn->query($sql)) {

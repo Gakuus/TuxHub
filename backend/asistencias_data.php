@@ -36,10 +36,12 @@ switch ($accion) {
             exit;
         }
         $sql = "
-            SELECT id, dia, hora_inicio, hora_fin
-            FROM horarios
-            WHERE grupo_id='$grupo_id' AND profesor_id='$profesor_id'
-            ORDER BY FIELD(dia,'Lunes','Martes','Miércoles','Jueves','Viernes'), hora_inicio
+            SELECT h.id, d.nombre_dia AS dia, bh.hora_inicio, bh.hora_fin
+            FROM horarios h
+            JOIN dias d ON h.dia_id = d.id
+            JOIN bloques_horarios bh ON h.bloque_id = bh.id
+            WHERE h.grupo_id='$grupo_id' AND h.profesor_id='$profesor_id'
+            ORDER BY d.id, bh.hora_inicio
         ";
         $res = $conn->query($sql);
         echo json_encode($res->fetch_all(MYSQLI_ASSOC));
@@ -60,14 +62,15 @@ switch ($accion) {
 
         $sql = "
             SELECT a.*, u.nombre AS profesor, g.nombre AS grupo, s.nombre_salon AS salon,
-                   h.hora_inicio, h.hora_fin, h.dia
+                   d.nombre_dia AS dia, bh.hora_inicio, bh.hora_fin
             FROM asistencias a
             INNER JOIN usuarios u ON a.usuario_id = u.id
             INNER JOIN grupos g ON a.grupo_id = g.id
             LEFT JOIN salones s ON a.salon_id = s.id
-            LEFT JOIN horarios h ON a.horario_id = h.id
+            LEFT JOIN dias d ON a.dia_id = d.id
+            LEFT JOIN bloques_horarios bh ON a.bloque_id = bh.id
             $where_sql
-            ORDER BY a.fecha DESC, h.dia, h.hora_inicio
+            ORDER BY a.fecha DESC, d.id, bh.hora_inicio
         ";
         $res = $conn->query($sql);
         echo json_encode($res->fetch_all(MYSQLI_ASSOC));

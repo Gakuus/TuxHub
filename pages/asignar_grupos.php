@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['profesor_id'], $_POST
 $selected_turno = $_POST['turno'] ?? '';
 $selected_estado = $_POST['estado'] ?? '';
 
-$grupos_query = "SELECT id, nombre, turno, activa FROM grupos WHERE 1=1";
+$grupos_query = "SELECT id, nombre, turno, activo FROM grupos WHERE 1=1";
 $params = [];
 $types = '';
 
@@ -65,7 +65,7 @@ if ($selected_turno !== '') {
 }
 
 if ($selected_estado !== '') {
-    $grupos_query .= " AND activa = ?";
+    $grupos_query .= " AND activo = ?";
     $params[] = (int)$selected_estado;
     $types .= 'i';
 }
@@ -151,9 +151,9 @@ if (isset($_POST['profesor_id']) && $_POST['profesor_id'] !== '') {
 
       <div class="checkbox-grid">
         <?php $grupos->data_seek(0); while ($g = $grupos->fetch_assoc()): ?>
-          <label class="checkbox-item" for="grupo_<?= $g['id'] ?>" style="<?= !$g['activa'] ? 'opacity:0.6;' : '' ?>">
+          <label class="checkbox-item" for="grupo_<?= $g['id'] ?>" style="<?= !$g['activo'] ? 'opacity:0.6;' : '' ?>">
             <input type="checkbox" class="grupo-checkbox" name="grupos[]" value="<?= $g['id'] ?>" id="grupo_<?= $g['id'] ?>" <?= in_array($g['id'], $grupos_profesor) ? 'checked' : '' ?>>
-            <span><?= htmlspecialchars($g['nombre']) ?> (<?= htmlspecialchars($g['turno']) ?>)<?= !$g['activa'] ? ' <small class="text-muted">Inactivo</small>' : '' ?></span>
+            <span><?= htmlspecialchars($g['nombre']) ?> (<?= htmlspecialchars($g['turno']) ?>)<?= !$g['activo'] ? ' <small class="text-muted">Inactivo</small>' : '' ?></span>
           </label>
         <?php endwhile; ?>
       </div>

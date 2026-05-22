@@ -66,7 +66,7 @@ try {
             VALUES (?, ?, ?, ?, ?, ?)";
     $stmt = $conn->prepare($sql);
     $stmt->bind_param(
-        "ssssssi",
+        "sssssi",
         $cedula,
         $nombre,
         $email,

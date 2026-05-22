@@ -11,7 +11,7 @@ $autor_id = $_SESSION['user_id'];
 try {
     if ($tipo === 'noticias') {
         $contenido = trim($_POST['contenido']);
-        $imagenData = null;
+        $imagen_ruta = null;
 
         // Validar campos requeridos
         if (empty($titulo) || empty($contenido)) {
@@ -48,17 +48,19 @@ try {
                 throw new Exception("Solo se permiten archivos de imagen (JPG, PNG, GIF, WebP)");
             }
             
-            $imagenData = file_get_contents($tmp_name);
+            if (!is_dir('uploads')) {
+                mkdir('uploads', 0755, true);
+            }
+            $filename = 'uploads/' . uniqid() . '_' . basename($_FILES['imagen_file']['name']);
+            move_uploaded_file($tmp_name, $filename);
+            $imagen_ruta = $filename;
         }
-
-        $null = null;
 
         if ($id) {
             // UPDATE
-            if ($imagenData) {
-                $stmt = $conn->prepare("UPDATE noticias SET titulo=?, contenido=?, imagen=? WHERE id=?");
-                $stmt->bind_param("ssbi", $titulo, $contenido, $null, $id);
-                $stmt->send_long_data(2, $imagenData);
+            if ($imagen_ruta) {
+                $stmt = $conn->prepare("UPDATE noticias SET titulo=?, contenido=?, imagen_ruta=? WHERE id=?");
+                $stmt->bind_param("sssi", $titulo, $contenido, $imagen_ruta, $id);
             } else {
                 $stmt = $conn->prepare("UPDATE noticias SET titulo=?, contenido=? WHERE id=?");
                 $stmt->bind_param("ssi", $titulo, $contenido, $id);
@@ -67,11 +69,8 @@ try {
             $stmt->close();
         } else {
             // INSERT
-            $stmt = $conn->prepare("INSERT INTO noticias (titulo, contenido, imagen, autor_id) VALUES (?, ?, ?, ?)");
-            $stmt->bind_param("ssbi", $titulo, $contenido, $null, $autor_id);
-            if ($imagenData) {
-                $stmt->send_long_data(2, $imagenData);
-            }
+            $stmt = $conn->prepare("INSERT INTO noticias (titulo, contenido, imagen_ruta, autor_id) VALUES (?, ?, ?, ?)");
+            $stmt->bind_param("sssi", $titulo, $contenido, $imagen_ruta, $autor_id);
             $stmt->execute();
             $id = $conn->insert_id;
             $stmt->close();

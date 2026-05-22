@@ -1,5 +1,5 @@
 -- ============================================
--- SISTEMA AGORA - Datos Iniciales
+-- SISTEMA AGORA - Datos Iniciales (Seed)
 -- ============================================
 
 USE db_agora;
@@ -40,3 +40,78 @@ INSERT INTO bloques_horarios (turno, hora_inicio, hora_fin) VALUES
 -- =====================================
 INSERT INTO usuarios (cedula, nombre, email, password, rol) VALUES
     ('00000000', 'Administrador', 'admin@agora.edu', '$2y$12$RdVP/CWf52byOYlc/.bYaO4YIO0AGNnIxpaYZk7r.gemTOXS9mcaq', 'admin');
+
+-- =====================================
+-- Password reset token para el admin (primer inicio)
+-- =====================================
+INSERT INTO password_resets (user_id, token, expira) VALUES
+    (1, SHA2('reset-admin-00000000', 256), DATE_ADD(NOW(), INTERVAL 24 HOUR));
+
+-- =====================================
+-- Grupos
+-- =====================================
+INSERT INTO grupos (nombre, turno, activo) VALUES
+    ('1A', 'mañana', TRUE),
+    ('2B', 'tarde',  TRUE),
+    ('3C', 'noche',  TRUE);
+
+-- =====================================
+-- Materias
+-- =====================================
+INSERT INTO materias (nombre_materia, activa) VALUES
+    ('Matemática',         TRUE),
+    ('Lengua',             TRUE),
+    ('Historia',           TRUE),
+    ('Inglés',             TRUE),
+    ('Educación Física',   TRUE);
+
+-- =====================================
+-- Salones
+-- =====================================
+INSERT INTO salones (nombre_salon, capacidad, ubicacion) VALUES
+    ('Aula 101',    30, 'Planta Baja'),
+    ('Aula 203',    25, 'Primer Piso'),
+    ('Laboratorio', 20, 'Planta Baja');
+
+-- =====================================
+-- Recursos de cada salón
+-- =====================================
+INSERT INTO salon_recursos (salon_id, recurso, cantidad) VALUES
+    (1, 'pizarra',            1),
+    (1, 'proyector',          1),
+    (2, 'television',         1),
+    (2, 'pizarra',            1),
+    (3, 'computadoras',      15),
+    (3, 'pizarra',            1),
+    (3, 'aire_acondicionado', 1);
+
+-- =====================================
+-- Usuarios (profesor y alumno)
+--   Contraseña para ambos: '12345678'
+--   Hash bcrypt: $2y$12$LJ3m4ys3Lk0TSwHnbfOMiOXPm1QlSGm0MqpDhGMFEORgk3JE.fJiy
+-- =====================================
+INSERT INTO usuarios (cedula, nombre, email, password, rol, grupo_id) VALUES
+    ('11111111', 'Carlos Profesor', 'carlos@agora.edu', '$2y$12$LJ3m4ys3Lk0TSwHnbfOMiOXPm1QlSGm0MqpDhGMFEORgk3JE.fJiy', 'profesor', NULL),
+    ('22222222', 'Ana Alumna',      'ana@agora.edu',    '$2y$12$LJ3m4ys3Lk0TSwHnbfOMiOXPm1QlSGm0MqpDhGMFEORgk3JE.fJiy', 'alumno',   1);
+
+-- =====================================
+-- Asignación profesor → grupo (M:N)
+-- =====================================
+INSERT INTO grupos_profesores (profesor_id, grupo_id) VALUES
+    (2, 1),
+    (2, 2),
+    (2, 3);
+
+-- =====================================
+-- Asignación alumno → grupo (M:N)
+-- =====================================
+INSERT INTO alumnos_grupos (alumno_id, grupo_id) VALUES
+    (3, 1);
+
+-- =====================================
+-- Recursos físicos (llaves, controles, alargues)
+-- =====================================
+INSERT INTO recursos (nombre, tipo, estado) VALUES
+    ('Proyector HD',  'Llave',   'Disponible'),
+    ('Control Aire',   'Control', 'Disponible'),
+    ('Alargue 5m',     'Alargue', 'Disponible');
