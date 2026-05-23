@@ -69,7 +69,7 @@ if ($id) {
 
   <?php if (isset($_GET['success'])): ?>
     <div class="alert alert-success alert-dismissible fade show" role="alert">
-      <i class="bi bi-check-circle"></i> ¡Guardado correctamente!
+      <i class="bi bi-check-circle"></i> Contenido guardado correctamente.
       <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>
   <?php endif; ?>

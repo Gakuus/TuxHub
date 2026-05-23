@@ -73,6 +73,34 @@ CHAT_MODEL=llama-3.1-8b-instant
 
 > Seguridad: API key solo server-side, CSRF con hash_equals, rate limiting 20 req/min, respuestas sanitizadas contra XSS.
 
+### Toast Notifications
+
+Sistema de notificaciones toast implementado en `css/dashboard.css` y `dashboard.php`.
+
+**Cómo funciona:**
+
+- Los mensajes del servidor se renderizan como `<div class="alert alert-success/danger/warning/info">` de Bootstrap.
+- Al cargar la página, un script en `dashboard.php` detecta estos elementos y los convierte en toasts `.toast-notification` con el mismo contenido y clase de color.
+- Los alerts originales se ocultan (`display: none`), los toasts se agregan al `body`.
+
+**Diseño visual:**
+
+| Elemento | Descripción |
+|----------|-------------|
+| Fondo | Glass-morphism con `backdrop-filter: blur()` |
+| Barra izquierda | Gradiente lineal según tipo (verde/rojo/ámbar/azul) |
+| Icono | Círculo con gradiente y SVG inline |
+| Progreso | Barra horizontal que se reduce en 4s, luego el toast se cierra |
+| Posición | `fixed; bottom: 1.5rem; left: 50%; translateX(-50%)` — centrado inferior |
+| Animación | `scale(0.8 → 1)` + `translateY(20px → 0)` con `cubic-bezier` tipo spring |
+
+**Tipos y colores:**
+
+- `.alert-success` → verde (icono check)
+- `.alert-danger` → rojo (icono X)
+- `.alert-warning` → ámbar (icono alerta)
+- `.alert-info` → azul (icono info, sin progreso)
+
 ## Credenciales por defecto
 
 - Admin: `00000000` / `admin123`

@@ -52,6 +52,7 @@ Proyecto PHP sin framework para gestión educativa. Arquitectura clásica de arc
 | 28 | **Helpers nuevos** | `sanitize_filename()`, `paginate()`, `render_pagination()`, `validate_password_strength()`, `rate_limit_check()` |
 | 29 | **Tests automatizados** | 19 tests (runner propio por falta de ext-xmlwriter). Cobertura: paginate, validate_password, sanitize, csrf, render_pagination |
 | 30 | **Chat AI integrado** | Widget flotante con icono de chat. Soporta múltiples proveedores (Groq, OpenAI, Gemini, Ollama, DeepSeek). Contexto basado en ANALISIS.md para responder sobre el proyecto. CSRF + rate limiting + logging + XSS-safe rendering |
+| 31 | **Toast notifications** | Sistema de notificaciones toast con glass-morphism, barra de progreso, animación spring-like y posicionamiento centrado inferior. Auto-convierte `.alert-success/danger/warning/info` del servidor en toasts al cargar página. Estilos en `css/dashboard.css`, script inline en `dashboard.php`. Reemplaza alerts Bootstrap tradicionales |
 
 ---
 
@@ -86,8 +87,7 @@ Proyecto PHP sin framework para gestión educativa. Arquitectura clásica de arc
 | 3 | **Exportación PDF** además de CSV | Baja |
 | 4 | **Caché de datos maestros** (grupos, materias, salones) | Baja |
 | 5 | **Modo oscuro funcional** (botón ya existe) | Baja |
-| 6 | **Notificaciones toast** reemplazando alerts | Baja |
-| 7 | **Minificación de assets** CSS/JS propios | Baja |
+| 6 | **Minificación de assets** CSS/JS propios | Baja |
 | 8 | **Sistema de migraciones** para BD | Baja |
 
 ---
@@ -99,8 +99,8 @@ Proyecto PHP sin framework para gestión educativa. Arquitectura clásica de arc
 | Archivos PHP modificados | ~36 |
 | Vulnerabilidades críticas cerradas | 8 |
 | Vulnerabilidades altas cerradas | 12 |
-| Funcionalidades nuevas | 10 |
-| Líneas de código agregadas | ~1100 |
+| Funcionalidades nuevas | 11 |
+| Líneas de código agregadas | ~1300 |
 | Líneas eliminadas (código inseguro) | ~150 |
 | Tests | 19, 0 fallos |
 | Dependencias agregadas | PHPUnit ^10 (dev), PHPMailer ^7.0 |

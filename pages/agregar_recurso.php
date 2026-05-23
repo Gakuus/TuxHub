@@ -90,6 +90,7 @@ try {
 
 <!-- Formulario -->
 <form method="POST" action="backend/recursos_backend.php" class="row g-3" id="formRecurso">
+    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
     <input type="hidden" name="id" value="<?= $is_editing ? $recurso_data['id'] : '' ?>">
     
     <div class="col-md-6">

@@ -4,6 +4,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const selectGrupo = document.getElementById('selectGrupo');
     const tabla = document.getElementById('tablaAsistencias');
 
+    function getCsrfToken() {
+        const meta = document.querySelector('meta[name="csrf-token"]');
+        if (meta) return meta.getAttribute('content');
+        const input = document.querySelector('#formAsistencia [name="csrf_token"]');
+        return input ? input.value : '';
+    }
+
     function cargarGrupos(profesorId) {
         const xhr = new XMLHttpRequest();
         xhr.open('POST', 'backend/procesar_asistencia.php', true);
@@ -25,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         };
-        xhr.send('action=cargar_grupos&profesor_id=' + encodeURIComponent(profesorId));
+        xhr.send('action=cargar_grupos&profesor_id=' + encodeURIComponent(profesorId) + '&csrf_token=' + encodeURIComponent(getCsrfToken()));
     }
 
     function cargarHistorial() {
@@ -57,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
         };
-        xhr.send('action=cargar_historial&profesor_id=' + encodeURIComponent(profesorId));
+        xhr.send('action=cargar_historial&profesor_id=' + encodeURIComponent(profesorId) + '&csrf_token=' + encodeURIComponent(getCsrfToken()));
     }
 
     if (selectProfesor) {

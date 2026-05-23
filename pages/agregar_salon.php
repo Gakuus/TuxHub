@@ -27,7 +27,9 @@ $recursos_disponibles = [
 // Procesar formulario
 // =======================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['accion'] === 'agregar_salon') {
-    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== csrf_token()) {
+    $token = $_POST['csrf_token'] ?? '';
+    $stored = $_SESSION['csrf_token'] ?? '';
+    if (empty($token) || empty($stored) || !hash_equals($stored, $token)) {
         echo '<div class="alert alert-danger mt-3">❌ Error de validación CSRF. Intente nuevamente.</div>';
     } else {
         $nombre = trim($_POST['nombre_salon']);
@@ -72,7 +74,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['accion']) && $_POST['
                     $stmt_r->close();
                 }
 
-                echo '<div class="alert alert-success mt-3">✅ Salón agregado correctamente.</div>';
+                echo '<div class="alert alert-success mt-3">Salón registrado correctamente.</div>';
             } else {
                 echo '<div class="alert alert-danger mt-3">❌ Error al agregar salón: ' . htmlspecialchars($stmt->error) . '</div>';
             }

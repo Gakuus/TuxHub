@@ -337,5 +337,27 @@ $page_css = $page_css_map[$page] ?? null;
 <script src="assets/dashboard.js"></script>
 <script src="assets/ui.js"></script>
 <script src="assets/chat.js"></script>
+<script>
+// Auto-convert server-side alerts to ToastSystem notifications
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('.alert-success, .alert-danger, .alert-warning, .alert-info').forEach(function (el) {
+        var msg = '';
+        el.childNodes.forEach(function (node) {
+            if (node.nodeType === 3) {
+                msg += node.textContent;
+            }
+        });
+        msg = msg.replace(/[✅❌⚠️×]/g, '').trim();
+        if (!msg) return;
+        var type = 'info';
+        if (el.classList.contains('alert-success')) type = 'success';
+        else if (el.classList.contains('alert-danger')) type = 'error';
+        else if (el.classList.contains('alert-warning')) type = 'warning';
+        var titles = { success: 'Operación exitosa', error: 'Error', warning: 'Aviso', info: 'Información' };
+        ToastSystem.show({ type: type, title: titles[type], message: msg, duration: 4000 });
+        el.style.display = 'none';
+    });
+});
+</script>
 </body>
 </html>

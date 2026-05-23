@@ -38,7 +38,7 @@ if (isset($_GET['desactivor'])) {
             $stmt->close();
             
             if ($updated) {
-                $mensaje = "<div class='alert alert-warning'>✅ Grupo '" . htmlspecialchars($grupo['nombre'], ENT_QUOTES, 'UTF-8') . "' desactivodo correctamente.</div>";
+                $mensaje = "<div class='alert alert-success'>Grupo '" . htmlspecialchars($grupo['nombre'], ENT_QUOTES, 'UTF-8') . "' desactivado correctamente.</div>";
                 echo "<script>setTimeout(() => { window.location.href = 'dashboard.php?page=grupos'; }, 1000);</script>";
             } else {
                 $mensaje = "<div class='alert alert-danger'>❌ Error al desactivor.</div>";
@@ -72,7 +72,7 @@ if (isset($_GET['activor'])) {
             $stmt->close();
             
             if ($updated) {
-                $mensaje = "<div class='alert alert-success'>✅ Grupo '" . htmlspecialchars($grupo['nombre'], ENT_QUOTES, 'UTF-8') . "' activodo correctamente.</div>";
+                $mensaje = "<div class='alert alert-success'>Grupo '" . htmlspecialchars($grupo['nombre'], ENT_QUOTES, 'UTF-8') . "' reactivado correctamente.</div>";
                 echo "<script>setTimeout(() => { window.location.href = 'dashboard.php?page=grupos'; }, 1000);</script>";
             } else {
                 $mensaje = "<div class='alert alert-danger'>❌ Error al activor.</div>";
@@ -104,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nombre_grupo'])) {
                     $stmt = $conn->prepare("UPDATE grupos SET activo = 1 WHERE id = ?");
                     $stmt->bind_param("i", $grupo_existente['id']);
                     if ($stmt->execute()) {
-                        $mensaje = "<div class='alert alert-success'>✅ Grupo reactivado correctamente.</div>";
+                        $mensaje = "<div class='alert alert-success'>Grupo reactivado correctamente.</div>";
                         $_POST['nombre_grupo'] = '';
                     }
                     $stmt->close();
@@ -115,7 +115,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['nombre_grupo'])) {
                 $stmt = $conn->prepare("INSERT INTO grupos (nombre, turno, activo) VALUES (?, ?, 1)");
                 $stmt->bind_param("ss", $nombre_grupo, $turno);
                 if ($stmt->execute()) {
-                    $mensaje = "<div class='alert alert-success'>✅ Grupo agregado correctamente.</div>";
+                    $mensaje = "<div class='alert alert-success'>Grupo creado correctamente.</div>";
                     $_POST['nombre_grupo'] = '';
                 } else {
                     $mensaje = "<div class='alert alert-danger'>❌ Error al insertar grupo.</div>";

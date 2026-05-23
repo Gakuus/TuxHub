@@ -24,7 +24,9 @@ while ($t = $res_turnos->fetch_assoc()) $turnos[] = $t['turno'];
 // 2. Procesar envío del formulario
 // ==============================
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['profesor_id'], $_POST['grupos'])) {
-    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== csrf_token()) {
+    $token = $_POST['csrf_token'] ?? '';
+    $stored = $_SESSION['csrf_token'] ?? '';
+    if (empty($token) || empty($stored) || !hash_equals($stored, $token)) {
         echo "<div class='alert alert-danger text-center mt-3'>Error de validación CSRF. Intente nuevamente.</div>";
     } else {
         $profesor_id = intval($_POST['profesor_id']);
@@ -44,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['profesor_id'], $_POST
             $stmt->close();
         }
 
-        echo "<div class='alert alert-success text-center mt-3'>Grupos actualizados correctamente.</div>";
+        echo "<div class='alert alert-success text-center mt-3'>Grupos asignados correctamente.</div>";
     }
 }
 

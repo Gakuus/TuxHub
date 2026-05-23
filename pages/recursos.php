@@ -353,6 +353,7 @@ $total_recursos = count($recurso_rows);
                             </a>
                             <?php if ($r['estado'] === 'Ocupado'): ?>
                                 <form method="POST" action="backend/recursos_backend.php">
+                                    <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                     <input type="hidden" name="accion" value="marcar_uso">
                                     <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
                                     <input type="hidden" name="tipo_uso" value="liberar">
@@ -366,6 +367,7 @@ $total_recursos = count($recurso_rows);
                     <?php elseif ($rol === 'profesor'): ?>
                         <div class="action-row">
                             <form method="POST" action="backend/recursos_backend.php" class="usage-form w-100" data-tipo="<?= htmlspecialchars($r['tipo'], ENT_QUOTES, 'UTF-8') ?>">
+                                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                 <input type="hidden" name="accion" value="marcar_uso">
                                 <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
                                 <input type="hidden" name="mantener_salon" value="<?= $r['tipo'] !== 'Alargue' ? '1' : '0' ?>">
@@ -428,6 +430,7 @@ $total_recursos = count($recurso_rows);
                             <div class="d-flex gap-2 mt-2">
                                 <?php if ($r['estado'] === 'Disponible'): ?>
                                     <form method="POST" action="backend/recursos_backend.php">
+                                        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                         <input type="hidden" name="accion" value="reservar">
                                         <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
                                         <button type="submit" class="btn btn-outline-primary btn-sm">
@@ -436,6 +439,7 @@ $total_recursos = count($recurso_rows);
                                     </form>
                                 <?php elseif ($r['estado'] === 'Reservado' && (int)($r['usuario_id'] ?? 0) === $user_id): ?>
                                     <form method="POST" action="backend/recursos_backend.php">
+                                        <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                         <input type="hidden" name="accion" value="cancelar_reserva">
                                         <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
                                         <button type="submit" class="btn btn-outline-danger btn-sm">
@@ -448,8 +452,8 @@ $total_recursos = count($recurso_rows);
                     <?php elseif ($rol === 'alumno'): ?>
                         <div class="action-row">
                             <form method="POST" action="backend/recursos_backend.php" class="usage-form w-100" data-tipo="<?= htmlspecialchars($r['tipo'], ENT_QUOTES, 'UTF-8') ?>">
+                                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                                 <input type="hidden" name="accion" value="marcar_uso">
-                                <input type="hidden" name="id" value="<?= (int)$r['id'] ?>">
                                 <input type="hidden" name="mantener_salon" value="<?= $r['tipo'] !== 'Alargue' ? '1' : '0' ?>">
                                 <div class="row g-2">
                                     <?php if (($r['tipo'] === 'Alargue' && empty($r['salon_id'])) || ($r['tipo'] !== 'Alargue' && empty($r['salon_id']))): ?>

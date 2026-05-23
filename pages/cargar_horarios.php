@@ -108,6 +108,7 @@ if($grupo_id){
 // PROCESAR GUARDADO
 // ==========================
 if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['guardar'])){
+    csrf_verify();
     $profesor_id = intval($_POST['profesor_id']);
     $materia_id  = intval($_POST['materia_id']);
     $dia_id      = intval($_POST['dia_id'] ?? 0);
@@ -231,7 +232,7 @@ if($_SERVER['REQUEST_METHOD']==='POST' && isset($_POST['guardar'])){
         }
     }
     $ins->close();
-    $mensajes[]=['tipo'=>'success','texto'=>"✅ Horario(s) guardado(s) correctamente."];
+    $mensajes[]=['tipo'=>'success','texto'=>"Horario(s) guardado(s) exitosamente."];
 }
 
 FIN_PROCESO:

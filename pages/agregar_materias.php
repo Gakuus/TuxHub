@@ -70,7 +70,7 @@ if (isset($_GET['activar'])) {
             $stmt->close();
             
             if ($result) {
-                $mensaje = "<div class='alert alert-success'>Materia '" . htmlspecialchars($materia['nombre_materia'], ENT_QUOTES, 'UTF-8') . "' activada correctamente.</div>";
+                $mensaje = "<div class='alert alert-success'>Materia '" . htmlspecialchars($materia['nombre_materia'], ENT_QUOTES, 'UTF-8') . "' reactivada correctamente.</div>";
                 echo "<script>setTimeout(() => { window.location.href = 'dashboard.php?page=agregar_materias'; }, 1000);</script>";
             } else {
                 $mensaje = "<div class='alert alert-danger'>Error al activar.</div>";
@@ -118,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $stmt = $conn->prepare("INSERT INTO materias (nombre_materia, activa) VALUES (?, 1)");
                     $stmt->bind_param("s", $nombre_materia);
                     if ($stmt->execute()) {
-                        $mensaje = "<div class='alert alert-success'>Materia agregada correctamente.</div>";
+                        $mensaje = "<div class='alert alert-success'>Materia creada correctamente.</div>";
                         $_POST['nombre_materia'] = '';
                     } else {
                         $mensaje = "<div class='alert alert-danger'>Error al insertar la materia.</div>";

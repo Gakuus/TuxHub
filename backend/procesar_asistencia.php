@@ -7,6 +7,10 @@ header('Content-Type: application/json; charset=utf-8');
 
 $action = $_POST['action'] ?? '';
 
+if ($action === 'guardar_asistencia') {
+    csrf_verify();
+}
+
 switch ($action) {
     case 'cargar_grupos':
         $profesor_id = intval($_POST['profesor_id'] ?? 0);

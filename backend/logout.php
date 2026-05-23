@@ -3,7 +3,9 @@ require_once __DIR__ . '/helpers.php';
 
 // Verificar token CSRF si es una solicitud POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+    $token = $_POST['csrf_token'] ?? '';
+    $stored = $_SESSION['csrf_token'] ?? '';
+    if (empty($token) || empty($stored) || !hash_equals($stored, $token)) {
         http_response_code(403);
         exit('Token CSRF inválido');
     }

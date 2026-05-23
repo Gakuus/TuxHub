@@ -521,17 +521,265 @@ body {
     gap: 1.25rem;
 }
 
+/* ---- Toast Notification ---- */
+.toast-notification {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.875rem;
+    padding: 1rem 1.25rem;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.95);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow:
+        0 1px 3px rgba(0,0,0,0.04),
+        0 4px 16px rgba(0,0,0,0.06),
+        0 12px 48px rgba(0,0,0,0.1);
+    pointer-events: auto;
+    animation: toastIn 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.04);
+}
+
+.toast-notification::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    border-radius: 4px 0 0 4px;
+}
+
+.toast-success::before {
+    background: linear-gradient(180deg, #059669, #34d399);
+}
+
+.toast-error::before {
+    background: linear-gradient(180deg, #dc2626, #f87171);
+}
+
+.toast-warning::before {
+    background: linear-gradient(180deg, #d97706, #fbbf24);
+}
+
+.toast-info::before {
+    background: linear-gradient(180deg, #2563eb, #60a5fa);
+}
+
+.toast-notification.removing {
+    animation: toastOut 0.35s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.toast-icon {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    font-size: 1rem;
+    margin-left: 0.25rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+}
+
+.toast-success .toast-icon {
+    background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+    color: #059669;
+}
+
+.toast-error .toast-icon {
+    background: linear-gradient(135deg, #fee2e2, #fecaca);
+    color: #dc2626;
+}
+
+.toast-warning .toast-icon {
+    background: linear-gradient(135deg, #fef3c7, #fde68a);
+    color: #d97706;
+}
+
+.toast-info .toast-icon {
+    background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+    color: #2563eb;
+}
+
+.toast-body {
+    flex: 1;
+    min-width: 0;
+    padding: 0.125rem 0;
+}
+
+.toast-title {
+    font-weight: 700;
+    font-size: 0.925rem;
+    color: #0f172a;
+    margin-bottom: 0.125rem;
+    line-height: 1.4;
+    letter-spacing: -0.01em;
+}
+
+.toast-message {
+    font-size: 0.85rem;
+    color: #475569;
+    line-height: 1.45;
+}
+
+.toast-close {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0,0,0,0.04);
+    border: none;
+    border-radius: 8px;
+    font-size: 1.1rem;
+    line-height: 1;
+    color: #94a3b8;
+    cursor: pointer;
+    padding: 0;
+    opacity: 0.6;
+    transition: all 0.15s ease;
+    margin-top: 0.125rem;
+}
+
+.toast-close:hover {
+    opacity: 1;
+    background: rgba(0,0,0,0.08);
+    color: #475569;
+}
+
+.toast-progress {
+    position: absolute;
+    bottom: 0;
+    left: 4px;
+    right: 0;
+    height: 3px;
+    background: rgba(0,0,0,0.04);
+    border-radius: 0 0 16px 0;
+    overflow: hidden;
+}
+
+.toast-progress::after {
+    content: '';
+    display: block;
+    height: 100%;
+    border-radius: 0 0 16px 0;
+    animation: toastProgress 4s linear forwards;
+}
+
+.toast-success .toast-progress::after {
+    background: linear-gradient(90deg, #059669, #34d399);
+}
+
+.toast-error .toast-progress::after {
+    background: linear-gradient(90deg, #dc2626, #f87171);
+}
+
+.toast-warning .toast-progress::after {
+    background: linear-gradient(90deg, #d97706, #fbbf24);
+}
+
+.toast-info .toast-progress::after {
+    background: linear-gradient(90deg, #2563eb, #60a5fa);
+}
+
+@keyframes toastIn {
+    from {
+        opacity: 0;
+        transform: translateY(24px) scale(0.92);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+@keyframes toastOut {
+    from {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: translateY(-12px) scale(0.96);
+    }
+}
+
+@keyframes toastProgress {
+    from { width: 100%; }
+    to { width: 0%; }
+}
+
+body.dark-mode .toast-notification {
+    background: rgba(15,23,42,0.92);
+    border-color: rgba(255,255,255,0.06);
+    box-shadow:
+        0 1px 3px rgba(0,0,0,0.2),
+        0 4px 16px rgba(0,0,0,0.3),
+        0 12px 48px rgba(0,0,0,0.4);
+}
+
+body.dark-mode .toast-title {
+    color: #f1f5f9;
+}
+
+body.dark-mode .toast-message {
+    color: #94a3b8;
+}
+
+body.dark-mode .toast-close {
+    background: rgba(255,255,255,0.06);
+    color: #64748b;
+}
+
+body.dark-mode .toast-close:hover {
+    background: rgba(255,255,255,0.1);
+    color: #94a3b8;
+}
+
+body.dark-mode .toast-success .toast-icon {
+    background: linear-gradient(135deg, rgba(5,150,105,0.2), rgba(52,211,153,0.15));
+}
+
+body.dark-mode .toast-error .toast-icon {
+    background: linear-gradient(135deg, rgba(220,38,38,0.2), rgba(248,113,113,0.15));
+}
+
+body.dark-mode .toast-warning .toast-icon {
+    background: linear-gradient(135deg, rgba(217,119,6,0.2), rgba(251,191,36,0.15));
+}
+
+body.dark-mode .toast-info .toast-icon {
+    background: linear-gradient(135deg, rgba(37,99,235,0.2), rgba(96,165,250,0.15));
+}
+
+body.dark-mode .toast-progress {
+    background: rgba(255,255,255,0.04);
+}
+
 /* ---- Toast Container ---- */
 .toast-container {
     position: fixed;
-    top: 1.5rem;
-    right: 1.5rem;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
     z-index: 1060;
     display: flex;
     flex-direction: column;
+    align-items: center;
     gap: 0.75rem;
-    max-width: 400px;
+    width: 100%;
+    max-width: 480px;
+    padding: 0 1rem;
     pointer-events: none;
+}
+
+.toast-container .toast-notification {
+    width: 100%;
 }
 
 /* ---- Loading Overlay ---- */
@@ -676,10 +924,9 @@ body.dark-mode .overlay-spinner {
     }
 
     .toast-container {
-        top: 1rem;
-        right: 1rem;
-        left: 1rem;
-        max-width: none;
+        bottom: 1rem;
+        max-width: calc(100% - 2rem);
+        padding: 0;
     }
 
     .page-header {

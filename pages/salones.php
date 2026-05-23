@@ -335,6 +335,7 @@ if ($rec_res) {
                 <i class="bi bi-people-fill"></i>Seleccionar Grupo
             </div>
             <form method="POST">
+                <input type="hidden" name="csrf_token" value="<?= csrf_token() ?>">
                 <div class="filter-buttons">
                     <select name="grupo_id" class="form-select" onchange="this.form.submit()" style="max-width: 300px;">
                         <?php foreach ($grupos_profesor as $g): ?>

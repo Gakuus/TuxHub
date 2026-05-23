@@ -90,6 +90,7 @@ CHAT_MODEL=llama-3.1-8b-instant
 - **Contenido**: Noticias y avisos con imágenes (CRUD admin)
 - **Recuperación de contraseña**: Vía email con PHPMailer + Gmail SMTP
 - **Chat AI**: Widget flotante con asistente virtual. Responde preguntas sobre el proyecto usando Groq (gratis), OpenAI, Gemini, Ollama o DeepSeek. CSRF + rate limiting + XSS-safe
+- **Toast notifications**: Sistema de notificaciones toast con glass-morphism, animación spring-like y barra de progreso. Convierte automáticamente los alerts PHP tradicionales en toasts visualmente modernos
 
 ## Licencia
 

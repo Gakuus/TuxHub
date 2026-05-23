@@ -24,6 +24,7 @@ try {
             break;
         default:
             if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+                csrf_verify();
                 registrarAsistencia();
             } else {
                 echo json_encode(['success' => false, 'message' => 'Acción no válida: ' . $action]);
